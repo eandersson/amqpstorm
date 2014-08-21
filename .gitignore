@@ -1,0 +1,6 @@
+*.pyc
+*.pyo
+*.bkp
+*.log
+.idea
+__pycache__
