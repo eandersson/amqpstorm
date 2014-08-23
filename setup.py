@@ -6,7 +6,7 @@ See https://github.com/eandersson/amqp-storm for more information.
 """
 
 setup(name='AMQP-Storm',
-      version='1.0.2',
+      version='1.0.3',
       description='Thread-safe Python AMQP Client Library based on pamqp.',
       long_description=long_description,
       author='Erik Olof Gunnar Andersson',
