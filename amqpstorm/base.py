@@ -128,7 +128,7 @@ class Rpc(object):
         return uuid
 
     def remove_request(self, uuid):
-        """ Remove any RPC request(s) from this uuid.
+        """ Remove any RPC request(s) using this uuid.
 
         :param str uuid:
         :return:
@@ -137,17 +137,30 @@ class Rpc(object):
             if self.request[key] == uuid:
                 del self.request[key]
 
-    def get_request(self, uuid, raw=False, timeout=30):
+    def remove_response(self, uuid):
+        """ Remove a RPC Response using this uuid.
+
+        :param str uuid:
+        :return:
+        """
+        if uuid in self.response:
+            del self.response[uuid]
+
+    def get_request(self, uuid, raw=False, auto_remove=True, timeout=30):
         """ Get a RPC request.
 
         :param str uuid:
-        :param bool raw: Return the raw frame?
+        :param bool raw: Return the raw frame.
+        :param bool auto_remove: Automatically remove response.
         :param int timeout: Rpc timeout.
         :return:
         """
         self._wait_for_request(uuid, timeout)
         frame = self.response.get(uuid, None)
-        del self.response[uuid]
+
+        self.response[uuid] = None
+        if auto_remove:
+            self.remove_response(uuid)
 
         result = None
         if raw:

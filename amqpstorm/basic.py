@@ -61,17 +61,18 @@ class Basic(object):
 
             self._channel.write_frame(get_frame)
             get_frame = self._channel.rpc.get_request(uuid_get, True)
+
             if not isinstance(get_frame, pamqp_spec.Basic.GetOk):
-                self._channel.rpc.remove_request(uuid_header)
-                self._channel.rpc.remove_request(uuid_body)
+                self._channel.rpc.remove_response(uuid_header)
+                self._channel.rpc.remove_response(uuid_body)
                 return None
 
             content_header = self._channel.rpc.get_request(uuid_header, True)
-            content_body = self._channel.rpc.get_request(uuid_body, True)
-            message = Message(self._channel,
-                              get_frame,
-                              content_header,
-                              content_body).to_dict()
+            body = self._get_content_body(uuid_body, content_header.body_size)
+
+        message = Message(body, self._channel,
+                          get_frame.__dict__,
+                          content_header.properties.__dict__).to_dict()
 
         return message
 
@@ -201,7 +202,7 @@ class Basic(object):
             This function is based on code from Rabbitpy.
             https://github.com/gmr/rabbitpy
 
-        :param body:
+        :param str body:
         :param send_buffer:
         :return:
         """
@@ -213,3 +214,19 @@ class Basic(object):
                 end_frame = len(body)
             send_buffer.append(
                 pamqp_body.ContentBody(body[start_frame:end_frame]))
+
+    def _get_content_body(self, uuid_body, body_size):
+        """ Get Content Body using RPC requests.
+
+        :param str uuid_body:
+        :param int body_size:
+        """
+        body = bytes()
+        while len(body) < body_size:
+            body_piece = self._channel.rpc.get_request(uuid_body, True,
+                                                       auto_remove=False)
+            if not body_piece:
+                break
+            body += body_piece.value
+        self._channel.rpc.remove_response(uuid_body)
+        return body

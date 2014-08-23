@@ -206,10 +206,23 @@ class Channel(BaseChannel):
                 return None
             basic_deliver = self._inbound.pop(0)
             content_header = self._inbound.pop(0)
-            content_body = self._inbound.pop(0)
+            body = self._build_messsage_body(content_header.body_size)
 
-        message = Message(self,
-                          basic_deliver,
-                          content_header,
-                          content_body)
+        message = Message(body, self,
+                          basic_deliver.__dict__,
+                          content_header.properties.__dict__)
         return message
+
+    def _build_messsage_body(self, body_size):
+        """ Build the Message body from the inbound queue. """
+        body = bytes()
+        while len(body) < body_size:
+            if not self._inbound:
+                sleep(IDLE_WAIT)
+                continue
+            body_piece = self._inbound.pop(0)
+            if not body_piece:
+                break
+            body += body_piece.value
+
+        return body

@@ -25,7 +25,7 @@ from amqpstorm.exception import AMQPError
 from amqpstorm.exception import AMQPConnectionError
 
 
-EMPTY_BUFFER = ''
+EMPTY_BUFFER = bytes()
 LOGGER = logging.getLogger(__name__)
 
 
