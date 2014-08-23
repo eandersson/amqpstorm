@@ -2,24 +2,26 @@ from setuptools import setup
 
 
 long_description = """
-Thread-safe Python AMQP Client Library based on pamqp.
-
 See https://github.com/eandersson/amqp-storm for more information.
 """
 
 setup(name='AMQP-Storm',
-      version='1.0.1',
+      version='1.0.2',
       description='Thread-safe Python AMQP Client Library based on pamqp.',
       long_description=long_description,
-      maintainer='Erik Olof Gunnar Andersson',
+      author='Erik Olof Gunnar Andersson',
+      author_email = 'me@eandersson.net',
       include_package_data=True,
       packages=['amqpstorm'],
+      license = 'MIT License',
+      url = 'http://github.com/eandersson/amqp-storm',
       install_requires=['pamqp'],
-      package_data={'': ['README.md']},
+      package_data={'': ['README.md', 'LICENSE']},
       zip_safe=False,
       classifiers=[
           'Development Status :: 5 - Production/Stable',
           'Intended Audience :: Developers',
+          'License :: OSI Approved :: MIT License',
           'Natural Language :: English',
           'Operating System :: OS Independent',
           'Programming Language :: Python :: 2.6',
