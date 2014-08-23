@@ -1,10 +1,16 @@
 from setuptools import setup
 
 
-setup(name='amqpstorm',
-      version='1.0.0',
-      description='Python AMQP Client Library',
-      long_description='',
+long_description = """
+Thread-safe Python AMQP Client Library based on pamqp.
+
+See https://github.com/eandersson/amqp-storm for more information.
+"""
+
+setup(name='AMQP-Storm',
+      version='1.0.1',
+      description='Thread-safe Python AMQP Client Library based on pamqp.',
+      long_description=long_description,
       maintainer='Erik Olof Gunnar Andersson',
       include_package_data=True,
       packages=['amqpstorm'],

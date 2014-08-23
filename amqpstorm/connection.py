@@ -32,12 +32,9 @@ LOGGER = logging.getLogger(__name__)
 class Poller(object):
     """ Socket Read/Write Poller. """
 
-    def __init__(self, fileno, poll_timeout=10):
+    def __init__(self, fileno, timeout=10):
         self._fileno = fileno
-        self.poller = select.poll()
-        self.poller_timeout = poll_timeout
-        self.poller_events = select.POLLIN | select.POLLPRI
-        self.poller.register(self.fileno, self.poller_events)
+        self.timeout = timeout
 
     @property
     def fileno(self):
@@ -55,7 +52,7 @@ class Poller(object):
         """
         try:
             ready, write, _ = select.select([self.fileno], [self.fileno], [],
-                                            self.poller_timeout)
+                                            self.timeout)
             return bool(ready), bool(write)
         except select.error as why:
             if why.args[0] != EINTR:
