@@ -127,12 +127,24 @@ class Rpc(object):
 
         return uuid
 
+    def remove(self, uuid):
+        """ Remove any data related to a specific RPC request.
+
+        :param str uuid:
+        :return:
+        """
+        self.remove_request(uuid)
+        self.remove_response(uuid)
+
     def remove_request(self, uuid):
         """ Remove any RPC request(s) using this uuid.
 
         :param str uuid:
         :return:
         """
+        if not uuid:
+            return
+
         for key in self.request.keys():
             if self.request[key] == uuid:
                 del self.request[key]
@@ -143,6 +155,9 @@ class Rpc(object):
         :param str uuid:
         :return:
         """
+        if not uuid:
+            return
+
         if uuid in self.response:
             del self.response[uuid]
 
@@ -160,7 +175,7 @@ class Rpc(object):
 
         self.response[uuid] = None
         if auto_remove:
-            self.remove_response(uuid)
+            self.remove(uuid)
 
         result = None
         if raw:

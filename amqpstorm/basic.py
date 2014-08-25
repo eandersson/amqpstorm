@@ -63,8 +63,8 @@ class Basic(object):
             get_frame = self._channel.rpc.get_request(uuid_get, True)
 
             if not isinstance(get_frame, pamqp_spec.Basic.GetOk):
-                self._channel.rpc.remove_response(uuid_header)
-                self._channel.rpc.remove_response(uuid_body)
+                self._channel.rpc.remove(uuid_header)
+                self._channel.rpc.remove(uuid_body)
                 return None
 
             content_header = self._channel.rpc.get_request(uuid_header, True)

@@ -1,8 +1,6 @@
 """ AMQP-Storm Message. """
 __author__ = 'eandersson'
 
-from amqpstorm.exception import AMQPChannelError
-
 
 class Message(object):
     """ RabbitMQ Message Class. """
