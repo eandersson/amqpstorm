@@ -13,7 +13,6 @@ try:
     def send_messages(connection):
         start_time = time.time()
         channel = connection.channel()
-        channel.confirm_deliveries()
         messages_sent = 0
         while True:
             channel.basic.publish('Hey World!', 'simple_queue')
@@ -24,9 +23,6 @@ try:
             messages_sent += 1
 
     connection = Connection('127.0.0.1', 'guest', 'guest')
-    channel = connection.channel()
-    channel.queue.declare('simple_queue')
-    # channel.queue.purge('simple_queue')
 
     threads = []
     for index in xrange(2):
