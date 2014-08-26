@@ -170,7 +170,7 @@ class Channel(BaseChannel):
     def write_frame(self, frame_out):
         """ Write a frame from the current channel.
 
-        :param frame_out:
+        :param Frame frame_out:
         :return:
         """
         self.check_for_errors()
@@ -179,7 +179,7 @@ class Channel(BaseChannel):
     def write_frames(self, frames_out):
         """ Write multiple frames from the current channel.
 
-        :param frames_out:
+        :param list frames_out:
         :return:
         """
         self.check_for_errors()
@@ -201,7 +201,7 @@ class Channel(BaseChannel):
     def rpc_request(self, frame_out):
         """ Perform an RPC Request.
 
-        :param qos_frame:
+        :param Frame frame_out:
         :return:
         """
         with self.rpc.lock:
@@ -213,7 +213,7 @@ class Channel(BaseChannel):
     def _close_channel(self, frame_in):
         """ Close Channel.
 
-        :param frame_in:
+        :param Frame frame_in:
         :return:
         """
         if frame_in.reply_code != 200:
@@ -227,7 +227,7 @@ class Channel(BaseChannel):
     def _basic_return(self, frame_in):
         """ Handle Basic Return and treat it as an error.
 
-        :param frame_in:
+        :param Frame frame_in:
         :return:
         """
         message = "Message not delivered: {0} ({1}) to queue" \

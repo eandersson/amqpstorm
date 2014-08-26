@@ -23,28 +23,27 @@ try:
                 break
             messages_sent += 1
 
-
     connection = Connection('127.0.0.1', 'guest', 'guest')
     channel = connection.channel()
     channel.queue.declare('simple_queue')
-    #channel.queue.purge('simple_queue')
+    # channel.queue.purge('simple_queue')
 
     threads = []
     for index in xrange(2):
-        thread = threading.Thread(target=send_messages,
-                                  args=(connection,))
-        thread.daemon = True
-        thread.start()
-        thread.isAlive()
-        threads.append(thread)
+        publisher_thread = threading.Thread(target=send_messages,
+                                            args=(connection,))
+        publisher_thread.daemon = True
+        publisher_thread.start()
+        publisher_thread.isAlive()
+        threads.append(publisher_thread)
 
     while sum([thread.isAlive() for thread in threads]):
         time.sleep(1)
 
     connection.close()
-except Exception as exc:
+except Exception as why:
     if not connection:
-        print "General Exception:", exc
+        print "General Exception:", why
     else:
         for exception in connection.exceptions:
             print exception

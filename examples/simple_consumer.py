@@ -14,7 +14,7 @@ def on_message(body, channel, header, properties):
 
 def consumer():
     with Connection('127.0.0.1', 'guest', 'guest') as connection:
-        with  connection.channel() as channel:
+        with connection.channel() as channel:
             channel.queue.declare('simple_queue')
             channel.basic.consume(on_message, 'simple_queue', no_ack=False)
             try:

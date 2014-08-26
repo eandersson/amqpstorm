@@ -4,7 +4,9 @@ import logging
 
 from amqpstorm import Connection
 
+
 logging.basicConfig(level=logging.DEBUG)
+
 
 def consumer():
     connection = Connection('127.0.0.1', 'guest', 'guest')

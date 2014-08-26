@@ -44,7 +44,7 @@ def on_message(body, channel, header, properties):
 def consume_messages(connection):
     channel = connection.channel()
     channel.basic.consume(on_message, 'simple_queue', no_ack=False)
-    channel.basic.qos(prefetch_count=100, global_=True)
+    channel.basic.qos(prefetch_count=100)
     channel.start_consuming()
 
 
@@ -52,11 +52,11 @@ connection = Connection('127.0.0.1', 'guest', 'guest')
 
 threads = []
 for index in xrange(2):
-    thread = threading.Thread(target=consume_messages,
-                              args=(connection,))
-    thread.daemon = True
-    thread.start()
-    threads.append(thread)
+    consumer_thread = threading.Thread(target=consume_messages,
+                                       args=(connection,))
+    consumer_thread.daemon = True
+    consumer_thread.start()
+    threads.append(consumer_thread)
 
 while sum([thread.isAlive() for thread in threads]):
     time.sleep(1)

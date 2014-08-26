@@ -157,7 +157,7 @@ class Connection(Stateful):
         """ Marshal and write any outgoing frame to the socket.
 
         :param int channel_id:
-        :param frame_out:
+        :param Frame frame_out:
         :return:
         """
         frame_data = pamqp_frame.marshal(frame_out, channel_id)
@@ -167,10 +167,9 @@ class Connection(Stateful):
         """ Marshal and write any outgoing frames to the socket.
 
         :param int channel_id:
-        :param frames_out:
+        :param list frames_out:
         :return:
         """
-
         frame_data = EMPTY_BUFFER
         for single_frame in frames_out:
             frame_data += pamqp_frame.marshal(single_frame, channel_id)

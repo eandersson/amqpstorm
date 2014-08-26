@@ -49,16 +49,16 @@ def consume_messages(channel):
 
 connection = Connection('127.0.0.1', 'guest', 'guest')
 channel = connection.channel()
-channel.basic.qos(prefetch_count=100, global_=True)
+channel.basic.qos(prefetch_count=100)
 channel.basic.consume(on_message, 'simple_queue', no_ack=False)
 
 threads = []
 for index in xrange(2):
-    thread = threading.Thread(target=consume_messages,
-                              args=(channel,))
-    thread.daemon = True
-    thread.start()
-    threads.append(thread)
+    consumer_thread = threading.Thread(target=consume_messages,
+                                       args=(channel,))
+    consumer_thread.daemon = True
+    consumer_thread.start()
+    threads.append(consumer_thread)
 
 while sum([thread.isAlive() for thread in threads]):
     time.sleep(1)

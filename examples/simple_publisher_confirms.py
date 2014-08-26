@@ -12,7 +12,9 @@ def publisher():
     channel = connection.channel()
     channel.queue.declare('simple_queue')
     channel.confirm_deliveries()
-    channel.basic.publish(body='Hello World!', routing_key='simple_queue', mandatory=True)
+    channel.basic.publish(body='Hello World!',
+                          routing_key='simple_queue',
+                          mandatory=True)
 
 
 if __name__ == '__main__':
