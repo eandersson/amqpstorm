@@ -15,3 +15,8 @@ class AMQPConnectionError(AMQPError):
 class AMQPChannelError(AMQPError):
     """ AMQP Channel Error. """
     pass
+
+
+class AMQPMessageError(AMQPChannelError):
+    """ AMQP Message Error. """
+    pass

@@ -33,10 +33,7 @@ class Exchange(object):
                                                durable=durable,
                                                auto_delete=auto_delete,
                                                arguments=arguments)
-        with self._channel.rpc.lock:
-            uuid = self._channel.rpc.register_request(pamqp_exchange.Declare)
-            self._channel.write_frame(declare_frame)
-            return self._channel.rpc.get_request(uuid)
+        return self._channel.rpc_request(declare_frame)
 
     def delete(self, exchange='', if_unused=False):
         """ Delete exchange.
@@ -47,10 +44,7 @@ class Exchange(object):
         """
         delete_frame = pamqp_exchange.Delete(exchange=exchange,
                                              if_unused=if_unused)
-        with self._channel.rpc.lock:
-            uuid = self._channel.rpc.register_request(pamqp_exchange.Delete)
-            self._channel.write_frame(delete_frame)
-            return self._channel.rpc.get_request(uuid)
+        return self._channel.rpc_request(delete_frame)
 
     def bind(self, destination='', source='', routing_key='',
              arguments=None):
@@ -66,10 +60,7 @@ class Exchange(object):
                                          source=source,
                                          routing_key=routing_key,
                                          arguments=arguments)
-        with self._channel.rpc.lock:
-            uuid = self._channel.rpc.register_request(pamqp_exchange.Bind)
-            self._channel.write_frame(bind_frame)
-            return self._channel.rpc.get_request(uuid)
+        return self._channel.rpc_request(bind_frame)
 
     def unbind(self, destination='', source='', routing_key='',
                arguments=None):
@@ -85,7 +76,4 @@ class Exchange(object):
                                              source=source,
                                              routing_key=routing_key,
                                              arguments=arguments)
-        with self._channel.rpc.lock:
-            uuid = self._channel.rpc.register_request(pamqp_exchange.Unbind)
-            self._channel.write_frame(unbind_frame)
-            return self._channel.rpc.get_request(uuid)
+        return self._channel.rpc_request(unbind_frame)

@@ -15,6 +15,7 @@ from amqpstorm.basic import Basic
 from amqpstorm.message import Message
 from amqpstorm.exchange import Exchange
 from amqpstorm.exception import AMQPChannelError
+from amqpstorm.exception import AMQPMessageError
 from amqpstorm.exception import AMQPConnectionError
 
 
@@ -29,12 +30,12 @@ class Channel(BaseChannel):
         super(Channel, self).__init__(channel_id)
         self.rpc = Rpc(self)
         self._connection = connection
+        self.confirming_deliveries = False
         self._inbound = []
         self.consumer_callback = None
         self.basic = Basic(self)
         self.queue = Queue(self)
         self.exchange = Exchange(self)
-        self.open()
 
     def __enter__(self):
         return self
@@ -91,6 +92,18 @@ class Channel(BaseChannel):
             reply_code=reply_code,
             reply_text=reply_text))
 
+    def confirm_deliveries(self):
+        """ Set the channel to confirm that each message has been
+            successfully delivered.
+        :return:
+        """
+        self.confirming_deliveries = True
+        confirm_frame = pamqp_spec.Confirm.Select()
+        with self.rpc.lock:
+            uuid = self.rpc.register_request(['Confirm.SelectOk'])
+            self.write_frame(confirm_frame)
+            return self.rpc.get_request(uuid)
+
     def on_frame(self, frame_in):
         """ Handle frame sent to this specific channel.
 
@@ -108,11 +121,13 @@ class Channel(BaseChannel):
         elif frame_in.name == 'Channel.Close':
             self._close_channel(frame_in)
         elif frame_in.name == 'Basic.Cancel':
-            self.remove_consumer_tag(frame_in.consumer_tag)
+            pass
         elif frame_in.name == 'Basic.CancelOk':
             self.remove_consumer_tag(frame_in.consumer_tag)
         elif frame_in.name == 'Channel.OpenOk':
             self.set_state(self.OPEN)
+        elif frame_in.name == 'Basic.Return':
+            self._basic_return(frame_in)
         else:
             msg = "Unhandled Frame: {0} -- {1}"
             LOGGER.error(msg.format(frame_in.name,
@@ -183,6 +198,18 @@ class Channel(BaseChannel):
                 self.exceptions.append(why)
         super(Channel, self).check_for_errors()
 
+    def rpc_request(self, frame_out):
+        """ Perform an RPC Request.
+
+        :param qos_frame:
+        :return:
+        """
+        with self.rpc.lock:
+            uuid = self.rpc.register_request(
+                frame_out.valid_responses)
+            self.write_frame(frame_out)
+            return self.rpc.get_request(uuid)
+
     def _close_channel(self, frame_in):
         """ Close Channel.
 
@@ -196,6 +223,20 @@ class Channel(BaseChannel):
             self._exceptions.append(why)
         self.remove_consumer_tag()
         self.set_state(self.CLOSED)
+
+    def _basic_return(self, frame_in):
+        """ Handle Basic Return and treat it as an error.
+
+        :param frame_in:
+        :return:
+        """
+        message = "Message not delivered: {0} ({1}) to queue" \
+                  " '{2}' from exchange '{3}'" \
+            .format(frame_in.reply_text,
+                    frame_in.reply_code,
+                    frame_in.routing_key,
+                    frame_in.exchange)
+        self.exceptions.append(AMQPMessageError(message))
 
     def _fetch_message(self):
         """ Fetch a message from the inbound queue.

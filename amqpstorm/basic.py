@@ -12,6 +12,7 @@ from pamqp import specification as pamqp_spec
 from amqpstorm.base import FRAME_MAX
 from amqpstorm.message import Message
 from amqpstorm.exception import AMQPChannelError
+from amqpstorm.exception import AMQPMessageError
 
 
 LOGGER = logging.getLogger(__name__)
@@ -34,10 +35,7 @@ class Basic(object):
         qos_frame = pamqp_spec.Basic.Qos(prefetch_count=prefetch_count,
                                          prefetch_size=prefetch_size,
                                          global_=global_)
-        with self._channel.rpc.lock:
-            uuid = self._channel.rpc.register_request(pamqp_spec.Basic.Qos)
-            self._channel.write_frame(qos_frame)
-            return self._channel.rpc.get_request(uuid)
+        return self._channel.rpc_request(qos_frame)
 
     def get(self, queue='', no_ack=False):
         """ Get a single message.
@@ -55,7 +53,8 @@ class Basic(object):
                                          no_ack=no_ack)
 
         with self._channel.lock and self._channel.rpc.lock:
-            uuid_get = self._channel.rpc.register_request(pamqp_spec.Basic.Get)
+            uuid_get = self._channel.rpc.register_request(
+                get_frame.valid_responses)
             uuid_header = self._channel.rpc.register_request('ContentHeader')
             uuid_body = self._channel.rpc.register_request('ContentBody')
 
@@ -83,10 +82,7 @@ class Basic(object):
         :return:
         """
         recover_frame = pamqp_spec.Basic.Recover(requeue=requeue)
-        with self._channel.rpc.lock:
-            uuid = self._channel.rpc.register_request(pamqp_spec.Basic.Recover)
-            self._channel.write_frame(recover_frame)
-            return self._channel.rpc.get_request(uuid)
+        return self._channel.rpc_request(recover_frame)
 
     def consume(self, callback, queue='', consumer_tag='', exclusive=False,
                 no_ack=False, no_local=False, arguments=None):
@@ -105,17 +101,14 @@ class Basic(object):
             raise AMQPChannelError('callback is not callable')
 
         self._channel.consumer_callback = callback
-        method_frame = pamqp_spec.Basic.Consume(queue=queue,
-                                                consumer_tag=consumer_tag,
-                                                exclusive=exclusive,
-                                                no_local=no_local,
-                                                no_ack=no_ack,
-                                                arguments=arguments)
-        with self._channel.rpc.lock:
-            uuid = self._channel.rpc.register_request(pamqp_spec.Basic.Consume)
-            self._channel.write_frame(method_frame)
-            frame_in = self._channel.rpc.get_request(uuid)
-        consumer_tag = frame_in['consumer_tag']
+        consume_frame = pamqp_spec.Basic.Consume(queue=queue,
+                                                 consumer_tag=consumer_tag,
+                                                 exclusive=exclusive,
+                                                 no_local=no_local,
+                                                 no_ack=no_ack,
+                                                 arguments=arguments)
+        result = self._channel.rpc_request(consume_frame)
+        consumer_tag = result['consumer_tag']
         self._channel.add_consumer_tag(consumer_tag)
         return consumer_tag
 
@@ -126,14 +119,12 @@ class Basic(object):
         :return:
         """
         cancel_frame = pamqp_spec.Basic.Cancel(consumer_tag=consumer_tag)
-        with self._channel.rpc.lock:
-            uuid = self._channel.rpc.register_request(pamqp_spec.Basic.Cancel)
-            self._channel.write_frame(cancel_frame)
-            result = self._channel.rpc.get_request(uuid)
+        result = self._channel.rpc_request(cancel_frame)
         self._channel.remove_consumer_tag(consumer_tag)
         return result
 
-    def publish(self, body, routing_key, exchange='', properties=None):
+    def publish(self, body, routing_key, exchange='', properties=None,
+                mandatory=False, immediate=False):
         """ Publish Message.
 
         :param str|unicode body:
@@ -153,12 +144,19 @@ class Basic(object):
 
         properties = pamqp_spec.Basic.Properties(**properties)
         method_frame = pamqp_spec.Basic.Publish(exchange=exchange,
-                                                routing_key=routing_key)
+                                                routing_key=routing_key,
+                                                mandatory=mandatory,
+                                                immediate=immediate)
         header_frame = pamqp_header.ContentHeader(body_size=len(body),
                                                   properties=properties)
         send_buffer = [method_frame, header_frame]
         self._create_content_body(body, send_buffer)
-        self._channel.write_frames(send_buffer)
+
+        if self._channel.confirming_deliveries:
+            with self._channel.rpc.lock:
+                return self._publish_confirm(send_buffer)
+        else:
+            self._channel.write_frames(send_buffer)
 
     def ack(self, delivery_tag=None, multiple=False):
         """ Acknowledge Message.
@@ -195,6 +193,25 @@ class Basic(object):
                                            requeue=requeue)
         self._channel.write_frame(nack_frame)
 
+    def _publish_confirm(self, send_buffer):
+        """ Confirm that message was published successfully.
+
+        :param list send_buffer:
+        :return:
+        """
+        confirm_uuid = self._channel.rpc.register_request(['Basic.Ack',
+                                                           'Basic.Nack'])
+        self._channel.write_frames(send_buffer)
+        result = self._channel.rpc.get_request(confirm_uuid, True)
+        self._channel.check_for_errors()
+        if isinstance(result, pamqp_spec.Basic.Ack):
+            return True
+        elif isinstance(result, pamqp_spec.Basic.Nack):
+            return False
+        else:
+            raise AMQPMessageError('Unexpected Error: {0} - {1}'
+                                   .format(result, result.__dict__))
+
     @staticmethod
     def _create_content_body(body, send_buffer):
         """ Split body based on the maximum frame size.
@@ -228,5 +245,5 @@ class Basic(object):
             if not body_piece:
                 break
             body += body_piece.value
-        self._channel.rpc.remove_response(uuid_body)
+        self._channel.rpc.remove(uuid_body)
         return body

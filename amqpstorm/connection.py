@@ -148,7 +148,7 @@ class Connection(Stateful):
             channel_id = len(self._channels) + 1
             channel = Channel(channel_id, self)
             self._channels[channel_id] = channel
-
+            channel.open()
             while not channel.is_open and self.is_open:
                 sleep(IDLE_WAIT)
         return self._channels[channel_id]

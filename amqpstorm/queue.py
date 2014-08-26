@@ -33,10 +33,7 @@ class Queue(object):
                                             exclusive=exclusive,
                                             auto_delete=auto_delete,
                                             arguments=arguments)
-        with self._channel.rpc.lock:
-            uuid = self._channel.rpc.register_request(pamqp_queue.Declare)
-            self._channel.write_frame(declare_frame)
-            return self._channel.rpc.get_request(uuid)
+        return self._channel.rpc_request(declare_frame)
 
     def delete(self, queue='', if_unused=False, if_empty=False):
         """ Delete queue.
@@ -48,10 +45,7 @@ class Queue(object):
         """
         delete_frame = pamqp_queue.Delete(queue=queue, if_unused=if_unused,
                                           if_empty=if_empty)
-        with self._channel.rpc.lock:
-            uuid = self._channel.rpc.register_request(pamqp_queue.Delete)
-            self._channel.write_frame(delete_frame)
-            return self._channel.rpc.get_request(uuid)
+        return self._channel.rpc_request(delete_frame)
 
     def purge(self, queue=''):
         """ Purge queue.
@@ -61,10 +55,7 @@ class Queue(object):
         """
         purge_frame = pamqp_queue.Purge(queue=queue)
 
-        with self._channel.rpc.lock:
-            uuid = self._channel.rpc.register_request(pamqp_queue.Purge)
-            self._channel.write_frame(purge_frame)
-            return self._channel.rpc.get_request(uuid)
+        return self._channel.rpc_request(purge_frame)
 
     def bind(self, queue='', exchange='', routing_key='', arguments=None):
         """ Bind queue.
@@ -79,10 +70,7 @@ class Queue(object):
                                       exchange=exchange,
                                       routing_key=routing_key,
                                       arguments=arguments)
-        with self._channel.rpc.lock:
-            uuid = self._channel.rpc.register_request(pamqp_queue.Bind)
-            self._channel.write_frame(bind_frame)
-            return self._channel.rpc.get_request(uuid)
+        return self._channel.rpc_request(bind_frame)
 
     def unbind(self, queue='', exchange='', routing_key='', arguments=None):
         """ Unbind queue.
@@ -97,7 +85,4 @@ class Queue(object):
                                           exchange=exchange,
                                           routing_key=routing_key,
                                           arguments=arguments)
-        with self._channel.rpc.lock:
-            uuid = self._channel.rpc.register_request(pamqp_queue.Unbind)
-            self._channel.write_frame(unbind_frame)
-            return self._channel.rpc.get_request(uuid)
+        return self._channel.rpc_request(unbind_frame)

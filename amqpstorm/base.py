@@ -103,10 +103,10 @@ class Rpc(object):
 
         uuid = self.request[frame_in.name]
         self.response[uuid] = frame_in
-        self.remove_request(uuid)
+
         return True
 
-    def register_request(self, frame_out):
+    def register_request(self, valid_responses):
         """ Register a RPC request.
 
         :param Frame|str frame_out:
@@ -114,16 +114,10 @@ class Rpc(object):
         """
         uuid = str(uuid4())
         self.response[uuid] = None
-        if isinstance(frame_out, str):
-            valid_responses = [frame_out]
-        else:
-            valid_responses = frame_out.valid_responses
-
-        if len(valid_responses) == 1:
-            self.request[valid_responses[0]] = uuid
-        else:
-            for action in valid_responses:
-                self.request[action] = uuid
+        if isinstance(valid_responses, str):
+            valid_responses = [valid_responses]
+        for action in valid_responses:
+            self.request[action] = uuid
 
         return uuid
 
@@ -145,7 +139,7 @@ class Rpc(object):
         if not uuid:
             return
 
-        for key in self.request.keys():
+        for key in list(self.request):
             if self.request[key] == uuid:
                 del self.request[key]
 
@@ -195,6 +189,7 @@ class Rpc(object):
         while self.response[uuid] is None:
             self._adapter.check_for_errors()
             if time.time() - start_time > timeout:
+                self.remove(uuid)
                 raise AMQPChannelError('rpc request took too long')
             time.sleep(IDLE_WAIT)
 

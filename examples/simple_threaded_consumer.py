@@ -49,7 +49,7 @@ def consume_messages(channel):
 
 connection = Connection('127.0.0.1', 'guest', 'guest')
 channel = connection.channel()
-channel.basic.qos(prefetch_count=100)
+channel.basic.qos(prefetch_count=100, global_=True)
 channel.basic.consume(on_message, 'simple_queue', no_ack=False)
 
 threads = []
