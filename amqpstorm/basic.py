@@ -133,8 +133,8 @@ class Basic(object):
         :param dict properties:
         :return:
         """
-        if not properties:
-            properties = {}
+        properties = properties or {}
+        properties = pamqp_spec.Basic.Properties(**properties)
 
         if isinstance(body, unicode):
             if 'content_encoding' not in properties:
@@ -142,7 +142,6 @@ class Basic(object):
             encoding = properties.get('content_encoding')
             body = body.encode(encoding)
 
-        properties = pamqp_spec.Basic.Properties(**properties)
         method_frame = pamqp_spec.Basic.Publish(exchange=exchange,
                                                 routing_key=routing_key,
                                                 mandatory=mandatory,

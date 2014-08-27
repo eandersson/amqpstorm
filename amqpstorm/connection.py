@@ -77,7 +77,7 @@ class Connection(Stateful):
         :param int port:
         :param str virtual_host:
         :param int heartbeat: RabbitMQ Heartbeat interval
-        :param float timeout: Socket timeout
+        :param int|float timeout: Socket timeout
         :param bool ssl: Enable SSL
         :param dict ssl_options: SSL Kwargs
         :return:
@@ -128,7 +128,7 @@ class Connection(Stateful):
         self._poller = Poller(self._socket.fileno())
         self._channel0 = Channel0(self)
         self._send_handshake()
-        self._io_thread = self._create_process_thread()
+        self._io_thread = self._create_inbound_thread()
         while not self.is_open:
             self.check_for_errors()
             sleep(IDLE_WAIT)
@@ -161,7 +161,7 @@ class Connection(Stateful):
         :return:
         """
         frame_data = pamqp_frame.marshal(frame_out, channel_id)
-        self._write(frame_data)
+        self._write_to_socket(frame_data)
 
     def write_frames(self, channel_id, frames_out):
         """ Marshal and write any outgoing frames to the socket.
@@ -173,7 +173,7 @@ class Connection(Stateful):
         frame_data = EMPTY_BUFFER
         for single_frame in frames_out:
             frame_data += pamqp_frame.marshal(single_frame, channel_id)
-        self._write(frame_data)
+        self._write_to_socket(frame_data)
 
     def check_for_errors(self):
         """ Check connection for potential errors.
@@ -202,19 +202,19 @@ class Connection(Stateful):
         elif not isinstance(self.parameters['timeout'], (int, float)):
             raise AMQPError('timeout should be an int or float')
 
-    def _open_socket(self, hostname, port, keepalive=1, no_delay=0):
+    def _open_socket(self, hostname, port, keep_alive=1, no_delay=0):
         """ Open Socket and establish a connection.
 
         :param str hostname:
         :param int port:
-        :param keepalive:
+        :param keep_alive:
         :param no_delay:
         :return:
         """
         try:
             addresses = socket.getaddrinfo(hostname, port)
         except socket.gaierror as why:
-            raise AMQPConnectionError(why)
+            return None, why
         sock_addr_tuple = None
         for sock_addr in addresses:
             if sock_addr:
@@ -222,7 +222,7 @@ class Connection(Stateful):
                 break
         sock = socket.socket(sock_addr_tuple[0], socket.SOCK_STREAM, 0)
         sock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, no_delay)
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, keepalive)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, keep_alive)
         sock.setblocking(0)
         sock.settimeout(self.parameters['timeout'] or None)
 
@@ -252,10 +252,10 @@ class Connection(Stateful):
 
         :return:
         """
-        self._write(pamqp_header.ProtocolHeader().marshal())
+        self._write_to_socket(pamqp_header.ProtocolHeader().marshal())
 
-    def _create_process_thread(self):
-        """Internal Thread that handles Hearthbeats etc.
+    def _create_inbound_thread(self):
+        """Internal Thread that handles all incoming traffic.
 
         :return:
         """
@@ -335,16 +335,6 @@ class Connection(Stateful):
         for channel_id in self._channels:
             self._channels[channel_id].close()
 
-    def _retry_channels(self):
-        """ Re-open any channels that were closed due to a network error.
-
-        :return:
-        """
-        if not self.is_open:
-            return
-        for channel_id in self._channels:
-            self._channels[channel_id].open()
-
     def _handle_socket_error(self, why):
         """ Handle any socket errors. If requested we will try to
             re-establish the connection.
@@ -375,10 +365,10 @@ class Connection(Stateful):
             self._handle_socket_error(why)
         return result
 
-    def _write(self, frame_data):
+    def _write_to_socket(self, frame_data):
         """ Write data to the socket.
-        :param frame_data:
 
+        :param bytes frame_data:
         :return:
         """
         while not self._poll_is_ready[1]:
@@ -405,11 +395,14 @@ class UriConnection(Connection):
     """ Wrapper of the Connection class that takes the AMQP uri schema. """
 
     def __init__(self, uri):
-        """ Create a new instance of the Connection class.
+        """ Create a new instance of the Connection class using
+            an AMQP Uri string.
 
             e.g.
                 amqp://guest:guest@localhost:5672/%2F
                 amqps://guest:guest@localhost:5671/%2F
+
+        :param str uri: AMQP Connection string
         """
         parsed = urlparse.urlparse(uri)
         use_ssl = parsed.scheme == 'amqps'

@@ -9,6 +9,7 @@ from pamqp import specification as pamqp_spec
 
 from amqpstorm.base import Rpc
 from amqpstorm.base import IDLE_WAIT
+from amqpstorm.base import Stateful
 from amqpstorm.base import BaseChannel
 from amqpstorm.queue import Queue
 from amqpstorm.basic import Basic
@@ -23,7 +24,7 @@ LOGGER = logging.getLogger(__name__)
 CONTENT_FRAME = ['Basic.Deliver', 'ContentHeader', 'ContentBody']
 
 
-class Channel(BaseChannel):
+class Channel(BaseChannel, Stateful):
     """ RabbitMQ Channel Class """
 
     def __init__(self, channel_id, connection):
@@ -199,14 +200,13 @@ class Channel(BaseChannel):
         super(Channel, self).check_for_errors()
 
     def rpc_request(self, frame_out):
-        """ Perform an RPC Request.
+        """ Perform a RPC Request.
 
         :param Frame frame_out:
         :return:
         """
         with self.rpc.lock:
-            uuid = self.rpc.register_request(
-                frame_out.valid_responses)
+            uuid = self.rpc.register_request(frame_out.valid_responses)
             self.write_frame(frame_out)
             return self.rpc.get_request(uuid)
 
@@ -247,14 +247,14 @@ class Channel(BaseChannel):
                 return None
             basic_deliver = self._inbound.pop(0)
             content_header = self._inbound.pop(0)
-            body = self._build_messsage_body(content_header.body_size)
+            body = self._build_message_body(content_header.body_size)
 
         message = Message(body, self,
                           basic_deliver.__dict__,
                           content_header.properties.__dict__)
         return message
 
-    def _build_messsage_body(self, body_size):
+    def _build_message_body(self, body_size):
         """ Build the Message body from the inbound queue. """
         body = bytes()
         while len(body) < body_size:
@@ -265,5 +265,4 @@ class Channel(BaseChannel):
             if not body_piece:
                 break
             body += body_piece.value
-
         return body

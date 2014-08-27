@@ -194,11 +194,10 @@ class Rpc(object):
             time.sleep(IDLE_WAIT)
 
 
-class BaseChannel(Stateful):
+class BaseChannel(object):
     """ Base Channel Class. """
 
     def __init__(self, channel_id):
-        super(BaseChannel, self).__init__()
         self.lock = threading.Lock()
         self._consumer_tags = []
         self._channel_id = channel_id
