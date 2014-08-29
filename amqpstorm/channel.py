@@ -1,4 +1,4 @@
-""" AMQP-Storm Connection.Channel. """
+"""AMQP-Storm Connection.Channel"""
 __author__ = 'eandersson'
 
 import math
@@ -25,7 +25,7 @@ CONTENT_FRAME = ['Basic.Deliver', 'ContentHeader', 'ContentBody']
 
 
 class Channel(BaseChannel, Stateful):
-    """ RabbitMQ Channel Class """
+    """RabbitMQ Channel Class"""
 
     def __init__(self, channel_id, connection):
         super(Channel, self).__init__(channel_id)
@@ -52,7 +52,7 @@ class Channel(BaseChannel, Stateful):
 
     @property
     def inbound(self):
-        """ Internal Inbound AMQP message queue.
+        """Internal Inbound AMQP message queue.
 
             This is exposed for advanced and internal use.
 
@@ -62,13 +62,14 @@ class Channel(BaseChannel, Stateful):
 
     @property
     def messages_inbound(self):
-        """ Number of messages queued for processing.
-        :return:
+        """Number of messages queued for processing.
+
+        :rtype: int
         """
         return math.ceil(len(self._inbound) / 3)
 
     def open(self):
-        """ Open Channel.
+        """Open Channel.
 
         :return:
         """
@@ -79,7 +80,7 @@ class Channel(BaseChannel, Stateful):
         self.write_frame(pamqp_spec.Channel.Open())
 
     def close(self, reply_code=0, reply_text=''):
-        """ Close Channel.
+        """Close Channel.
 
         :param int reply_code:
         :param str reply_text:
@@ -94,8 +95,9 @@ class Channel(BaseChannel, Stateful):
             reply_text=reply_text))
 
     def confirm_deliveries(self):
-        """ Set the channel to confirm that each message has been
-            successfully delivered.
+        """Set the channel to confirm that each message has been
+        successfully delivered.
+
         :return:
         """
         self.confirming_deliveries = True
@@ -106,9 +108,9 @@ class Channel(BaseChannel, Stateful):
             return self.rpc.get_request(uuid)
 
     def on_frame(self, frame_in):
-        """ Handle frame sent to this specific channel.
+        """Handle frame sent to this specific channel.
 
-        :param frame_in: Amqp frame
+        :param pamqp.Frame frame_in: Amqp frame.
         :return:
         """
         rpc_request = self.rpc.on_frame(frame_in)
@@ -135,7 +137,7 @@ class Channel(BaseChannel, Stateful):
                                     frame_in.__dict__))
 
     def start_consuming(self):
-        """ Start consuming events.
+        """Start consuming events.
 
         :return:
         """
@@ -143,7 +145,7 @@ class Channel(BaseChannel, Stateful):
             self.process_data_events()
 
     def stop_consuming(self):
-        """ Stop consuming events.
+        """Stop consuming events.
 
         :return:
         """
@@ -153,7 +155,7 @@ class Channel(BaseChannel, Stateful):
         self.remove_consumer_tag()
 
     def process_data_events(self):
-        """ Consume events in inbound buffer.
+        """Consume events in inbound buffer.
 
         :return:
         """
@@ -169,25 +171,25 @@ class Channel(BaseChannel, Stateful):
         sleep(IDLE_WAIT)
 
     def write_frame(self, frame_out):
-        """ Write a frame from the current channel.
+        """Write a frame from the current channel.
 
-        :param Frame frame_out:
+        :param pamqp_spec.Frame frame_out: Amqp frame.
         :return:
         """
         self.check_for_errors()
         self._connection.write_frame(self.channel_id, frame_out)
 
     def write_frames(self, frames_out):
-        """ Write multiple frames from the current channel.
+        """Write multiple frames from the current channel.
 
-        :param list frames_out:
+        :param list frames_out: Amqp frames.
         :return:
         """
         self.check_for_errors()
         self._connection.write_frames(self.channel_id, frames_out)
 
     def check_for_errors(self):
-        """ Check for errors.
+        """Check for errors.
 
         :return:
         """
@@ -200,10 +202,10 @@ class Channel(BaseChannel, Stateful):
         super(Channel, self).check_for_errors()
 
     def rpc_request(self, frame_out):
-        """ Perform a RPC Request.
+        """Perform a RPC Request.
 
-        :param Frame frame_out:
-        :return:
+        :param pamqp_spec.Frame frame_out: Amqp frame.
+        :rtype: dict
         """
         with self.rpc.lock:
             uuid = self.rpc.register_request(frame_out.valid_responses)
@@ -211,9 +213,9 @@ class Channel(BaseChannel, Stateful):
             return self.rpc.get_request(uuid)
 
     def _close_channel(self, frame_in):
-        """ Close Channel.
+        """Close Channel.
 
-        :param Frame frame_in:
+        :param pamqp_spec.Frame frame_in: Amqp frame.
         :return:
         """
         if frame_in.reply_code != 200:
@@ -225,9 +227,9 @@ class Channel(BaseChannel, Stateful):
         self.set_state(self.CLOSED)
 
     def _basic_return(self, frame_in):
-        """ Handle Basic Return and treat it as an error.
+        """Handle Basic Return and treat it as an error.
 
-        :param Frame frame_in:
+        :param pamqp_spec.Return frame_in: Amqp frame.
         :return:
         """
         message = "Message not delivered: {0} ({1}) to queue" \
@@ -239,7 +241,8 @@ class Channel(BaseChannel, Stateful):
         self.exceptions.append(AMQPMessageError(message))
 
     def _fetch_message(self):
-        """ Fetch a message from the inbound queue.
+        """Fetch a message from the inbound queue.
+
         :rtype: Message
         """
         with self.lock:
@@ -255,7 +258,10 @@ class Channel(BaseChannel, Stateful):
         return message
 
     def _build_message_body(self, body_size):
-        """ Build the Message body from the inbound queue. """
+        """Build the Message body from the inbound queue.
+
+        :rtype: str
+        """
         body = bytes()
         while len(body) < body_size:
             if not self._inbound:

@@ -1,4 +1,4 @@
-""" AMQP-Storm Base. """
+"""AMQP-Storm Base"""
 __author__ = 'eandersson'
 
 import time
@@ -13,7 +13,7 @@ FRAME_MAX = 131072
 
 
 class Stateful(object):
-    """ Stateful Class. """
+    """Stateful Class"""
     CLOSED = 0
     CLOSING = 1
     OPENING = 2
@@ -24,7 +24,7 @@ class Stateful(object):
         self._exceptions = []
 
     def set_state(self, state):
-        """ Set State.
+        """Set State.
 
         :param int state:
         :return:
@@ -33,7 +33,7 @@ class Stateful(object):
 
     @property
     def is_closed(self):
-        """ Is Closed?
+        """Is Closed?
 
         :rtype: bool
         """
@@ -41,7 +41,7 @@ class Stateful(object):
 
     @property
     def is_closing(self):
-        """ Is Closing?
+        """Is Closing?
 
         :rtype: bool
         """
@@ -49,7 +49,7 @@ class Stateful(object):
 
     @property
     def is_opening(self):
-        """ Is Opening?
+        """Is Opening?
 
         :rtype: bool
         """
@@ -57,7 +57,7 @@ class Stateful(object):
 
     @property
     def is_open(self):
-        """ Is Open?
+        """Is Open?
 
         :rtype: bool
         """
@@ -65,15 +65,15 @@ class Stateful(object):
 
     @property
     def exceptions(self):
-        """ Any exceptions thrown. This is useful for troubleshooting, and is
-            used internally to check the health of the connection.
+        """Any exceptions thrown. This is useful for troubleshooting, and is
+        used internally to check the health of the connection.
 
         :rtype: list
         """
         return self._exceptions
 
     def check_for_errors(self):
-        """ Check for critical errors.
+        """Check for critical errors.
 
         :return:
         """
@@ -84,7 +84,7 @@ class Stateful(object):
 
 
 class Rpc(object):
-    """ Rpc Class. """
+    """Rpc Class"""
 
     def __init__(self, adapter):
         self.lock = threading.Lock()
@@ -93,9 +93,9 @@ class Rpc(object):
         self._adapter = adapter
 
     def on_frame(self, frame_in):
-        """ On RPC Frame.
+        """On RPC Frame.
 
-        :param frame_in:
+        :param pamqp_spec.Frame frame_in: Amqp frame.
         :return:
         """
         if frame_in.name not in self.request:
@@ -107,9 +107,10 @@ class Rpc(object):
         return True
 
     def register_request(self, valid_responses):
-        """ Register a RPC request.
+        """Register a RPC request.
 
-        :param Frame|str frame_out:
+        :param list|str valid_responses: List of possible Response(s) that
+                                         we should be waiting for.
         :return:
         """
         uuid = str(uuid4())
@@ -122,18 +123,18 @@ class Rpc(object):
         return uuid
 
     def remove(self, uuid):
-        """ Remove any data related to a specific RPC request.
+        """Remove any data related to a specific RPC request.
 
-        :param str uuid:
+        :param str uuid: Rpc Identifier.
         :return:
         """
         self.remove_request(uuid)
         self.remove_response(uuid)
 
     def remove_request(self, uuid):
-        """ Remove any RPC request(s) using this uuid.
+        """Remove any RPC request(s) using this uuid.
 
-        :param str uuid:
+        :param str uuid: Rpc Identifier.
         :return:
         """
         if not uuid:
@@ -144,9 +145,9 @@ class Rpc(object):
                 del self.request[key]
 
     def remove_response(self, uuid):
-        """ Remove a RPC Response using this uuid.
+        """Remove a RPC Response using this uuid.
 
-        :param str uuid:
+        :param str uuid: Rpc Identifier.
         :return:
         """
         if not uuid:
@@ -156,11 +157,12 @@ class Rpc(object):
             del self.response[uuid]
 
     def get_request(self, uuid, raw=False, auto_remove=True, timeout=30):
-        """ Get a RPC request.
+        """Get a RPC request.
 
-        :param str uuid:
-        :param bool raw: Return the raw frame.
-        :param bool auto_remove: Automatically remove response.
+        :param str uuid: Rpc Identifier
+        :param bool raw: If enabled return the frame as is, else return
+                         result as a dictionary.
+        :param bool auto_remove: Automatically remove Rpc response.
         :param int timeout: Rpc timeout.
         :return:
         """
@@ -179,10 +181,10 @@ class Rpc(object):
         return result
 
     def _wait_for_request(self, uuid, timeout):
-        """ Wait for RPC request to arrive.
+        """Wait for RPC request to arrive.
 
-        :param str uuid:
-        :param int timeout:
+        :param str uuid: Rpc Identifier.
+        :param int timeout: Rpc timeout.
         :return:
         """
         start_time = time.time()
@@ -195,7 +197,7 @@ class Rpc(object):
 
 
 class BaseChannel(object):
-    """ Base Channel Class. """
+    """Base Channel Class"""
 
     def __init__(self, channel_id):
         self.lock = threading.Lock()
@@ -204,7 +206,7 @@ class BaseChannel(object):
 
     @property
     def channel_id(self):
-        """ Get Channel id.
+        """Get Channel id.
 
         :rtype: int
         """
@@ -212,27 +214,27 @@ class BaseChannel(object):
 
     @property
     def consumer_tags(self):
-        """ Get a list of consumer tags.
+        """Get a list of consumer tags.
 
         :rtype: list
         """
         return self._consumer_tags
 
     def add_consumer_tag(self, tag):
-        """ Add a Consumer tag.
+        """Add a Consumer tag.
 
-        :param str tag:
+        :param str tag: Consumer tag.
         :return:
         """
         if tag not in self._consumer_tags:
             self._consumer_tags.append(tag)
 
     def remove_consumer_tag(self, tag=None):
-        """ Remove a Consumer tag.
+        """Remove a Consumer tag.
 
             If no tag is specified, all all tags will be removed.
 
-        :param str tag:
+        :param str tag: Consumer tag.
         :return:
         """
         if tag:

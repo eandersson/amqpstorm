@@ -1,4 +1,4 @@
-""" AMQP-Storm Connection. """
+"""AMQP-Storm Connection"""
 __author__ = 'eandersson'
 
 import ssl
@@ -30,7 +30,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Poller(object):
-    """ Socket Read/Write Poller. """
+    """Socket Read/Write Poller"""
 
     def __init__(self, fileno, timeout=10):
         self._fileno = fileno
@@ -38,7 +38,7 @@ class Poller(object):
 
     @property
     def fileno(self):
-        """ Socket Fileno.
+        """Socket Fileno.
 
         :return:
         """
@@ -46,7 +46,7 @@ class Poller(object):
 
     @property
     def is_ready(self):
-        """ Is Poller Ready.
+        """Is Poller Ready.
 
         :rtype: tuple
         """
@@ -60,7 +60,7 @@ class Poller(object):
 
 
 class Connection(Stateful):
-    """ RabbitMQ Connection Class """
+    """RabbitMQ Connection Class"""
     lock = threading.Lock()
     _buffer = EMPTY_BUFFER
     _channel0 = None
@@ -69,7 +69,7 @@ class Connection(Stateful):
     _socket = None
 
     def __init__(self, hostname, username, password, port=5672, **kwargs):
-        """ Create a new instance of the Connection class.
+        """Create a new instance of the Connection class.
 
         :param str hostname:
         :param str username:
@@ -109,7 +109,7 @@ class Connection(Stateful):
 
     @property
     def socket(self):
-        """ Returns an instance of the socket.
+        """Returns an instance of the socket.
 
         :return:
         """
@@ -154,20 +154,20 @@ class Connection(Stateful):
         return self._channels[channel_id]
 
     def write_frame(self, channel_id, frame_out):
-        """ Marshal and write any outgoing frame to the socket.
+        """Marshal and write a outgoing frame to the socket.
 
         :param int channel_id:
-        :param Frame frame_out:
+        :param pamqp_spec.Frame frame_out: Amqp frame.
         :return:
         """
         frame_data = pamqp_frame.marshal(frame_out, channel_id)
         self._write_to_socket(frame_data)
 
     def write_frames(self, channel_id, frames_out):
-        """ Marshal and write any outgoing frames to the socket.
+        """Marshal and write any outgoing frames to the socket.
 
         :param int channel_id:
-        :param list frames_out:
+        :param list frames_out: Amqp frames.
         :return:
         """
         frame_data = EMPTY_BUFFER
@@ -176,7 +176,7 @@ class Connection(Stateful):
         self._write_to_socket(frame_data)
 
     def check_for_errors(self):
-        """ Check connection for potential errors.
+        """Check connection for potential errors.
 
         :return:
         """
@@ -185,7 +185,7 @@ class Connection(Stateful):
         super(Connection, self).check_for_errors()
 
     def _validate_parameters(self):
-        """ Validate Connection Parameters.
+        """Validate Connection Parameters.
 
         :return:
         """
@@ -203,7 +203,7 @@ class Connection(Stateful):
             raise AMQPError('timeout should be an int or float')
 
     def _open_socket(self, hostname, port, keep_alive=1, no_delay=0):
-        """ Open Socket and establish a connection.
+        """Open Socket and establish a connection.
 
         :param str hostname:
         :param int port:
@@ -239,7 +239,7 @@ class Connection(Stateful):
         return sock, None
 
     def _ssl_wrap_socket(self, sock):
-        """ Wrap socket to add SSL.
+        """Wrap socket to add SSL.
 
         :param socket sock:
         :return:
@@ -248,7 +248,7 @@ class Connection(Stateful):
                                **self.parameters['ssl_options'])
 
     def _send_handshake(self):
-        """ Send RabbitMQ Handshake.
+        """Send RabbitMQ Handshake.
 
         :return:
         """
@@ -257,7 +257,7 @@ class Connection(Stateful):
     def _create_inbound_thread(self):
         """Internal Thread that handles all incoming traffic.
 
-        :return:
+        :rtype: threading.Thread
         """
         io_thread = threading.Thread(target=self._process_incoming_data,
                                      name=__name__)
@@ -267,10 +267,10 @@ class Connection(Stateful):
 
     @property
     def _poll_is_ready(self):
-        """ Wrapper around ReadPoller.is_ready to ensure that
+        """Wrapper around ReadPoller.is_ready to ensure that
             error messages are handled properly.
 
-        :return:
+        :type: bool, bool
         """
         try:
             return self._poller.is_ready
@@ -279,7 +279,7 @@ class Connection(Stateful):
             return True, True
 
     def _process_incoming_data(self):
-        """ Retrieve and process any incoming data.
+        """Retrieve and process any incoming data.
 
         :return:
         """
@@ -292,7 +292,7 @@ class Connection(Stateful):
             sleep(IDLE_WAIT)
 
     def _read_buffer(self):
-        """ Process the socket buffer, and direct the data to the correct
+        """Process the socket buffer, and direct the data to the correct
             channel.
 
         :return:
@@ -311,7 +311,7 @@ class Connection(Stateful):
 
     @staticmethod
     def _handle_amqp_frame(data_in):
-        """ Unmarshal any incoming RabbitMQ frames and return the result.
+        """Unmarshal any incoming RabbitMQ frames and return the result.
 
         :param data_in: socket data
         :return: buffer, channel_id, frame
@@ -328,7 +328,7 @@ class Connection(Stateful):
             return data_in, None, None
 
     def _close_channels(self):
-        """ Close any open channels.
+        """Close any open channels.
 
         :return:
         """
@@ -336,7 +336,7 @@ class Connection(Stateful):
             self._channels[channel_id].close()
 
     def _handle_socket_error(self, why):
-        """ Handle any socket errors. If requested we will try to
+        """Handle any socket errors. If requested we will try to
             re-establish the connection.
 
         :param exception why:
@@ -350,11 +350,12 @@ class Connection(Stateful):
         self._exceptions.append(AMQPConnectionError(why))
 
     def _receive(self):
-        """ Receive any incoming socket data.
+        """Receive any incoming socket data.
 
             If an error is thrown, handle it and return an empty string.
 
         :return: buffer
+        :rtype: str
         """
         result = EMPTY_BUFFER
         try:
@@ -366,9 +367,9 @@ class Connection(Stateful):
         return result
 
     def _write_to_socket(self, frame_data):
-        """ Write data to the socket.
+        """Write data to the socket.
 
-        :param bytes frame_data:
+        :param str frame_data:
         :return:
         """
         while not self._poll_is_ready[1]:
@@ -392,10 +393,10 @@ class Connection(Stateful):
 
 
 class UriConnection(Connection):
-    """ Wrapper of the Connection class that takes the AMQP uri schema. """
+    """Wrapper of the Connection class that takes the AMQP uri schema"""
 
     def __init__(self, uri):
-        """ Create a new instance of the Connection class using
+        """Create a new instance of the Connection class using
             an AMQP Uri string.
 
             e.g.

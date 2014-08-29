@@ -1,4 +1,4 @@
-""" AMQP-Storm Channel.Basic. """
+"""AMQP-Storm Channel.Basic"""
 __author__ = 'eandersson'
 
 import math
@@ -19,18 +19,18 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Basic(object):
-    """ Channel.Basic """
+    """Channel.Basic"""
 
     def __init__(self, channel):
         self._channel = channel
 
     def qos(self, prefetch_size=0, prefetch_count=0, global_=False):
-        """ Specify quality of service.
+        """Specify quality of service.
 
         :param int/long prefetch_size: Prefetch window in octets
         :param int prefetch_count: Prefetch window in messages
         :param bool global_: Apply to entire connection
-        :return:
+        :rtype: dict
         """
         qos_frame = pamqp_spec.Basic.Qos(prefetch_count=prefetch_count,
                                          prefetch_size=prefetch_size,
@@ -38,7 +38,7 @@ class Basic(object):
         return self._channel.rpc_request(qos_frame)
 
     def get(self, queue='', no_ack=False):
-        """ Get a single message.
+        """Get a single message.
 
         :param str queue:
         :param bool no_ack: No acknowledgement needed
@@ -76,17 +76,17 @@ class Basic(object):
         return message
 
     def recover(self, requeue=False):
-        """ Redeliver unacknowledged messages.
+        """Redeliver unacknowledged messages.
 
         :param bool requeue: Requeue the messages
-        :return:
+        :rtype: dict
         """
         recover_frame = pamqp_spec.Basic.Recover(requeue=requeue)
         return self._channel.rpc_request(recover_frame)
 
     def consume(self, callback, queue='', consumer_tag='', exclusive=False,
                 no_ack=False, no_local=False, arguments=None):
-        """ Start a queue consumer.
+        """Start a queue consumer.
 
         :param function callback:
         :param str queue:
@@ -95,7 +95,7 @@ class Basic(object):
         :param bool no_ack: No acknowledgement needed
         :param bool exclusive: Request exclusive access
         :param dict arguments: Arguments for declaration
-        :return:
+        :rtype: str
         """
         if not inspect.isfunction(callback):
             raise AMQPChannelError('callback is not callable')
@@ -113,10 +113,10 @@ class Basic(object):
         return consumer_tag
 
     def cancel(self, consumer_tag=''):
-        """ Cancel a queue consumer.
+        """Cancel a queue consumer.
 
         :param str consumer_tag: Consumer tag
-        :return:
+        :rtype: dict
         """
         cancel_frame = pamqp_spec.Basic.Cancel(consumer_tag=consumer_tag)
         result = self._channel.rpc_request(cancel_frame)
@@ -125,7 +125,7 @@ class Basic(object):
 
     def publish(self, body, routing_key, exchange='', properties=None,
                 mandatory=False, immediate=False):
-        """ Publish Message.
+        """Publish Message.
 
         :param str|unicode body:
         :param str routing_key:
@@ -133,7 +133,7 @@ class Basic(object):
         :param dict properties:
         :param bool mandatory:
         :param bool immediate:
-        :return:
+        :rtype: bool|None
         """
         properties = properties or {}
 
@@ -150,8 +150,10 @@ class Basic(object):
                                                 immediate=immediate)
         header_frame = pamqp_header.ContentHeader(body_size=len(body),
                                                   properties=properties)
+
         send_buffer = [method_frame, header_frame]
-        self._create_content_body(body, send_buffer)
+        for body_frame in self._create_content_body(body):
+            send_buffer.append(body_frame)
 
         if self._channel.confirming_deliveries:
             with self._channel.rpc.lock:
@@ -160,7 +162,7 @@ class Basic(object):
             self._channel.write_frames(send_buffer)
 
     def ack(self, delivery_tag=None, multiple=False):
-        """ Acknowledge Message.
+        """Acknowledge Message.
 
         :param int/long delivery_tag: Server-assigned delivery tag
         :param bool multiple: Acknowledge multiple messages
@@ -171,7 +173,7 @@ class Basic(object):
         self._channel.write_frame(ack_frame)
 
     def reject(self, delivery_tag=None, requeue=True):
-        """ Reject Message.
+        """Reject Message.
 
         :param int/long delivery_tag: Server-assigned delivery tag
         :param bool requeue: Requeue the message
@@ -182,7 +184,7 @@ class Basic(object):
         self._channel.write_frame(reject_frame)
 
     def nack(self, delivery_tag=None, multiple=False, requeue=True):
-        """ Negative Acknowledgement.
+        """Negative Acknowledgement.
 
         :param int/long delivery_tag: Server-assigned delivery tag
         :param bool multiple:
@@ -195,10 +197,10 @@ class Basic(object):
         self._channel.write_frame(nack_frame)
 
     def _publish_confirm(self, send_buffer):
-        """ Confirm that message was published successfully.
+        """Confirm that message was published successfully.
 
         :param list send_buffer:
-        :return:
+        :rtype: bool
         """
         confirm_uuid = self._channel.rpc.register_request(['Basic.Ack',
                                                            'Basic.Nack'])
@@ -214,15 +216,14 @@ class Basic(object):
                                    .format(result, result.__dict__))
 
     @staticmethod
-    def _create_content_body(body, send_buffer):
-        """ Split body based on the maximum frame size.
+    def _create_content_body(body):
+        """Split body based on the maximum frame size.
 
             This function is based on code from Rabbitpy.
             https://github.com/gmr/rabbitpy
 
         :param str body:
-        :param send_buffer:
-        :return:
+        :rtype: ContentBody
         """
         frames = int(math.ceil(len(body) / float(FRAME_MAX)))
         for offset in xrange(0, frames):
@@ -230,14 +231,14 @@ class Basic(object):
             end_frame = start_frame + FRAME_MAX
             if end_frame > len(body):
                 end_frame = len(body)
-            send_buffer.append(
-                pamqp_body.ContentBody(body[start_frame:end_frame]))
+            yield pamqp_body.ContentBody(body[start_frame:end_frame])
 
     def _get_content_body(self, uuid_body, body_size):
-        """ Get Content Body using RPC requests.
+        """Get Content Body using RPC requests.
 
-        :param str uuid_body:
-        :param int body_size:
+        :param str uuid_body: Rpc Identifier.
+        :param int body_size: Content Size.
+        :rtype: str
         """
         body = bytes()
         while len(body) < body_size:

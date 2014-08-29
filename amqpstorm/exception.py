@@ -1,22 +1,22 @@
-""" AMQP-Storm Exception. """
+"""AMQP-Storm Exception"""
 __author__ = 'eandersson'
 
 
 class AMQPError(IOError):
-    """ General AMQP Error. """
+    """General AMQP Error"""
     pass
 
 
 class AMQPConnectionError(AMQPError):
-    """ AMQP Connection Error. """
+    """AMQP Connection Error"""
     pass
 
 
 class AMQPChannelError(AMQPError):
-    """ AMQP Channel Error. """
+    """AMQP Channel Error"""
     pass
 
 
 class AMQPMessageError(AMQPChannelError):
-    """ AMQP Message Error. """
+    """AMQP Message Error"""
     pass

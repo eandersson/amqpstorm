@@ -1,9 +1,9 @@
-""" AMQP-Storm Message. """
+"""AMQP-Storm Message"""
 __author__ = 'eandersson'
 
 
 class Message(object):
-    """ RabbitMQ Message Class. """
+    """RabbitMQ Message Class"""
 
     def __init__(self, body,
                  channel,
@@ -15,13 +15,13 @@ class Message(object):
         self.properties = properties
 
     def to_dict(self):
-        """ To Dictionary.
+        """To Dictionary.
         :rtype: dict
         """
         return self.__dict__
 
     def to_tuple(self):
-        """ To Tuple.
+        """To Tuple.
         :rtype: tuple
         """
         return self.body, self.channel, self.method, self.properties

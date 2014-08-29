@@ -1,4 +1,4 @@
-""" AMQP-Storm """
+"""AMQP-Storm"""
 __version__ = '1.0.5'
 __author__ = 'eandersson'
 
@@ -6,7 +6,7 @@ import logging
 
 
 class NullHandler(logging.Handler):
-    """ Logging Null Handler. """
+    """Logging Null Handler"""
 
     def emit(self, record):
         pass
