@@ -17,6 +17,7 @@ from amqpstorm.message import Message
 from amqpstorm.exchange import Exchange
 from amqpstorm.exception import AMQPChannelError
 from amqpstorm.exception import AMQPMessageError
+from amqpstorm.exception import AMQPConnectionError
 
 
 LOGGER = logging.getLogger(__name__)
@@ -191,6 +192,11 @@ class Channel(BaseChannel, Stateful):
         :return:
         """
         self._connection.check_for_errors()
+        if self._connection.is_closed:
+            self.set_state(self.CLOSED)
+            if not self.exceptions:
+                why = AMQPConnectionError('connection was closed')
+                self.exceptions.append(why)
         super(Channel, self).check_for_errors()
 
     def rpc_request(self, frame_out):
