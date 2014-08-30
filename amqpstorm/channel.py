@@ -1,7 +1,6 @@
 """AMQP-Storm Connection.Channel"""
 __author__ = 'eandersson'
 
-import math
 import logging
 from time import sleep
 
@@ -41,7 +40,7 @@ class Channel(BaseChannel, Stateful):
     def __enter__(self):
         return self
 
-    def __exit__(self, exception_type, exception_value, traceback):
+    def __exit__(self, exception_type, exception_value, _):
         if exception_value:
             msg = 'Closing channel due to an unhandled exception: {0}'
             LOGGER.error(msg.format(exception_type))
@@ -49,24 +48,6 @@ class Channel(BaseChannel, Stateful):
 
     def __int__(self):
         return self._channel_id
-
-    @property
-    def inbound(self):
-        """Internal Inbound AMQP message queue.
-
-            This is exposed for advanced and internal use.
-
-        :rtype: list
-        """
-        return self._inbound
-
-    @property
-    def messages_inbound(self):
-        """Number of messages queued for processing.
-
-        :rtype: int
-        """
-        return math.ceil(len(self._inbound) / 3)
 
     def open(self):
         """Open Channel.
@@ -215,7 +196,7 @@ class Channel(BaseChannel, Stateful):
     def _close_channel(self, frame_in):
         """Close Channel.
 
-        :param pamqp_spec.Frame frame_in: Amqp frame.
+        :param pamqp_spec.Channel.Close frame_in: Amqp frame.
         :return:
         """
         if frame_in.reply_code != 200:

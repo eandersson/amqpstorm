@@ -66,7 +66,7 @@ class Channel0(object):
     def _close_connection(self, frame_in):
         """Close Connection.
 
-        :param pamqp_spec.Frame frame_in: Amqp frame.
+        :param pamqp_spec.Connection.Close frame_in: Amqp frame.
         :return:
         """
         self._set_connection_state(Stateful.CLOSED)
