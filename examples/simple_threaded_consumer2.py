@@ -34,7 +34,7 @@ def random_wait():
 
 
 def on_message(body, channel, header, properties):
-    print "Message Received:", body, threading.currentThread()
+    print("Message Received:", body, threading.currentThread())
     channel.basic.ack(header['delivery_tag'])
 
     # Slow the process down to keep the screen from being flooded.
@@ -51,7 +51,7 @@ def consume_messages(connection):
 connection = Connection('127.0.0.1', 'guest', 'guest')
 
 threads = []
-for index in xrange(2):
+for index in range(2):
     consumer_thread = threading.Thread(target=consume_messages,
                                        args=(connection,))
     consumer_thread.daemon = True

@@ -5,17 +5,22 @@ import ssl
 import socket
 import select
 import logging
-import urlparse
 import threading
 from time import sleep
 from errno import EINTR
 from errno import EWOULDBLOCK
+
+try:
+    import urlparse
+except ImportError:
+    import urllib.parse as urlparse
 
 from pamqp import frame as pamqp_frame
 from pamqp import header as pamqp_header
 from pamqp import specification as pamqp_spec
 from pamqp import exceptions as pamqp_exception
 
+from amqpstorm import comaptibility
 from amqpstorm.base import Stateful
 from amqpstorm.base import IDLE_WAIT
 from amqpstorm.base import FRAME_MAX
@@ -189,15 +194,15 @@ class Connection(Stateful):
 
         :return:
         """
-        if not isinstance(self.parameters['hostname'], (str, unicode)):
+        if not comaptibility.is_string(self.parameters['hostname']):
             raise AMQPError('hostname should be a string')
         elif not isinstance(self.parameters['port'], int):
             raise AMQPError('port should be an int')
-        elif not isinstance(self.parameters['username'], (str, unicode)):
+        elif not comaptibility.is_string(self.parameters['username']):
             raise AMQPError('username should be a string')
-        elif not isinstance(self.parameters['password'], (str, unicode)):
+        elif not comaptibility.is_string(self.parameters['password']):
             raise AMQPError('password should be a string')
-        elif not isinstance(self.parameters['virtual_host'], (str, unicode)):
+        elif not comaptibility.is_string(self.parameters['virtual_host']):
             raise AMQPError('virtual_host should be a string')
         elif not isinstance(self.parameters['timeout'], (int, float)):
             raise AMQPError('timeout should be an int or float')
@@ -231,8 +236,6 @@ class Connection(Stateful):
 
         try:
             sock.connect(sock_addr_tuple[4])
-            if self.parameters['ssl']:
-                sock.do_handshake()
         except (socket.error, ssl.SSLError) as why:
             LOGGER.error(why, exc_info=False)
             return None, why

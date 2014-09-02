@@ -8,7 +8,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 def on_message(body, channel, header, properties):
-    print "Message:", body
+    print("Message:", body)
     channel.basic.ack(header['delivery_tag'])
 
 

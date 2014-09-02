@@ -5,10 +5,12 @@ import math
 import inspect
 import logging
 
+from pamqp import PYTHON3
 from pamqp import body as pamqp_body
 from pamqp import header as pamqp_header
 from pamqp import specification as pamqp_spec
 
+from amqpstorm import comaptibility
 from amqpstorm.base import FRAME_MAX
 from amqpstorm.message import Message
 from amqpstorm.exception import AMQPChannelError
@@ -137,11 +139,13 @@ class Basic(object):
         """
         properties = properties or {}
 
-        if isinstance(body, unicode):
+        if comaptibility.is_unicode(body):
             if 'content_encoding' not in properties:
                 properties['content_encoding'] = 'utf-8'
             encoding = properties.get('content_encoding')
             body = body.encode(encoding)
+        elif PYTHON3 and isinstance(body, str):
+            body = bytes(body, encoding='utf-8')
 
         properties = pamqp_spec.Basic.Properties(**properties)
         method_frame = pamqp_spec.Basic.Publish(exchange=exchange,
@@ -223,10 +227,10 @@ class Basic(object):
             https://github.com/gmr/rabbitpy
 
         :param str body:
-        :rtype: ContentBody
+        :rtype: collections.Iterable
         """
         frames = int(math.ceil(len(body) / float(FRAME_MAX)))
-        for offset in xrange(0, frames):
+        for offset in comaptibility.RANGE(0, frames):
             start_frame = FRAME_MAX * offset
             end_frame = start_frame + FRAME_MAX
             if end_frame > len(body):

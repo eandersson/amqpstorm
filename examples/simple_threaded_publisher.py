@@ -25,7 +25,7 @@ try:
     connection = Connection('127.0.0.1', 'guest', 'guest')
 
     threads = []
-    for index in xrange(2):
+    for index in range(2):
         publisher_thread = threading.Thread(target=send_messages,
                                             args=(connection,))
         publisher_thread.daemon = True
@@ -39,7 +39,7 @@ try:
     connection.close()
 except Exception as why:
     if not connection:
-        print "General Exception:", why
+        print("General Exception:", why)
     else:
         for exception in connection.exceptions:
-            print exception
+            print(exception)
