@@ -70,12 +70,10 @@ class Channel0(object):
         :return:
         """
         self._set_connection_state(Stateful.CLOSED)
-        if frame_in.reply_code == 200:
-            return
-        msg = 'Connection was closed by remote server: {0}'
-        why = AMQPConnectionError(msg.format(frame_in.reply_text))
-
-        self._connection.exceptions.append(why)
+        if frame_in.reply_code != 200:
+            msg = 'Connection was closed by remote server: {0}'
+            why = AMQPConnectionError(msg.format(frame_in.reply_text))
+            self._connection.exceptions.append(why)
 
     def _set_connection_state(self, state):
         """Set Connection state.

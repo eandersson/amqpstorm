@@ -11,7 +11,7 @@ else:
 
 
 def is_string(object):
-    """Is the object a valid string.
+    """Is this a string.
 
     :param object object:
     :rtype: bool
