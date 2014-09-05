@@ -57,8 +57,8 @@ class Basic(object):
         with self._channel.lock and self._channel.rpc.lock:
             uuid_get = self._channel.rpc.register_request(
                 get_frame.valid_responses)
-            uuid_header = self._channel.rpc.register_request('ContentHeader')
-            uuid_body = self._channel.rpc.register_request('ContentBody')
+            uuid_header = self._channel.rpc.register_request(['ContentHeader'])
+            uuid_body = self._channel.rpc.register_request(['ContentBody'])
 
             self._channel.write_frame(get_frame)
             get_frame = self._channel.rpc.get_request(uuid_get, True)

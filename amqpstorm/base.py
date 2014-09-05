@@ -109,14 +109,12 @@ class Rpc(object):
     def register_request(self, valid_responses):
         """Register a RPC request.
 
-        :param list|str valid_responses: List of possible Response(s) that
-                                         we should be waiting for.
+        :param list valid_responses: List of possible Responses that
+                                     we should be waiting for.
         :return:
         """
         uuid = str(uuid4())
         self.response[uuid] = None
-        if isinstance(valid_responses, str):
-            valid_responses = [valid_responses]
         for action in valid_responses:
             self.request[action] = uuid
 
