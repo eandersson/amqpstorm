@@ -86,8 +86,13 @@ class Stateful(object):
 class Rpc(object):
     """Rpc Class"""
 
-    def __init__(self, adapter):
+    def __init__(self, adapter, timeout=30):
+        """
+        :param Stateful adapter: Connection or Channel.
+        :param int timeout: Rpc timeout.
+        """
         self.lock = threading.Lock()
+        self.timeout = timeout
         self.response = {}
         self.request = {}
         self._adapter = adapter
@@ -154,17 +159,16 @@ class Rpc(object):
         if uuid in self.response:
             del self.response[uuid]
 
-    def get_request(self, uuid, raw=False, auto_remove=True, timeout=30):
+    def get_request(self, uuid, raw=False, auto_remove=True):
         """Get a RPC request.
 
         :param str uuid: Rpc Identifier
         :param bool raw: If enabled return the frame as is, else return
                          result as a dictionary.
         :param bool auto_remove: Automatically remove Rpc response.
-        :param int timeout: Rpc timeout.
         :return:
         """
-        self._wait_for_request(uuid, timeout)
+        self._wait_for_request(uuid)
         frame = self.response.get(uuid, None)
 
         self.response[uuid] = None
@@ -178,19 +182,19 @@ class Rpc(object):
             result = frame.__dict__
         return result
 
-    def _wait_for_request(self, uuid, timeout):
+    def _wait_for_request(self, uuid):
         """Wait for RPC request to arrive.
 
         :param str uuid: Rpc Identifier.
-        :param int timeout: Rpc timeout.
         :return:
         """
         start_time = time.time()
         while self.response[uuid] is None:
             self._adapter.check_for_errors()
-            if time.time() - start_time > timeout:
+            if time.time() - start_time > self.timeout:
                 self.remove(uuid)
-                raise AMQPChannelError('rpc request took too long')
+                raise AMQPChannelError('rpc request {0} took too long'
+                                       .format(uuid))
             time.sleep(IDLE_WAIT)
 
 
