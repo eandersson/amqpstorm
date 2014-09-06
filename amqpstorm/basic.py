@@ -10,7 +10,7 @@ from pamqp import body as pamqp_body
 from pamqp import header as pamqp_header
 from pamqp import specification as pamqp_spec
 
-from amqpstorm import comaptibility
+from amqpstorm import compatibility
 from amqpstorm.base import FRAME_MAX
 from amqpstorm.message import Message
 from amqpstorm.exception import AMQPChannelError
@@ -139,7 +139,7 @@ class Basic(object):
         """
         properties = properties or {}
 
-        if comaptibility.is_unicode(body):
+        if compatibility.is_unicode(body):
             if 'content_encoding' not in properties:
                 properties['content_encoding'] = 'utf-8'
             encoding = properties.get('content_encoding')
@@ -230,7 +230,7 @@ class Basic(object):
         :rtype: collections.Iterable
         """
         frames = int(math.ceil(len(body) / float(FRAME_MAX)))
-        for offset in comaptibility.RANGE(0, frames):
+        for offset in compatibility.RANGE(0, frames):
             start_frame = FRAME_MAX * offset
             end_frame = start_frame + FRAME_MAX
             if end_frame > len(body):
