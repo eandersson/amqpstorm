@@ -140,6 +140,9 @@ class Channel(BaseChannel, Stateful):
 
         :return:
         """
+        if not self.consumer_callback:
+            why = AMQPChannelError('no consumer_callback defined')
+            self.exceptions.append(why)
         self.check_for_errors()
         while self._inbound and not self.is_closed:
             if not self.consumer_tags:
@@ -147,8 +150,7 @@ class Channel(BaseChannel, Stateful):
             message = self._fetch_message()
             if not message:
                 break
-            if self.consumer_callback:
-                self.consumer_callback(*message.to_tuple())
+            self.consumer_callback(*message.to_tuple())
         sleep(IDLE_WAIT)
 
     def write_frame(self, frame_out):
