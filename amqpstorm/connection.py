@@ -1,4 +1,4 @@
-"""AMQP-Storm Connection"""
+"""AMQP-Storm Connection."""
 __author__ = 'eandersson'
 
 import ssl
@@ -35,7 +35,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Poller(object):
-    """Socket Read/Write Poller"""
+    """Socket Read/Write Poller."""
 
     def __init__(self, fileno, timeout=10):
         self._fileno = fileno
@@ -65,7 +65,7 @@ class Poller(object):
 
 
 class Connection(Stateful):
-    """RabbitMQ Connection Class"""
+    """RabbitMQ Connection Class."""
     lock = threading.Lock()
     _buffer = EMPTY_BUFFER
     _channel0 = None
@@ -159,7 +159,7 @@ class Connection(Stateful):
         return self._channels[channel_id]
 
     def write_frame(self, channel_id, frame_out):
-        """Marshal and write a outgoing frame to the socket.
+        """Marshal and write an outgoing pamqp frame to the socket.
 
         :param int channel_id:
         :param pamqp_spec.Frame frame_out: Amqp frame.
@@ -169,7 +169,7 @@ class Connection(Stateful):
         self._write_to_socket(frame_data)
 
     def write_frames(self, channel_id, frames_out):
-        """Marshal and write any outgoing frames to the socket.
+        """Marshal and write any outgoing pamqp frames to the socket.
 
         :param int channel_id:
         :param list frames_out: Amqp frames.
@@ -308,7 +308,7 @@ class Connection(Stateful):
                 break
 
             if channel_id == 0:
-                self._channel0.on_frame(channel_id, frame_in)
+                self._channel0.on_frame(frame_in)
             else:
                 self._channels[channel_id].on_frame(frame_in)
 
@@ -396,7 +396,7 @@ class Connection(Stateful):
 
 
 class UriConnection(Connection):
-    """Wrapper of the Connection class that takes the AMQP uri schema"""
+    """Wrapper of the Connection class that takes the AMQP uri schema."""
 
     def __init__(self, uri):
         """Create a new instance of the Connection class using

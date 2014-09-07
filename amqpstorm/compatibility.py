@@ -1,4 +1,4 @@
-"""Python 2/3 Compatibility layer"""
+"""Python 2/3 Compatibility layer."""
 __author__ = 'eandersson'
 
 from pamqp import PYTHON3

@@ -1,4 +1,4 @@
-"""AMQP-Storm Channel.Queue"""
+"""AMQP-Storm Channel.Queue."""
 __author__ = 'eandersson'
 
 import logging
@@ -10,7 +10,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Queue(object):
-    """Channel.Queue"""
+    """Channel.Queue."""
 
     def __init__(self, channel):
         self._channel = channel

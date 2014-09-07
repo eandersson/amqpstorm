@@ -1,4 +1,4 @@
-"""AMQP-Storm Connection.Channel0"""
+"""AMQP-Storm Connection.Channel0."""
 __author__ = 'eandersson'
 
 import logging
@@ -18,7 +18,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Channel0(object):
-    """Connection.Channel0"""
+    """Connection.Channel0."""
 
     def __init__(self, connection):
         super(Channel0, self).__init__()
@@ -27,23 +27,22 @@ class Channel0(object):
         self._connection = connection
         self._heartbeat = self.parameters['heartbeat']
 
-    def on_frame(self, channel_id, frame_in):
+    def on_frame(self, frame_in):
         """Handle frame sent to channel 0.
 
-        :param int channel_id:
         :param pamqp_spec.Frame frame_in: Amqp frame.
         :return:
         """
         LOGGER.debug("Frame Received: {0}".format(frame_in.name))
 
         if frame_in.name == 'Heartbeat':
-            self._write_frame(0, Heartbeat())
+            self._write_frame(Heartbeat())
         elif frame_in.name == 'Connection.Start':
             self._server_properties = frame_in.server_properties
             self._send_start_ok_frame()
         elif frame_in.name == 'Connection.Tune':
-            self._send_tune_ok_frame(channel_id)
-            self._send_open_channel(channel_id)
+            self._send_tune_ok_frame()
+            self._send_open_connection()
         elif frame_in.name == 'Connection.OpenOk':
             self._set_connection_state(Stateful.OPEN)
         elif frame_in.name == 'Connection.Close':
@@ -61,7 +60,7 @@ class Channel0(object):
 
         :return:
         """
-        self._write_frame(0, pamqp_spec.Connection.Close())
+        self._write_frame(pamqp_spec.Connection.Close())
 
     def _close_connection(self, frame_in):
         """Close Connection.
@@ -83,14 +82,13 @@ class Channel0(object):
         """
         self._connection.set_state(state)
 
-    def _write_frame(self, channel_id, frame_out):
-        """Write AMQP frame.
+    def _write_frame(self, frame_out):
+        """Write a pamqp frame from channel0.
 
-        :param int channel_id:
         :param pamqp_spec.Frame frame_out: Amqp frame.
         :return:
         """
-        self._connection.write_frame(channel_id, frame_out)
+        self._connection.write_frame(0, frame_out)
 
     def _send_start_ok_frame(self):
         """Send Start OK frame.
@@ -101,29 +99,27 @@ class Channel0(object):
             client_properties=self._client_properties(),
             response=self._credentials(),
             locale='en_US')
-        self._write_frame(0, frame)
+        self._write_frame(frame)
 
-    def _send_tune_ok_frame(self, channel_id):
+    def _send_tune_ok_frame(self):
         """Send Tune OK frame.
 
-        :param int channel_id:
         :return:
         """
         frame = pamqp_connection.TuneOk(channel_max=0,
                                         frame_max=FRAME_MAX,
                                         heartbeat=self._heartbeat)
-        self._write_frame(channel_id, frame)
+        self._write_frame(frame)
 
-    def _send_open_channel(self, channel_id):
-        """Send Open Channel frame.
+    def _send_open_connection(self):
+        """Send Open Connection frame.
 
-        :param int channel_id:
         :return:
         """
         frame = pamqp_connection.Open(
             virtual_host=self.parameters['virtual_host']
         )
-        self._write_frame(channel_id, frame)
+        self._write_frame(frame)
 
     def _credentials(self):
         """AMQP Plain Credentials.

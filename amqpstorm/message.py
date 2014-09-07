@@ -1,9 +1,9 @@
-"""AMQP-Storm Message"""
+"""AMQP-Storm Message."""
 __author__ = 'eandersson'
 
 
 class Message(object):
-    """RabbitMQ Message Class"""
+    """RabbitMQ Message Class."""
 
     def __init__(self, body,
                  channel,

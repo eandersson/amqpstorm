@@ -1,4 +1,4 @@
-"""AMQP-Storm Base"""
+"""AMQP-Storm Base."""
 __author__ = 'eandersson'
 
 import time
@@ -13,7 +13,7 @@ FRAME_MAX = 131072
 
 
 class Stateful(object):
-    """Stateful Class"""
+    """Stateful Class."""
     CLOSED = 0
     CLOSING = 1
     OPENING = 2
@@ -84,7 +84,7 @@ class Stateful(object):
 
 
 class Rpc(object):
-    """Rpc Class"""
+    """Rpc Class."""
 
     def __init__(self, adapter, timeout=30):
         """
@@ -199,7 +199,7 @@ class Rpc(object):
 
 
 class BaseChannel(object):
-    """Base Channel Class"""
+    """Base Channel Class."""
 
     def __init__(self, channel_id):
         self.lock = threading.Lock()

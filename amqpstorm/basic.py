@@ -1,4 +1,4 @@
-"""AMQP-Storm Channel.Basic"""
+"""AMQP-Storm Channel.Basic."""
 __author__ = 'eandersson'
 
 import math
@@ -21,16 +21,16 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Basic(object):
-    """Channel.Basic"""
+    """Channel.Basic."""
 
     def __init__(self, channel):
         self._channel = channel
 
-    def qos(self, prefetch_size=0, prefetch_count=0, global_=False):
+    def qos(self, prefetch_count=0, prefetch_size=0, global_=False):
         """Specify quality of service.
 
-        :param int/long prefetch_size: Prefetch window in octets
         :param int prefetch_count: Prefetch window in messages
+        :param int/long prefetch_size: Prefetch window in octets
         :param bool global_: Apply to entire connection
         :rtype: dict
         """
@@ -142,7 +142,7 @@ class Basic(object):
         if compatibility.is_unicode(body):
             if 'content_encoding' not in properties:
                 properties['content_encoding'] = 'utf-8'
-            encoding = properties.get('content_encoding')
+            encoding = properties['content_encoding']
             body = body.encode(encoding)
         elif PYTHON3 and isinstance(body, str):
             body = bytes(body, encoding='utf-8')

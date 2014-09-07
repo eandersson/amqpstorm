@@ -1,4 +1,4 @@
-"""AMQP-Storm Connection.Channel"""
+"""AMQP-Storm Connection.Channel."""
 __author__ = 'eandersson'
 
 import logging
@@ -24,7 +24,7 @@ CONTENT_FRAME = ['Basic.Deliver', 'ContentHeader', 'ContentBody']
 
 
 class Channel(BaseChannel, Stateful):
-    """RabbitMQ Channel Class"""
+    """RabbitMQ Channel Class."""
 
     def __init__(self, channel_id, connection):
         super(Channel, self).__init__(channel_id)
@@ -136,7 +136,10 @@ class Channel(BaseChannel, Stateful):
         self.remove_consumer_tag()
 
     def process_data_events(self):
-        """Consume events in inbound buffer.
+        """Consume inbound messages.
+
+            This is only required when consuming messages. All other
+            events are automatically handled in the background.
 
         :return:
         """
@@ -154,7 +157,7 @@ class Channel(BaseChannel, Stateful):
         sleep(IDLE_WAIT)
 
     def write_frame(self, frame_out):
-        """Write a frame from the current channel.
+        """Write a pamqp frame from the current channel.
 
         :param pamqp_spec.Frame frame_out: Amqp frame.
         :return:
@@ -163,7 +166,7 @@ class Channel(BaseChannel, Stateful):
         self._connection.write_frame(self.channel_id, frame_out)
 
     def write_frames(self, frames_out):
-        """Write multiple frames from the current channel.
+        """Write multiple pamqp frames from the current channel.
 
         :param list frames_out: Amqp frames.
         :return:
