@@ -13,13 +13,25 @@ try:
     def send_messages(connection):
         start_time = time.time()
         channel = connection.channel()
+        channel.queue.declare('simple_queue')
         messages_sent = 0
         while True:
+            # If connection is blocked, wait before trying to publish again.
+            if connection.is_blocked:
+                time.sleep(1)
+                continue
+
+            # Publish a message to the queue.
             channel.basic.publish('Hey World!', 'simple_queue')
-            if messages_sent >= 100000:
+
+            # After 10,000 messages has been sent, stop publishing on
+            # this thread.
+            if messages_sent >= 10000:
                 logging.info(
                     "Messages Sent in: {0}s".format(time.time() - start_time))
                 break
+
+            # Increment message counter.
             messages_sent += 1
 
     connection = Connection('127.0.0.1', 'guest', 'guest')
