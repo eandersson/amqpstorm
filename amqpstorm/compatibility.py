@@ -10,27 +10,27 @@ else:
     RANGE = xrange
 
 
-def is_string(object):
+def is_string(obj):
     """Is this a string.
 
-    :param object object:
+    :param object obj:
     :rtype: bool
     """
     if PYTHON3:
         str_type = (bytes, str)
     else:
         str_type = (bytes, str, unicode)
-    return isinstance(object, str_type)
+    return isinstance(obj, str_type)
 
 
-def is_unicode(object):
+def is_unicode(obj):
     """Is this a unicode string.
 
         This always returns False if running on Python 3.
 
-    :param object object:
+    :param object obj:
     :rtype: bool
     """
     if PYTHON3:
         return False
-    return isinstance(object, unicode)
+    return isinstance(obj, unicode)

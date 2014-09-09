@@ -26,9 +26,9 @@ CONTENT_FRAME = ['Basic.Deliver', 'ContentHeader', 'ContentBody']
 class Channel(BaseChannel, Stateful):
     """RabbitMQ Channel Class."""
 
-    def __init__(self, channel_id, connection):
+    def __init__(self, channel_id, connection, rpc_timeout):
         super(Channel, self).__init__(channel_id)
-        self.rpc = Rpc(self)
+        self.rpc = Rpc(self, timeout=rpc_timeout)
         self._connection = connection
         self.confirming_deliveries = False
         self._inbound = []
@@ -42,8 +42,8 @@ class Channel(BaseChannel, Stateful):
 
     def __exit__(self, exception_type, exception_value, _):
         if exception_value:
-            msg = 'Closing channel due to an unhandled exception: {0}'
-            LOGGER.error(msg.format(exception_type))
+            message = 'Closing channel due to an unhandled exception: {0!s}'
+            LOGGER.error(message.format(exception_type))
         self.close()
 
     def __int__(self):
@@ -56,7 +56,7 @@ class Channel(BaseChannel, Stateful):
         """
         self._inbound = []
         self._exceptions = []
-        LOGGER.debug('Opening Channel: {0}'.format(self.channel_id))
+        LOGGER.debug('Opening Channel: {0!s}'.format(self.channel_id))
         self.set_state(self.OPENING)
         self.write_frame(pamqp_spec.Channel.Open())
 
@@ -113,9 +113,9 @@ class Channel(BaseChannel, Stateful):
         elif frame_in.name == 'Basic.Return':
             self._basic_return(frame_in)
         else:
-            msg = "Unhandled Frame: {0} -- {1}"
-            LOGGER.error(msg.format(frame_in.name,
-                                    frame_in.__dict__))
+            message = "Unhandled Frame: {0!s} -- {1!s}"
+            LOGGER.error(message.format(frame_in.name,
+                                        frame_in.__dict__))
 
     def start_consuming(self):
         """Start consuming events.
@@ -205,9 +205,9 @@ class Channel(BaseChannel, Stateful):
         :return:
         """
         if frame_in.reply_code != 200:
-            msg = 'Channel {0} was closed by remote server: {1}'
-            why = AMQPChannelError(msg.format(self._channel_id,
-                                              frame_in.reply_text))
+            message = 'Channel {0!s} was closed by remote server: {1!s}'
+            why = AMQPChannelError(message.format(self._channel_id,
+                                                  frame_in.reply_text))
             self._exceptions.append(why)
         self.remove_consumer_tag()
         self.set_state(self.CLOSED)
@@ -218,8 +218,8 @@ class Channel(BaseChannel, Stateful):
         :param pamqp_spec.Return frame_in: Amqp frame.
         :return:
         """
-        message = "Message not delivered: {0} ({1}) to queue" \
-                  " '{2}' from exchange '{3}'" \
+        message = "Message not delivered: {0!s} ({1!s}) to queue" \
+                  " '{2!s}' from exchange '{3!s}'" \
             .format(frame_in.reply_text,
                     frame_in.reply_code,
                     frame_in.routing_key,

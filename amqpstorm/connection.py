@@ -108,9 +108,26 @@ class Connection(Stateful):
 
     def __exit__(self, exception_type, exception_value, _):
         if exception_value:
-            msg = 'Closing connection due to an unhandled exception: {0}'
-            LOGGER.error(msg.format(exception_type))
+            message = 'Closing connection due to an unhandled exception: {0!s}'
+            LOGGER.error(message.format(exception_type))
         self.close()
+
+    @property
+    def is_blocked(self):
+        """Is the connection currently being blocked from publishing by
+        the remote server.
+
+        :rtype: bool
+        """
+        return self._channel0.is_blocked
+
+    @property
+    def server_properties(self):
+        """Returns the RabbitMQ Server properties.
+
+        :rtype: dict
+        """
+        return self._channel0.server_properties
 
     @property
     def socket(self):
@@ -147,11 +164,11 @@ class Connection(Stateful):
             self._channel0.send_close_connection_frame()
         self.set_state(self.CLOSED)
 
-    def channel(self):
+    def channel(self, rpc_timeout=360):
         """Open Channel."""
         with self.lock:
             channel_id = len(self._channels) + 1
-            channel = Channel(channel_id, self)
+            channel = Channel(channel_id, self, rpc_timeout)
             self._channels[channel_id] = channel
             channel.open()
             while not channel.is_open and self.is_open:

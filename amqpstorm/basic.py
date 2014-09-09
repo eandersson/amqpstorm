@@ -216,7 +216,7 @@ class Basic(object):
         elif isinstance(result, pamqp_spec.Basic.Nack):
             return False
         else:
-            raise AMQPMessageError('Unexpected Error: {0} - {1}'
+            raise AMQPMessageError('Unexpected Error: {0!s} - {1!s}'
                                    .format(result, result.__dict__))
 
     @staticmethod

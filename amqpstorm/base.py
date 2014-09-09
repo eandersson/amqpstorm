@@ -86,7 +86,7 @@ class Stateful(object):
 class Rpc(object):
     """Rpc Class."""
 
-    def __init__(self, adapter, timeout=30):
+    def __init__(self, adapter, timeout=360):
         """
         :param Stateful adapter: Connection or Channel.
         :param int timeout: Rpc timeout.
@@ -168,6 +168,9 @@ class Rpc(object):
         :param bool auto_remove: Automatically remove Rpc response.
         :return:
         """
+        if uuid not in self.response:
+            return
+
         self._wait_for_request(uuid)
         frame = self.response.get(uuid, None)
 
@@ -192,10 +195,22 @@ class Rpc(object):
         while self.response[uuid] is None:
             self._adapter.check_for_errors()
             if time.time() - start_time > self.timeout:
-                self.remove(uuid)
-                raise AMQPChannelError('rpc request {0} took too long'
-                                       .format(uuid))
+                self._raise_rpc_timeout_error(uuid)
             time.sleep(IDLE_WAIT)
+
+    def _raise_rpc_timeout_error(self, uuid):
+        """Gather information and raise an Rpc exception.
+
+        :param str uuid: Rpc Identifier.
+        :return:
+        """
+        requests = []
+        for key, value in self.request.items():
+            if value == uuid:
+                requests.append(key)
+        self.remove(uuid)
+        message = 'rpc requests {0!s} ({1!s}) took too long'
+        raise AMQPChannelError(message.format(uuid, ', '.join(requests)))
 
 
 class BaseChannel(object):
