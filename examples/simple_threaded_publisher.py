@@ -27,8 +27,8 @@ try:
             # After 10,000 messages has been sent, stop publishing on
             # this thread.
             if messages_sent >= 10000:
-                logging.info(
-                    "Messages Sent in: {0}s".format(time.time() - start_time))
+                logging.info("[Channel #{0}] Messages Sent in: {1}s"
+                             .format(int(channel), time.time() - start_time))
                 break
 
             # Increment message counter.
