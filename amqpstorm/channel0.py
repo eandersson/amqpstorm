@@ -150,5 +150,5 @@ class Channel0(object):
                     'consumer_cancel_notify': True,
                     'authentication_failure_close': True,
                 },
-                'information': 'AMQP-Storm',
+                'information': 'See https://github.com/eandersson/amqp-storm',
                 'version': __version__}
