@@ -132,7 +132,8 @@ class Channel(BaseChannel, Stateful):
         """
         if not self.consumer_tags:
             return
-        self.basic.cancel()
+        for tag in self.consumer_tags:
+            self.basic.cancel(tag)
         self.remove_consumer_tag()
 
     def process_data_events(self):
@@ -144,12 +145,9 @@ class Channel(BaseChannel, Stateful):
         :return:
         """
         if not self.consumer_callback:
-            why = AMQPChannelError('no consumer_callback defined')
-            self.exceptions.append(why)
+            raise AMQPChannelError('no consumer_callback defined')
         self.check_for_errors()
         while self._inbound and not self.is_closed:
-            if not self.consumer_tags:
-                break
             message = self._fetch_message()
             if not message:
                 break
@@ -235,6 +233,8 @@ class Channel(BaseChannel, Stateful):
             if len(self._inbound) < 3:
                 return None
             basic_deliver = self._inbound.pop(0)
+            if not isinstance(basic_deliver, pamqp_spec.Basic.Deliver):
+                return None
             content_header = self._inbound.pop(0)
             body = self._build_message_body(content_header.body_size)
 
