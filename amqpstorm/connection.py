@@ -355,6 +355,19 @@ class Connection(Stateful):
         for channel_id in self._channels:
             self._channels[channel_id].close()
 
+    def _close_socket(self):
+        """Close Socket.
+
+        :return:
+        """
+        if not self.socket:
+            return
+        try:
+            self.socket.shutdown(socket.SHUT_RDWR)
+        except socket.errno:
+            pass
+        self.socket.close()
+
     def _handle_socket_error(self, why):
         """Handle any socket errors. If requested we will try to
             re-establish the connection.
@@ -364,8 +377,7 @@ class Connection(Stateful):
         """
         LOGGER.debug(why, exc_info=False)
         self._close_channels()
-        if self.socket:
-            self.socket.close()
+        self._close_socket()
         self.set_state(self.CLOSED)
         self._exceptions.append(AMQPConnectionError(why))
 

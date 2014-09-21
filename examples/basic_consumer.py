@@ -20,7 +20,7 @@ def consumer():
             try:
                 channel.start_consuming()
             except KeyboardInterrupt:
-                channel.stop_consuming()
+                channel.close()
 
 
 if __name__ == '__main__':

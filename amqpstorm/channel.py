@@ -71,6 +71,7 @@ class Channel(BaseChannel, Stateful):
             self.set_state(self.CLOSED)
             return
         self.set_state(self.CLOSING)
+        self.stop_consuming()
         self.write_frame(pamqp_spec.Channel.Close(
             reply_code=reply_code,
             reply_text=reply_text))
@@ -202,12 +203,13 @@ class Channel(BaseChannel, Stateful):
         :param pamqp_spec.Channel.Close frame_in: Amqp frame.
         :return:
         """
+        self.remove_consumer_tag()
         if frame_in.reply_code != 200:
             message = 'Channel {0!s} was closed by remote server: {1!s}'
             why = AMQPChannelError(message.format(self._channel_id,
                                                   frame_in.reply_text))
             self._exceptions.append(why)
-        self.remove_consumer_tag()
+        self._inbound = []
         self.set_state(self.CLOSED)
 
     def _basic_return(self, frame_in):
