@@ -2,7 +2,6 @@
 __author__ = 'eandersson'
 
 import math
-import inspect
 import logging
 
 from pamqp import PYTHON3
@@ -13,7 +12,6 @@ from pamqp import specification as pamqp_spec
 from amqpstorm import compatibility
 from amqpstorm.base import FRAME_MAX
 from amqpstorm.message import Message
-from amqpstorm.exception import AMQPChannelError
 from amqpstorm.exception import AMQPMessageError
 
 
@@ -99,9 +97,6 @@ class Basic(object):
         :param dict arguments: Arguments for declaration
         :rtype: str
         """
-        if not inspect.isfunction(callback):
-            raise AMQPChannelError('callback is not callable')
-
         self._channel.consumer_callback = callback
         consume_frame = pamqp_spec.Basic.Consume(queue=queue,
                                                  consumer_tag=consumer_tag,
