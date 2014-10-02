@@ -364,7 +364,7 @@ class Connection(Stateful):
             return
         try:
             self.socket.shutdown(socket.SHUT_RDWR)
-        except socket.errno:
+        except socket.error:
             pass
         self.socket.close()
 
