@@ -212,17 +212,17 @@ class Connection(Stateful):
         :return:
         """
         if not compatibility.is_string(self.parameters['hostname']):
-            raise AMQPError('hostname should be a string')
+            raise AMQPConnectionError('hostname should be a string')
         elif not isinstance(self.parameters['port'], int):
-            raise AMQPError('port should be an int')
+            raise AMQPConnectionError('port should be an int')
         elif not compatibility.is_string(self.parameters['username']):
-            raise AMQPError('username should be a string')
+            raise AMQPConnectionError('username should be a string')
         elif not compatibility.is_string(self.parameters['password']):
-            raise AMQPError('password should be a string')
+            raise AMQPConnectionError('password should be a string')
         elif not compatibility.is_string(self.parameters['virtual_host']):
-            raise AMQPError('virtual_host should be a string')
+            raise AMQPConnectionError('virtual_host should be a string')
         elif not isinstance(self.parameters['timeout'], (int, float)):
-            raise AMQPError('timeout should be an int or float')
+            raise AMQPConnectionError('timeout should be an int or float')
 
     def _open_socket(self, hostname, port, keep_alive=1, no_delay=0):
         """Open Socket and establish a connection.
