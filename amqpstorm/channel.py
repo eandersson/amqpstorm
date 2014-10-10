@@ -29,9 +29,9 @@ class Channel(BaseChannel, Stateful):
     def __init__(self, channel_id, connection, rpc_timeout):
         super(Channel, self).__init__(channel_id)
         self.rpc = Rpc(self, timeout=rpc_timeout)
+        self._inbound = []
         self._connection = connection
         self.confirming_deliveries = False
-        self._inbound = []
         self.consumer_callback = None
         self.basic = Basic(self)
         self.queue = Queue(self)
@@ -43,7 +43,9 @@ class Channel(BaseChannel, Stateful):
     def __exit__(self, exception_type, exception_value, _):
         if exception_value:
             message = 'Closing channel due to an unhandled exception: {0!s}'
-            LOGGER.error(message.format(exception_type))
+            LOGGER.warning(message.format(exception_type))
+        if not self.is_open:
+            return
         self.close()
 
     def __int__(self):
@@ -67,7 +69,8 @@ class Channel(BaseChannel, Stateful):
         :param str reply_text:
         :return:
         """
-        if not self.is_open:
+        if not self._connection.is_open or not self.is_open:
+            self.remove_consumer_tag()
             self.set_state(self.CLOSED)
             return
         self.set_state(self.CLOSING)

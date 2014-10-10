@@ -26,7 +26,6 @@ from amqpstorm.base import IDLE_WAIT
 from amqpstorm.base import FRAME_MAX
 from amqpstorm.channel import Channel
 from amqpstorm.channel0 import Channel0
-from amqpstorm.exception import AMQPError
 from amqpstorm.exception import AMQPConnectionError
 
 
@@ -109,7 +108,7 @@ class Connection(Stateful):
     def __exit__(self, exception_type, exception_value, _):
         if exception_value:
             message = 'Closing connection due to an unhandled exception: {0!s}'
-            LOGGER.error(message.format(exception_type))
+            LOGGER.warning(message.format(exception_type))
         self.close()
 
     @property
@@ -158,10 +157,11 @@ class Connection(Stateful):
 
     def close(self):
         """Close connection."""
-        if self.socket:
+        if not self.is_closed and self.socket:
             self.set_state(self.CLOSING)
             self._close_channels()
             self._channel0.send_close_connection_frame()
+        self._close_socket()
         self.set_state(self.CLOSED)
 
     def channel(self, rpc_timeout=360):
@@ -259,7 +259,7 @@ class Connection(Stateful):
         return sock, None
 
     def _ssl_wrap_socket(self, sock):
-        """Wrap socket to add SSL.
+        """Wrap SSLSocket around the socket.
 
         :param socket sock:
         :return:
@@ -288,7 +288,7 @@ class Connection(Stateful):
     @property
     def _poll_is_ready(self):
         """Wrapper around ReadPoller.is_ready to ensure that
-            error messages are handled properly.
+        error messages are handled properly.
 
         :type: bool, bool
         """
@@ -313,7 +313,7 @@ class Connection(Stateful):
 
     def _read_buffer(self):
         """Process the socket buffer, and direct the data to the correct
-            channel.
+        channel.
 
         :return:
         """
@@ -370,15 +370,16 @@ class Connection(Stateful):
 
     def _handle_socket_error(self, why):
         """Handle any socket errors. If requested we will try to
-            re-establish the connection.
+        re-establish the connection.
 
         :param exception why:
         :return:
         """
-        LOGGER.debug(why, exc_info=False)
-        self._close_channels()
-        self._close_socket()
+        previous_state = self._state
         self.set_state(self.CLOSED)
+        if previous_state != self.CLOSED:
+            LOGGER.error(why, exc_info=False)
+        self._close_socket()
         self._exceptions.append(AMQPConnectionError(why))
 
     def _receive(self):
@@ -428,8 +429,7 @@ class UriConnection(Connection):
     """Wrapper of the Connection class that takes the AMQP uri schema."""
 
     def __init__(self, uri):
-        """Create a new instance of the Connection class using
-            an AMQP Uri string.
+        """Create a new Connection instance using an AMQP Uri string.
 
             e.g.
                 amqp://guest:guest@localhost:5672/%2F
