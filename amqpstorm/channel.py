@@ -60,7 +60,8 @@ class Channel(BaseChannel, Stateful):
         self._exceptions = []
         LOGGER.debug('Opening Channel: {0!s}'.format(self.channel_id))
         self.set_state(self.OPENING)
-        self.write_frame(pamqp_spec.Channel.Open())
+        self.rpc_request(pamqp_spec.Channel.Open())
+        self.set_state(self.OPEN)
 
     def close(self, reply_code=0, reply_text=''):
         """Close Channel.
@@ -87,10 +88,7 @@ class Channel(BaseChannel, Stateful):
         """
         self.confirming_deliveries = True
         confirm_frame = pamqp_spec.Confirm.Select()
-        with self.rpc.lock:
-            uuid = self.rpc.register_request(['Confirm.SelectOk'])
-            self.write_frame(confirm_frame)
-            return self.rpc.get_request(uuid)
+        return self.rpc_request(confirm_frame, ['Confirm.SelectOk'])
 
     def on_frame(self, frame_in):
         """Handle frame sent to this specific channel.
@@ -112,8 +110,6 @@ class Channel(BaseChannel, Stateful):
             pass
         elif frame_in.name == 'Basic.CancelOk':
             self.remove_consumer_tag(frame_in.consumer_tag)
-        elif frame_in.name == 'Channel.OpenOk':
-            self.set_state(self.OPEN)
         elif frame_in.name == 'Basic.Return':
             self._basic_return(frame_in)
         else:
@@ -189,14 +185,16 @@ class Channel(BaseChannel, Stateful):
                 self.exceptions.append(why)
         super(Channel, self).check_for_errors()
 
-    def rpc_request(self, frame_out):
+    def rpc_request(self, frame_out, valid_responses=None):
         """Perform a RPC Request.
 
         :param pamqp_spec.Frame frame_out: Amqp frame.
+        :param list valid_responses: List of valid AMQP responses.
         :rtype: dict
         """
+        valid_responses = valid_responses or frame_out.valid_responses
         with self.rpc.lock:
-            uuid = self.rpc.register_request(frame_out.valid_responses)
+            uuid = self.rpc.register_request(valid_responses)
             self.write_frame(frame_out)
             return self.rpc.get_request(uuid)
 

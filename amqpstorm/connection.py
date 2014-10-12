@@ -171,8 +171,6 @@ class Connection(Stateful):
             channel = Channel(channel_id, self, rpc_timeout)
             self._channels[channel_id] = channel
             channel.open()
-            while not channel.is_open and self.is_open:
-                sleep(IDLE_WAIT)
         return self._channels[channel_id]
 
     def write_frame(self, channel_id, frame_out):
