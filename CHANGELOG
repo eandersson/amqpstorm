@@ -1,4 +1,7 @@
 ##### Changelog
+###### Version 1.1.4
+- Upgraded to pamqp 1.5.0.
+
 ###### Version 1.1.3
 - Cleaned up shutdown process.
 - Invalid Connection parameters now correctly throw an AMQPConnectionError, instead of the more generic AMQPError.

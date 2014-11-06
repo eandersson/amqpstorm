@@ -1,10 +1,10 @@
-AMQP-Storm 1.1.3
+AMQP-Storm 1.1.4
 -------------
 Thread-safe Python AMQP Client Library based on pamqp.
 
 Introduction
 -------------
-AMQP-Storm is designed to be an easy to use and thread-safe library.
+AMQP-Storm is a library designed to be easy to use, stable and thread-safe.
 - Supports Python 2.6, 2.7 and Python 3+.
 
 Credits

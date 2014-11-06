@@ -88,7 +88,7 @@ class Channel(BaseChannel, Stateful):
         """
         self.confirming_deliveries = True
         confirm_frame = pamqp_spec.Confirm.Select()
-        return self.rpc_request(confirm_frame, ['Confirm.SelectOk'])
+        return self.rpc_request(confirm_frame)
 
     def on_frame(self, frame_in):
         """Handle frame sent to this specific channel.
@@ -185,16 +185,14 @@ class Channel(BaseChannel, Stateful):
                 self.exceptions.append(why)
         super(Channel, self).check_for_errors()
 
-    def rpc_request(self, frame_out, valid_responses=None):
+    def rpc_request(self, frame_out):
         """Perform a RPC Request.
 
         :param pamqp_spec.Frame frame_out: Amqp frame.
-        :param list valid_responses: List of valid AMQP responses.
         :rtype: dict
         """
-        valid_responses = valid_responses or frame_out.valid_responses
         with self.rpc.lock:
-            uuid = self.rpc.register_request(valid_responses)
+            uuid = self.rpc.register_request(frame_out.valid_responses)
             self.write_frame(frame_out)
             return self.rpc.get_request(uuid)
 
