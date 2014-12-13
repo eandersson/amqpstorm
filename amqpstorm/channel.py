@@ -115,7 +115,7 @@ class Channel(BaseChannel, Stateful):
         else:
             message = "Unhandled Frame: {0!s} -- {1!s}"
             LOGGER.error(message.format(frame_in.name,
-                                        frame_in.__dict__))
+                                        dict(frame_in)))
 
     def start_consuming(self):
         """Start consuming events.
@@ -240,8 +240,8 @@ class Channel(BaseChannel, Stateful):
             body = self._build_message_body(content_header.body_size)
 
         message = Message(body, self,
-                          basic_deliver.__dict__,
-                          content_header.properties.__dict__)
+                          dict(basic_deliver),
+                          dict(content_header.properties))
         return message
 
     def _build_message_body(self, body_size):

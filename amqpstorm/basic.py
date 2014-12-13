@@ -70,8 +70,8 @@ class Basic(object):
             body = self._get_content_body(uuid_body, content_header.body_size)
 
         message = Message(body, self._channel,
-                          get_frame.__dict__,
-                          content_header.properties.__dict__).to_dict()
+                          dict(get_frame),
+                          dict(content_header.properties)).to_dict()
 
         return message
 
@@ -212,7 +212,7 @@ class Basic(object):
             return False
         else:
             raise AMQPMessageError('Unexpected Error: {0!s} - {1!s}'
-                                   .format(result, result.__dict__))
+                                   .format(result, dict(result)))
 
     @staticmethod
     def _create_content_body(body):

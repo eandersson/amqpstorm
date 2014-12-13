@@ -58,7 +58,7 @@ class Channel0(object):
         else:
             message = "Unhandled Frame: {0!s} -- {1!s}"
             LOGGER.error(message.format(frame_in.name,
-                                        frame_in.__dict__))
+                                        dict(frame_in)))
 
     def send_close_connection_frame(self):
         """Send Connection Close frame.

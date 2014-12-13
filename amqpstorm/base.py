@@ -182,7 +182,7 @@ class Rpc(object):
         if raw:
             result = frame
         elif frame is not None:
-            result = frame.__dict__
+            result = dict(frame)
         return result
 
     def _wait_for_request(self, uuid):
