@@ -15,7 +15,7 @@ setup(name='AMQP-Storm',
       packages=['amqpstorm'],
       license='MIT License',
       url='http://github.com/eandersson/amqp-storm',
-      install_requires=['pamqp>=1.5.0,<1.6.0'],
+      install_requires=['pamqp>=1.6.0,<2.0'],
       package_data={'': ['README.md', 'LICENSE', 'CHANGELOG']},
       classifiers=[
           'Development Status :: 5 - Production/Stable',
