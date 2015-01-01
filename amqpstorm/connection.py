@@ -93,7 +93,7 @@ class Connection(Stateful):
             'password': password,
             'port': port,
             'virtual_host': kwargs.get('virtual_host', '/'),
-            'heartbeat': int(kwargs.get('heartbeat', 60)),
+            'heartbeat': kwargs.get('heartbeat', 60),
             'timeout': kwargs.get('timeout', 0),
             'ssl': kwargs.get('ssl', False),
             'ssl_options': kwargs.get('ssl_options', {})
@@ -161,7 +161,8 @@ class Connection(Stateful):
             self.set_state(self.CLOSING)
             self._close_channels()
             self._channel0.send_close_connection_frame()
-        self._close_socket()
+        if self.socket:
+            self._close_socket()
         self.set_state(self.CLOSED)
 
     def channel(self, rpc_timeout=360):
@@ -212,7 +213,7 @@ class Connection(Stateful):
         if not compatibility.is_string(self.parameters['hostname']):
             raise AMQPConnectionError('hostname should be a string')
         elif not isinstance(self.parameters['port'], int):
-            raise AMQPConnectionError('port should be an int')
+            raise AMQPConnectionError('port should be an integer')
         elif not compatibility.is_string(self.parameters['username']):
             raise AMQPConnectionError('username should be a string')
         elif not compatibility.is_string(self.parameters['password']):
@@ -220,7 +221,9 @@ class Connection(Stateful):
         elif not compatibility.is_string(self.parameters['virtual_host']):
             raise AMQPConnectionError('virtual_host should be a string')
         elif not isinstance(self.parameters['timeout'], (int, float)):
-            raise AMQPConnectionError('timeout should be an int or float')
+            raise AMQPConnectionError('timeout should be an integer or float')
+        elif not isinstance(self.parameters['heartbeat'], int):
+            raise AMQPConnectionError('heartbeat should be an integer')
 
     def _open_socket(self, hostname, port, keep_alive=1, no_delay=0):
         """Open Socket and establish a connection.
@@ -237,9 +240,10 @@ class Connection(Stateful):
             return None, why
         sock_addr_tuple = None
         for sock_addr in addresses:
-            if sock_addr:
-                sock_addr_tuple = sock_addr
-                break
+            if not sock_addr:
+                continue
+            sock_addr_tuple = sock_addr
+            break
         sock = socket.socket(sock_addr_tuple[0], socket.SOCK_STREAM, 0)
         sock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, no_delay)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, keep_alive)
@@ -316,8 +320,8 @@ class Connection(Stateful):
         :return:
         """
         while self._buffer:
-            self._buffer, channel_id, frame_in = self._handle_amqp_frame(
-                self._buffer)
+            self._buffer, channel_id, frame_in = \
+                self._handle_amqp_frame(self._buffer)
 
             if frame_in is None:
                 break
@@ -358,13 +362,14 @@ class Connection(Stateful):
 
         :return:
         """
-        if not self.socket:
+        if not self._socket:
             return
         try:
-            self.socket.shutdown(socket.SHUT_RDWR)
+            self._socket.shutdown(socket.SHUT_RDWR)
         except socket.error:
             pass
-        self.socket.close()
+        self._socket.close()
+        self._socket = None
 
     def _handle_socket_error(self, why):
         """Handle any socket errors. If requested we will try to
@@ -405,9 +410,9 @@ class Connection(Stateful):
         """
         while not self._poll_is_ready[1]:
             sleep(0.001)
-        to_send = len(frame_data)
         bytes_written = 0
-        while bytes_written < to_send:
+        bytes_to_send = len(frame_data)
+        while bytes_written < bytes_to_send:
             try:
                 result = self.socket.send(frame_data[bytes_written:])
                 if result == 0:
