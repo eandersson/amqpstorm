@@ -17,7 +17,7 @@ def consumer():
     result = channel.basic.get(queue='simple_queue', no_ack=False)
     if result:
         print("Message:", result['body'])
-        channel.basic.ack(result['method']['delivery_tag'])
+        channel.basic.ack(delivery_tag=result['method']['delivery_tag'])
     else:
         print("Channel Empty.")
 

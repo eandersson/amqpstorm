@@ -76,9 +76,11 @@ class Channel(BaseChannel, Stateful):
             return
         self.set_state(self.CLOSING)
         self.stop_consuming()
-        self.write_frame(pamqp_spec.Channel.Close(
+        self.rpc_request(pamqp_spec.Channel.Close(
             reply_code=reply_code,
             reply_text=reply_text))
+        del self._inbound[:]
+        self.set_state(self.CLOSED)
 
     def confirm_deliveries(self):
         """Set the channel to confirm that each message has been
@@ -183,6 +185,9 @@ class Channel(BaseChannel, Stateful):
             if not self.exceptions:
                 why = AMQPConnectionError('connection was closed')
                 self.exceptions.append(why)
+        if self.is_closed:
+            why = AMQPChannelError('channel was closed')
+            self.exceptions.append(why)
         super(Channel, self).check_for_errors()
 
     def rpc_request(self, frame_out):
@@ -208,7 +213,7 @@ class Channel(BaseChannel, Stateful):
             why = AMQPChannelError(message.format(self._channel_id,
                                                   frame_in.reply_text))
             self._exceptions.append(why)
-        self._inbound = []
+        del self._inbound[:]
         self.set_state(self.CLOSED)
 
     def _basic_return(self, frame_in):

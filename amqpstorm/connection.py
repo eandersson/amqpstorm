@@ -161,8 +161,7 @@ class Connection(Stateful):
             self.set_state(self.CLOSING)
             self._close_channels()
             self._channel0.send_close_connection_frame()
-        if self.socket:
-            self._close_socket()
+        self._close_socket()
         self.set_state(self.CLOSED)
 
     def channel(self, rpc_timeout=360):
@@ -410,14 +409,17 @@ class Connection(Stateful):
         """
         while not self._poll_is_ready[1]:
             sleep(0.001)
-        bytes_written = 0
+        total_bytes_written = 0
         bytes_to_send = len(frame_data)
-        while bytes_written < bytes_to_send:
+        while total_bytes_written < bytes_to_send:
             try:
-                result = self.socket.send(frame_data[bytes_written:])
-                if result == 0:
-                    raise AMQPConnectionError('connection/socket error')
-                bytes_written += result
+                bytes_written = \
+                    self.socket.send(frame_data[total_bytes_written:])
+                if bytes_written == 0:
+                    why = AMQPConnectionError('connection/socket error')
+                    self._handle_socket_error(why)
+                    break
+                total_bytes_written += bytes_written
             except socket.timeout:
                 pass
             except socket.error as why:
@@ -425,7 +427,7 @@ class Connection(Stateful):
                     continue
                 self._handle_socket_error(why)
                 break
-        return bytes_written
+        return total_bytes_written
 
 
 class UriConnection(Connection):

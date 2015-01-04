@@ -37,7 +37,7 @@ def random_wait():
 
 def on_message(body, channel, header, properties):
     print("Message Received:", body, threading.currentThread())
-    channel.basic.ack(header['delivery_tag'])
+    channel.basic.ack(delivery_tag=header['delivery_tag'])
 
     # Slow the process down to keep the screen from being flooded.
     time.sleep(random_wait())
