@@ -1,4 +1,4 @@
-AMQP-Storm 1.1.6
+AMQP-Storm 1.1.7
 -------------
 Thread-safe Python AMQP Client Library based on pamqp.
 

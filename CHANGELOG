@@ -1,4 +1,9 @@
 ##### Changelog
+###### Version 1.1.7
+- Fixed a minor bug when a Channel was closed, it did not properly wait for the Channel CloseOk message.
+- Moved heartbeat parameter validation to the _validate_parameters function.
+- socket is now set to None when a socket is closed.
+
 ###### Version 1.1.6
 - pamqp 1.6.0 now supported.
 
