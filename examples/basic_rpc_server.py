@@ -24,7 +24,7 @@ def on_request(body, channel, header, properties):
     number = int(body)
 
     print(" [.] fib(%s)" % (number,))
-    response = number
+    response = fib(number)
 
     channel.basic.publish(exchange='',
                           routing_key=properties['reply_to'],
