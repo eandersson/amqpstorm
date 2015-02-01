@@ -1,0 +1,31 @@
+Metadata-Version: 1.1
+Name: AMQP-Storm
+Version: 1.1.7
+Summary: Thread-safe Python AMQP Client Library based on pamqp.
+Home-page: http://github.com/eandersson/amqp-storm
+Author: Erik Olof Gunnar Andersson
+Author-email: me@eandersson.net
+License: MIT License
+Description: 
+        See https://github.com/eandersson/amqp-storm for more information.
+        
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Natural Language :: English
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.6
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.2
+Classifier: Programming Language :: Python :: 3.3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: Implementation :: CPython
+Classifier: Programming Language :: Python :: Implementation :: PyPy
+Classifier: Topic :: Communications
+Classifier: Topic :: Internet
+Classifier: Topic :: Software Development :: Libraries
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: Topic :: System :: Networking
