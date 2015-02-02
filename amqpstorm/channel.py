@@ -12,11 +12,13 @@ from amqpstorm.base import Stateful
 from amqpstorm.base import BaseChannel
 from amqpstorm.queue import Queue
 from amqpstorm.basic import Basic
+from amqpstorm import compatibility
 from amqpstorm.message import Message
 from amqpstorm.exchange import Exchange
 from amqpstorm.exception import AMQPChannelError
 from amqpstorm.exception import AMQPMessageError
 from amqpstorm.exception import AMQPConnectionError
+from amqpstorm.exception import AMQPInvalidArgument
 
 
 LOGGER = logging.getLogger(__name__)
@@ -70,6 +72,11 @@ class Channel(BaseChannel, Stateful):
         :param str reply_text:
         :return:
         """
+        if not isinstance(reply_code, int):
+            raise AMQPInvalidArgument('reply_code should be an integer')
+        if not compatibility.is_string(reply_text):
+            raise AMQPInvalidArgument('reply_text should be a string')
+
         if not self._connection.is_open or not self.is_open:
             self.remove_consumer_tag()
             self.set_state(self.CLOSED)

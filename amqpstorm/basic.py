@@ -13,6 +13,7 @@ from amqpstorm import compatibility
 from amqpstorm.base import FRAME_MAX
 from amqpstorm.message import Message
 from amqpstorm.exception import AMQPMessageError
+from amqpstorm.exception import AMQPInvalidArgument
 
 
 LOGGER = logging.getLogger(__name__)
@@ -32,6 +33,13 @@ class Basic(object):
         :param bool global_: Apply to entire connection
         :rtype: dict
         """
+        if not isinstance(prefetch_count, int):
+            raise AMQPInvalidArgument('prefetch_count should be an integer')
+        if not isinstance(prefetch_count, int):
+            raise AMQPInvalidArgument('prefetch_size should be an integer')
+        if not isinstance(global_, bool):
+            raise AMQPInvalidArgument('global_ should be an boolean')
+
         qos_frame = pamqp_spec.Basic.Qos(prefetch_count=prefetch_count,
                                          prefetch_size=prefetch_size,
                                          global_=global_)
@@ -44,6 +52,10 @@ class Basic(object):
         :param bool no_ack: No acknowledgement needed
         :rtype: dict or None
         """
+        if not compatibility.is_string(queue):
+            raise AMQPInvalidArgument('queue should be a string')
+        if not isinstance(no_ack, bool):
+            raise AMQPInvalidArgument('no_ack should be a boolean')
 
         if self._channel.consumer_tags:
             LOGGER.warning('Unable to perform Basic.Get when consuming.')
@@ -81,6 +93,9 @@ class Basic(object):
         :param bool requeue: Requeue the messages
         :rtype: dict
         """
+        if not isinstance(requeue, bool):
+            raise AMQPInvalidArgument('requeue should be a boolean')
+
         recover_frame = pamqp_spec.Basic.Recover(requeue=requeue)
         return self._channel.rpc_request(recover_frame)
 
@@ -97,6 +112,19 @@ class Basic(object):
         :param dict arguments: Arguments for declaration
         :rtype: str
         """
+        if not compatibility.is_string(queue):
+            raise AMQPInvalidArgument('queue should be a string')
+        if not compatibility.is_string(consumer_tag):
+            raise AMQPInvalidArgument('consumer_tag should be a string')
+        if not isinstance(exclusive, bool):
+            raise AMQPInvalidArgument('exclusive should be a boolean')
+        if not isinstance(no_ack, bool):
+            raise AMQPInvalidArgument('no_ack should be a boolean')
+        if not isinstance(no_local, bool):
+            raise AMQPInvalidArgument('no_local should be a boolean')
+        if arguments and not isinstance(arguments, dict):
+            raise AMQPInvalidArgument('arguments should be a dict or None')
+
         self._channel.consumer_callback = callback
         consume_frame = pamqp_spec.Basic.Consume(queue=queue,
                                                  consumer_tag=consumer_tag,
@@ -115,6 +143,9 @@ class Basic(object):
         :param str consumer_tag: Consumer tag
         :rtype: dict
         """
+        if not compatibility.is_string(consumer_tag):
+            raise AMQPInvalidArgument('consumer_tag should be a string')
+
         cancel_frame = pamqp_spec.Basic.Cancel(consumer_tag=consumer_tag)
         result = self._channel.rpc_request(cancel_frame)
         self._channel.remove_consumer_tag(consumer_tag)
@@ -132,6 +163,19 @@ class Basic(object):
         :param bool immediate:
         :rtype: bool|None
         """
+        if not compatibility.is_string(body):
+            raise AMQPInvalidArgument('body should be a string')
+        if not compatibility.is_string(routing_key):
+            raise AMQPInvalidArgument('routing_key should be a string')
+        if not compatibility.is_string(exchange):
+            raise AMQPInvalidArgument('exchange should be a string')
+        if properties and not isinstance(properties, dict):
+            raise AMQPInvalidArgument('properties should be a dict or None')
+        if not isinstance(mandatory, bool):
+            raise AMQPInvalidArgument('mandatory should be a boolean')
+        if not isinstance(immediate, bool):
+            raise AMQPInvalidArgument('immediate should be a boolean')
+
         properties = properties or {}
 
         if compatibility.is_unicode(body):
@@ -167,6 +211,12 @@ class Basic(object):
         :param bool multiple: Acknowledge multiple messages
         :return:
         """
+        if delivery_tag and not isinstance(delivery_tag, int):
+            raise AMQPInvalidArgument('delivery_tag should be a string '
+                                      'or None')
+        if not isinstance(multiple, bool):
+            raise AMQPInvalidArgument('multiple should be a boolean')
+
         ack_frame = pamqp_spec.Basic.Ack(delivery_tag=delivery_tag,
                                          multiple=multiple)
         self._channel.write_frame(ack_frame)
@@ -178,6 +228,12 @@ class Basic(object):
         :param bool requeue: Requeue the message
         :return:
         """
+        if delivery_tag and not compatibility.is_string(delivery_tag):
+            raise AMQPInvalidArgument('delivery_tag should be a string '
+                                      'or None')
+        if not isinstance(requeue, bool):
+            raise AMQPInvalidArgument('requeue should be a boolean')
+
         reject_frame = pamqp_spec.Basic.Reject(delivery_tag=delivery_tag,
                                                requeue=requeue)
         self._channel.write_frame(reject_frame)
@@ -190,6 +246,14 @@ class Basic(object):
         :param bool requeue:
         :return:
         """
+        if delivery_tag and not compatibility.is_string(delivery_tag):
+            raise AMQPInvalidArgument('delivery_tag should be a string '
+                                      'or None')
+        if not isinstance(multiple, bool):
+            raise AMQPInvalidArgument('multiple should be a boolean')
+        if not isinstance(requeue, bool):
+            raise AMQPInvalidArgument('requeue should be a boolean')
+
         nack_frame = pamqp_spec.Basic.Nack(delivery_tag=delivery_tag,
                                            multiple=multiple,
                                            requeue=requeue)

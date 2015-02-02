@@ -27,6 +27,7 @@ from amqpstorm.base import FRAME_MAX
 from amqpstorm.channel import Channel
 from amqpstorm.channel0 import Channel0
 from amqpstorm.exception import AMQPConnectionError
+from amqpstorm.exception import AMQPInvalidArgument
 
 
 EMPTY_BUFFER = bytes()
@@ -166,6 +167,9 @@ class Connection(Stateful):
 
     def channel(self, rpc_timeout=360):
         """Open Channel."""
+        if not isinstance(rpc_timeout, int):
+            raise AMQPInvalidArgument('rpc_timeout should be an integer')
+
         with self.lock:
             channel_id = len(self._channels) + 1
             channel = Channel(channel_id, self, rpc_timeout)
@@ -210,19 +214,19 @@ class Connection(Stateful):
         :return:
         """
         if not compatibility.is_string(self.parameters['hostname']):
-            raise AMQPConnectionError('hostname should be a string')
-        elif not isinstance(self.parameters['port'], int):
-            raise AMQPConnectionError('port should be an integer')
-        elif not compatibility.is_string(self.parameters['username']):
-            raise AMQPConnectionError('username should be a string')
-        elif not compatibility.is_string(self.parameters['password']):
-            raise AMQPConnectionError('password should be a string')
-        elif not compatibility.is_string(self.parameters['virtual_host']):
-            raise AMQPConnectionError('virtual_host should be a string')
-        elif not isinstance(self.parameters['timeout'], (int, float)):
-            raise AMQPConnectionError('timeout should be an integer or float')
-        elif not isinstance(self.parameters['heartbeat'], int):
-            raise AMQPConnectionError('heartbeat should be an integer')
+            raise AMQPInvalidArgument('hostname should be a string')
+        if not isinstance(self.parameters['port'], int):
+            raise AMQPInvalidArgument('port should be an integer')
+        if not compatibility.is_string(self.parameters['username']):
+            raise AMQPInvalidArgument('username should be a string')
+        if not compatibility.is_string(self.parameters['password']):
+            raise AMQPInvalidArgument('password should be a string')
+        if not compatibility.is_string(self.parameters['virtual_host']):
+            raise AMQPInvalidArgument('virtual_host should be a string')
+        if not isinstance(self.parameters['timeout'], (int, float)):
+            raise AMQPInvalidArgument('timeout should be an integer or float')
+        if not isinstance(self.parameters['heartbeat'], int):
+            raise AMQPInvalidArgument('heartbeat should be an integer')
 
     def _open_socket(self, hostname, port, keep_alive=1, no_delay=0):
         """Open Socket and establish a connection.

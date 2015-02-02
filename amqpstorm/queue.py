@@ -5,6 +5,9 @@ import logging
 
 from pamqp.specification import Queue as pamqp_queue
 
+from amqpstorm import compatibility
+from amqpstorm.exception import AMQPInvalidArgument
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -27,6 +30,19 @@ class Queue(object):
         :param dict arguments:
         :rtype: dict
         """
+        if not compatibility.is_string(queue):
+            raise AMQPInvalidArgument('queue should be a string')
+        if not isinstance(passive, bool):
+            raise AMQPInvalidArgument('passive should be a boolean')
+        if not isinstance(durable, bool):
+            raise AMQPInvalidArgument('durable should be a boolean')
+        if not isinstance(exclusive, bool):
+            raise AMQPInvalidArgument('exclusive should be a boolean')
+        if not isinstance(auto_delete, bool):
+            raise AMQPInvalidArgument('auto_delete should be a boolean')
+        if arguments and not isinstance(arguments, dict):
+            raise AMQPInvalidArgument('arguments should be a dict or None')
+
         declare_frame = pamqp_queue.Declare(queue=queue,
                                             passive=passive,
                                             durable=durable,
@@ -43,6 +59,13 @@ class Queue(object):
         :param bool if_empty: Delete only if empty
         :rtype: dict
         """
+        if not compatibility.is_string(queue):
+            raise AMQPInvalidArgument('queue should be a string')
+        if not isinstance(if_unused, bool):
+            raise AMQPInvalidArgument('if_unused should be a boolean')
+        if not isinstance(if_empty, bool):
+            raise AMQPInvalidArgument('if_empty should be a boolean')
+
         delete_frame = pamqp_queue.Delete(queue=queue, if_unused=if_unused,
                                           if_empty=if_empty)
         return self._channel.rpc_request(delete_frame)
@@ -53,6 +76,9 @@ class Queue(object):
         :param str queue:
         :rtype: dict
         """
+        if not compatibility.is_string(queue):
+            raise AMQPInvalidArgument('queue should be a string')
+
         purge_frame = pamqp_queue.Purge(queue=queue)
 
         return self._channel.rpc_request(purge_frame)
@@ -66,6 +92,15 @@ class Queue(object):
         :param dict arguments:
         :rtype: dict
         """
+        if not compatibility.is_string(queue):
+            raise AMQPInvalidArgument('queue should be a string')
+        if not compatibility.is_string(exchange):
+            raise AMQPInvalidArgument('exchange should be a string')
+        if not compatibility.is_string(routing_key):
+            raise AMQPInvalidArgument('routing_key should be a string')
+        if arguments and not isinstance(arguments, dict):
+            raise AMQPInvalidArgument('arguments should be a dict or None')
+
         bind_frame = pamqp_queue.Bind(queue=queue,
                                       exchange=exchange,
                                       routing_key=routing_key,
@@ -81,6 +116,15 @@ class Queue(object):
         :param dict arguments:
         :rtype: dict
         """
+        if not compatibility.is_string(queue):
+            raise AMQPInvalidArgument('queue should be a string')
+        if not compatibility.is_string(exchange):
+            raise AMQPInvalidArgument('exchange should be a string')
+        if not compatibility.is_string(routing_key):
+            raise AMQPInvalidArgument('routing_key should be a string')
+        if arguments and not isinstance(arguments, dict):
+            raise AMQPInvalidArgument('arguments should be a dict or None')
+
         unbind_frame = pamqp_queue.Unbind(queue=queue,
                                           exchange=exchange,
                                           routing_key=routing_key,

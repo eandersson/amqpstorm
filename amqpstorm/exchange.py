@@ -5,6 +5,9 @@ import logging
 
 from pamqp.specification import Exchange as pamqp_exchange
 
+from amqpstorm import compatibility
+from amqpstorm.exception import AMQPInvalidArgument
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -27,6 +30,19 @@ class Exchange(object):
         :param dict arguments:
         :rtype: dict
         """
+        if not compatibility.is_string(exchange):
+            raise AMQPInvalidArgument('exchange should be a string')
+        if not compatibility.is_string(exchange):
+            raise AMQPInvalidArgument('exchange_type should be a string')
+        if not isinstance(passive, bool):
+            raise AMQPInvalidArgument('passive should be a boolean')
+        if not isinstance(durable, bool):
+            raise AMQPInvalidArgument('durable should be a boolean')
+        if not isinstance(auto_delete, bool):
+            raise AMQPInvalidArgument('auto_delete should be a boolean')
+        if arguments and not isinstance(arguments, dict):
+            raise AMQPInvalidArgument('arguments should be a dict or None')
+
         declare_frame = pamqp_exchange.Declare(exchange=exchange,
                                                exchange_type=exchange_type,
                                                passive=passive,
@@ -42,6 +58,9 @@ class Exchange(object):
         :param bool if_unused:
         :rtype: dict
         """
+        if not compatibility.is_string(exchange):
+            raise AMQPInvalidArgument('exchange should be a string')
+
         delete_frame = pamqp_exchange.Delete(exchange=exchange,
                                              if_unused=if_unused)
         return self._channel.rpc_request(delete_frame)
@@ -56,6 +75,15 @@ class Exchange(object):
         :param dict arguments:
         :rtype: dict
         """
+        if not compatibility.is_string(destination):
+            raise AMQPInvalidArgument('destination should be a string')
+        if not compatibility.is_string(source):
+            raise AMQPInvalidArgument('source should be a string')
+        if not compatibility.is_string(routing_key):
+            raise AMQPInvalidArgument('routing_key should be a string')
+        if arguments and not isinstance(arguments, dict):
+            raise AMQPInvalidArgument('arguments should be a dict or None')
+
         bind_frame = pamqp_exchange.Bind(destination=destination,
                                          source=source,
                                          routing_key=routing_key,
@@ -72,6 +100,15 @@ class Exchange(object):
         :param dict arguments:
         :rtype: dict
         """
+        if not compatibility.is_string(destination):
+            raise AMQPInvalidArgument('destination should be a string')
+        if not compatibility.is_string(source):
+            raise AMQPInvalidArgument('source should be a string')
+        if not compatibility.is_string(routing_key):
+            raise AMQPInvalidArgument('routing_key should be a string')
+        if arguments and not isinstance(arguments, dict):
+            raise AMQPInvalidArgument('arguments should be a dict or None')
+
         unbind_frame = pamqp_exchange.Unbind(destination=destination,
                                              source=source,
                                              routing_key=routing_key,
