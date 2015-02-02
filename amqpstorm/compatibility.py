@@ -1,7 +1,10 @@
 """Python 2/3 Compatibility layer."""
 __author__ = 'eandersson'
 
-from pamqp import PYTHON3
+import sys
+
+
+PYTHON3 = sys.version_info >= (3, 0, 0)
 
 
 if PYTHON3:

@@ -4,7 +4,6 @@ __author__ = 'eandersson'
 import math
 import logging
 
-from pamqp import PYTHON3
 from pamqp import body as pamqp_body
 from pamqp import header as pamqp_header
 from pamqp import specification as pamqp_spec
@@ -183,7 +182,7 @@ class Basic(object):
                 properties['content_encoding'] = 'utf-8'
             encoding = properties['content_encoding']
             body = body.encode(encoding)
-        elif PYTHON3 and isinstance(body, str):
+        elif compatibility.PYTHON3 and isinstance(body, str):
             body = bytes(body, encoding='utf-8')
 
         properties = pamqp_spec.Basic.Properties(**properties)
