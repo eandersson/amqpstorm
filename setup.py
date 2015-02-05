@@ -6,7 +6,7 @@ See https://github.com/eandersson/amqp-storm for more information.
 """
 
 setup(name='AMQP-Storm',
-      version='1.1.7',
+      version='1.1.8a1',
       description='Thread-safe Python AMQP Client Library based on pamqp.',
       long_description=long_description,
       author='Erik Olof Gunnar Andersson',
@@ -15,7 +15,7 @@ setup(name='AMQP-Storm',
       packages=['amqpstorm'],
       license='MIT License',
       url='http://github.com/eandersson/amqp-storm',
-      install_requires=['pamqp>=1.6.0,<2.0'],
+      install_requires=['pamqp>=1.6.1,<2.0'],
       package_data={'': ['README.md', 'LICENSE', 'CHANGELOG']},
       classifiers=[
           'Development Status :: 5 - Production/Stable',

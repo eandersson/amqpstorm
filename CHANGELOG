@@ -1,4 +1,8 @@
 ##### Changelog
+###### Version 1.1.8a1
+- Added Argument validation to all essential functionality.
+- pamqp 1.6.1 is now required.
+
 ###### Version 1.1.7
 - Fixed a minor bug when a Channel was closed, it did not properly wait for the Channel CloseOk message.
 - Moved heartbeat parameter validation to the _validate_parameters function.

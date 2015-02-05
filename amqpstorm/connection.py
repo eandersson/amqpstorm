@@ -51,7 +51,7 @@ class Poller(object):
 
     @property
     def is_ready(self):
-        """Is Poller Ready.
+        """Is Socket Ready.
 
         :rtype: tuple
         """
