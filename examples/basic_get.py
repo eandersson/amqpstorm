@@ -7,19 +7,30 @@ from amqpstorm import Connection
 
 logging.basicConfig(level=logging.DEBUG)
 
+QUEUE_NAME = 'simple_queue'
+
 
 def consumer():
     connection = Connection('127.0.0.1', 'guest', 'guest')
     channel = connection.channel()
-    channel.queue.declare('simple_queue')
-    channel.basic.publish(body='Hello World!', routing_key='simple_queue')
 
-    result = channel.basic.get(queue='simple_queue', no_ack=False)
+    # Declare a queue.
+    channel.queue.declare(QUEUE_NAME)
+
+    # Publish something we can get.
+    channel.basic.publish(body='Hello World!', routing_key=QUEUE_NAME)
+
+    # Retrieve a single message.
+    result = channel.basic.get(queue=QUEUE_NAME, no_ack=False)
     if result:
-        print("Message:", result['body'])
+        # If we got a message, handle it.
+        print('Message:', result['body'])
+
+        # Mark the message as handle.
         channel.basic.ack(delivery_tag=result['method']['delivery_tag'])
     else:
-        print("Channel Empty.")
+        # The queue was empty.
+        print("Queue '{0}' Empty.".format(QUEUE_NAME))
 
     channel.close()
     connection.close()

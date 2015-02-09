@@ -39,10 +39,8 @@ class Publisher(object):
             self.reconnect()
 
     def reconnect(self):
-        """ On reconnect, make sure to re-open any channels previously opened.
+        """ Re-connect.
 
-        :param connection:
-        :param channel:
         :return:
         """
         try:

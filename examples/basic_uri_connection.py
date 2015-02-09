@@ -14,5 +14,6 @@ def publisher():
             channel.basic.publish(body='Hello World!',
                                   routing_key='simple_queue')
 
+
 if __name__ == '__main__':
     publisher()
