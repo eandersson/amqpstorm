@@ -60,7 +60,6 @@ class Channel(BaseChannel, Stateful):
         """
         self._inbound = []
         self._exceptions = []
-        LOGGER.debug('Opening Channel: {0!s}'.format(self.channel_id))
         self.set_state(self.OPENING)
         self.rpc_request(pamqp_spec.Channel.Open())
         self.set_state(self.OPEN)
@@ -72,6 +71,7 @@ class Channel(BaseChannel, Stateful):
         :param str reply_text:
         :return:
         """
+        LOGGER.debug('Channel #%s Closing.', self.channel_id)
         if not isinstance(reply_code, int):
             raise AMQPInvalidArgument('reply_code should be an integer')
         if not compatibility.is_string(reply_text):
@@ -88,6 +88,7 @@ class Channel(BaseChannel, Stateful):
             reply_text=reply_text))
         del self._inbound[:]
         self.set_state(self.CLOSED)
+        LOGGER.debug('Channel #%s Closed.', self.channel_id)
 
     def confirm_deliveries(self):
         """Set the channel to confirm that each message has been

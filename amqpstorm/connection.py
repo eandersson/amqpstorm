@@ -158,15 +158,18 @@ class Connection(Stateful):
 
     def close(self):
         """Close connection."""
+        LOGGER.debug('Connection Closing.')
         if not self.is_closed and self.socket:
-            self.set_state(self.CLOSING)
             self._close_channels()
+            self.set_state(self.CLOSING)
             self._channel0.send_close_connection_frame()
         self._close_socket()
         self.set_state(self.CLOSED)
+        LOGGER.debug('Connection Closed.')
 
     def channel(self, rpc_timeout=360):
         """Open Channel."""
+        LOGGER.debug('Opening new Channel.')
         if not isinstance(rpc_timeout, int):
             raise AMQPInvalidArgument('rpc_timeout should be an integer')
 
@@ -175,6 +178,7 @@ class Connection(Stateful):
             channel = Channel(channel_id, self, rpc_timeout)
             self._channels[channel_id] = channel
             channel.open()
+        LOGGER.debug('Channel #%s Opened.', channel_id)
         return self._channels[channel_id]
 
     def write_frame(self, channel_id, frame_out):
@@ -241,13 +245,13 @@ class Connection(Stateful):
             addresses = socket.getaddrinfo(hostname, port)
         except socket.gaierror as why:
             return None, why
-        sock_addr_tuple = None
+        sock_address_tuple = None
         for sock_addr in addresses:
             if not sock_addr:
                 continue
-            sock_addr_tuple = sock_addr
+            sock_address_tuple = sock_addr
             break
-        sock = socket.socket(sock_addr_tuple[0], socket.SOCK_STREAM, 0)
+        sock = socket.socket(sock_address_tuple[0], socket.SOCK_STREAM, 0)
         sock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, no_delay)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, keep_alive)
         sock.setblocking(0)
@@ -257,7 +261,7 @@ class Connection(Stateful):
             sock = self._ssl_wrap_socket(sock)
 
         try:
-            sock.connect(sock_addr_tuple[4])
+            sock.connect(sock_address_tuple[4])
         except (socket.error, ssl.SSLError) as why:
             LOGGER.error(why, exc_info=False)
             return None, why
@@ -358,6 +362,8 @@ class Connection(Stateful):
         :return:
         """
         for channel_id in self._channels:
+            if not self._channels[channel_id].is_open:
+                continue
             self._channels[channel_id].close()
 
     def _close_socket(self):
