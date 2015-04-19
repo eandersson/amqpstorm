@@ -294,19 +294,6 @@ class Connection(Stateful):
         io_thread.start()
         return io_thread
 
-    @property
-    def _poll_is_ready(self):
-        """Wrapper around ReadPoller.is_ready to ensure that
-        error messages are handled properly.
-
-        :type: bool, bool
-        """
-        try:
-            return self._poller.is_ready
-        except select.error as why:
-            self.exceptions.append(AMQPConnectionError(why))
-            return True, True
-
     def _process_incoming_data(self):
         """Retrieve and process any incoming data.
 
@@ -315,7 +302,7 @@ class Connection(Stateful):
         while not self.is_closed:
             if self.is_closing:
                 break
-            if self._poll_is_ready[0]:
+            if self._poller.is_ready[0]:
                 self._buffer += self._receive()
                 self._read_buffer()
             sleep(IDLE_WAIT)
@@ -417,7 +404,7 @@ class Connection(Stateful):
         :param str frame_data:
         :return:
         """
-        while not self._poll_is_ready[1]:
+        while not self._poller.is_ready[1]:
             sleep(0.001)
         total_bytes_written = 0
         bytes_to_send = len(frame_data)

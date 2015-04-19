@@ -1,6 +1,7 @@
 ##### Changelog
-###### Version 1.1.8a1
+###### Version 1.1.8
 - Added Argument validation to all essential functionality.
+- Improved Logging.
 - pamqp 1.6.1 is now required.
 
 ###### Version 1.1.7
