@@ -25,6 +25,7 @@ def consumer():
     if result:
         # If we got a message, handle it.
         print('Message:', result['body'])
+        print(result)
 
         # Mark the message as handle.
         channel.basic.ack(delivery_tag=result['method']['delivery_tag'])

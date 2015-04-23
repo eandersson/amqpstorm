@@ -4,6 +4,7 @@ __author__ = 'eandersson'
 import logging
 from time import sleep
 
+from pamqp.header import ContentHeader
 from pamqp import specification as pamqp_spec
 
 from amqpstorm.base import Rpc
@@ -250,6 +251,8 @@ class Channel(BaseChannel, Stateful):
             if not isinstance(basic_deliver, pamqp_spec.Basic.Deliver):
                 return None
             content_header = self._inbound.pop(0)
+            if not isinstance(content_header, ContentHeader):
+                return None
             body = self._build_message_body(content_header.body_size)
 
         message = Message(body, self,
