@@ -45,8 +45,8 @@ class Channel(BaseChannel, Stateful):
 
     def __exit__(self, exception_type, exception_value, _):
         if exception_value:
-            message = 'Closing channel due to an unhandled exception: {0!s}'
-            LOGGER.warning(message.format(exception_type))
+            LOGGER.warning('Closing channel due to an unhandled exception: %s',
+                           exception_type)
         if not self.is_open:
             return
         self.close()
@@ -72,7 +72,7 @@ class Channel(BaseChannel, Stateful):
         :param str reply_text:
         :return:
         """
-        LOGGER.debug('Channel #%s Closing.', self.channel_id)
+        LOGGER.debug('Channel #%d Closing.', self.channel_id)
         if not isinstance(reply_code, int):
             raise AMQPInvalidArgument('reply_code should be an integer')
         if not compatibility.is_string(reply_text):
@@ -89,7 +89,7 @@ class Channel(BaseChannel, Stateful):
             reply_text=reply_text))
         del self._inbound[:]
         self.set_state(self.CLOSED)
-        LOGGER.debug('Channel #%s Closed.', self.channel_id)
+        LOGGER.debug('Channel #%d Closed.', self.channel_id)
 
     def confirm_deliveries(self):
         """Set the channel to confirm that each message has been
@@ -118,17 +118,16 @@ class Channel(BaseChannel, Stateful):
         elif frame_in.name == 'Channel.Close':
             self._close_channel(frame_in)
         elif frame_in.name == 'Basic.Cancel':
-            LOGGER.warning('Received Basic.Cancel on consumer_tag: {0!s}'
-                           .format(frame_in.consumer_tag))
+            LOGGER.warning('Received Basic.Cancel on consumer_tag: %s',
+                           frame_in.consumer_tag)
             self.remove_consumer_tag(frame_in.consumer_tag)
         elif frame_in.name == 'Basic.CancelOk':
             self.remove_consumer_tag(frame_in.consumer_tag)
         elif frame_in.name == 'Basic.Return':
             self._basic_return(frame_in)
         else:
-            message = "Unhandled Frame: {0!s} -- {1!s}"
-            LOGGER.error(message.format(frame_in.name,
-                                        dict(frame_in)))
+            LOGGER.error('Unhandled Frame: %s -- %s',
+                         frame_in.name, dict(frame_in))
 
     def start_consuming(self):
         """Start consuming events.
@@ -220,9 +219,9 @@ class Channel(BaseChannel, Stateful):
         """
         self.remove_consumer_tag()
         if frame_in.reply_code != 200:
-            message = 'Channel {0!s} was closed by remote server: {1!s}'
-            why = AMQPChannelError(message.format(self._channel_id,
-                                                  frame_in.reply_text))
+            message = 'Channel %d was closed by remote server: %s' % \
+                      (self._channel_id, frame_in.reply_text.decode('utf-8'))
+            why = AMQPChannelError(message)
             self._exceptions.append(why)
         del self._inbound[:]
         self.set_state(self.CLOSED)
@@ -235,7 +234,7 @@ class Channel(BaseChannel, Stateful):
         """
         message = "Message not delivered: {0!s} ({1!s}) to queue" \
                   " '{2!s}' from exchange '{3!s}'" \
-            .format(frame_in.reply_text,
+            .format(frame_in.reply_text.decode('utf-8'),
                     frame_in.reply_code,
                     frame_in.routing_key,
                     frame_in.exchange)
@@ -252,13 +251,13 @@ class Channel(BaseChannel, Stateful):
             basic_deliver = self._inbound.pop(0)
             if not isinstance(basic_deliver, pamqp_spec.Basic.Deliver):
                 LOGGER.warning('Received an out-of-order frame: %s was '
-                               'expecting a Basic.Deliver frame. ',
+                               'expecting a Basic.Deliver frame.',
                                basic_deliver)
                 return None
             content_header = self._inbound.pop(0)
             if not isinstance(content_header, ContentHeader):
                 LOGGER.warning('Received an out-of-order frame: %s was '
-                               'expecting a ContentHeader frame. ',
+                               'expecting a ContentHeader frame.',
                                content_header)
                 return None
             body = self._build_message_body(content_header.body_size)

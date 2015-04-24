@@ -51,6 +51,7 @@ class Channel0(object):
         elif frame_in.name == 'Connection.Blocked':
             self.is_blocked = True
             LOGGER.warning('Connection was blocked by remote server: %s',
+                           frame_in.reason.decode('utf-8'))
         elif frame_in.name == 'Connection.Unblocked':
             self.is_blocked = False
             LOGGER.info('Connection is no longer blocked by remote server.')
