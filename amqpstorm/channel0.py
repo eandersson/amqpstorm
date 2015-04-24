@@ -34,7 +34,7 @@ class Channel0(object):
         :param pamqp_spec.Frame frame_in: Amqp frame.
         :return:
         """
-        LOGGER.debug("Frame Received: {0!s}".format(frame_in.name))
+        LOGGER.debug('Frame Received: %s', frame_in.name)
 
         if frame_in.name == 'Heartbeat':
             self._write_frame(Heartbeat())
@@ -50,15 +50,13 @@ class Channel0(object):
             self._close_connection(frame_in)
         elif frame_in.name == 'Connection.Blocked':
             self.is_blocked = True
-            message = 'Connection was blocked by remote server: {0!s}'
-            LOGGER.warning(message.format(frame_in.reason))
+            LOGGER.warning('Connection was blocked by remote server: %s',
         elif frame_in.name == 'Connection.Unblocked':
             self.is_blocked = False
             LOGGER.info('Connection is no longer blocked by remote server.')
         else:
-            message = "Unhandled Frame: {0!s} -- {1!s}"
-            LOGGER.error(message.format(frame_in.name,
-                                        dict(frame_in)))
+            LOGGER.error('Unhandled Frame: %s -- %s',
+                         frame_in.name, dict(frame_in))
 
     def send_close_connection_frame(self):
         """Send Connection Close frame.
@@ -75,8 +73,9 @@ class Channel0(object):
         """
         self._set_connection_state(Stateful.CLOSED)
         if frame_in.reply_code != 200:
-            message = 'Connection was closed by remote server: {0!s}'
-            why = AMQPConnectionError(message.format(frame_in.reply_text))
+            message = 'Connection was closed by remote server: %s' \
+                      % frame_in.reply_text.decode('utf-8')
+            why = AMQPConnectionError(message)
             self._connection.exceptions.append(why)
 
     def _set_connection_state(self, state):

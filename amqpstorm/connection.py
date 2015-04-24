@@ -178,7 +178,7 @@ class Connection(Stateful):
             channel = Channel(channel_id, self, rpc_timeout)
             self._channels[channel_id] = channel
             channel.open()
-        LOGGER.debug('Channel #%s Opened.', channel_id)
+        LOGGER.debug('Channel #%d Opened.', channel_id)
         return self._channels[channel_id]
 
     def write_frame(self, channel_id, frame_out):
