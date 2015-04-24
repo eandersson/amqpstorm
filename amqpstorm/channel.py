@@ -118,7 +118,9 @@ class Channel(BaseChannel, Stateful):
         elif frame_in.name == 'Channel.Close':
             self._close_channel(frame_in)
         elif frame_in.name == 'Basic.Cancel':
-            pass
+            LOGGER.warning('Received Basic.Cancel on consumer_tag: {0!s}'
+                           .format(frame_in.consumer_tag))
+            self.remove_consumer_tag(frame_in.consumer_tag)
         elif frame_in.name == 'Basic.CancelOk':
             self.remove_consumer_tag(frame_in.consumer_tag)
         elif frame_in.name == 'Basic.Return':
