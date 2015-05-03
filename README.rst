@@ -22,3 +22,9 @@ Special thanks to gmr (Gavin M. Roy) for creating pamqp, and in addition amqp-st
    
 .. |License| image:: https://pypip.in/license/amqp-storm/badge.svg?
    :target: https://github.com/eandersson/amqp-storm/blob/master/LICENSE
+
+
+.. image:: https://d2weczhvl823v0.cloudfront.net/eandersson/amqp-storm/trend.png
+   :alt: Bitdeli badge
+   :target: https://bitdeli.com/free
+
