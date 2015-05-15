@@ -176,15 +176,7 @@ class Basic(object):
             raise AMQPInvalidArgument('immediate should be a boolean')
 
         properties = properties or {}
-
-        if compatibility.is_unicode(body):
-            if 'content_encoding' not in properties:
-                properties['content_encoding'] = 'utf-8'
-            encoding = properties['content_encoding']
-            body = body.encode(encoding)
-        elif compatibility.PYTHON3 and isinstance(body, str):
-            body = bytes(body, encoding='utf-8')
-
+        body = self._handle_utf8_payload(body, properties)
         properties = pamqp_spec.Basic.Properties(**properties)
         method_frame = pamqp_spec.Basic.Publish(exchange=exchange,
                                                 routing_key=routing_key,
@@ -257,6 +249,23 @@ class Basic(object):
                                            multiple=multiple,
                                            requeue=requeue)
         self._channel.write_frame(nack_frame)
+
+    @staticmethod
+    def _handle_utf8_payload(body, properties):
+        """Update the Body and Properties to the appropriate encoding.
+
+        :param str|unicode body:
+        :param dict properties:
+        :return:
+        """
+        if compatibility.is_unicode(body):
+            if 'content_encoding' not in properties:
+                properties['content_encoding'] = 'utf-8'
+            encoding = properties['content_encoding']
+            body = body.encode(encoding)
+        elif compatibility.PYTHON3 and isinstance(body, str):
+            body = bytes(body, encoding='utf-8')
+        return body
 
     def _publish_confirm(self, send_buffer):
         """Confirm that message was published successfully.
