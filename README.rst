@@ -26,7 +26,7 @@ Special thanks to gmr (Gavin M. Roy) for creating pamqp, and in addition amqp-st
    :target: https://github.com/eandersson/amqp-storm/blob/master/LICENSE
    
 .. |CodeClimate| image:: https://codeclimate.com/github/eandersson/amqp-storm/badges/gpa.svg
-   :target: https://codeclimate.com/github/eandersson/amqp-stor
+   :target: https://codeclimate.com/github/eandersson/amqp-storm
 
 .. |Bitdeli| image:: https://d2weczhvl823v0.cloudfront.net/eandersson/amqp-storm/trend.png
    :alt: Bitdeli badge

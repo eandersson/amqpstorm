@@ -34,7 +34,7 @@ class Basic(object):
         """
         if not isinstance(prefetch_count, int):
             raise AMQPInvalidArgument('prefetch_count should be an integer')
-        if not isinstance(prefetch_count, int):
+        if not isinstance(prefetch_size, int):
             raise AMQPInvalidArgument('prefetch_size should be an integer')
         if not isinstance(global_, bool):
             raise AMQPInvalidArgument('global_ should be an boolean')
