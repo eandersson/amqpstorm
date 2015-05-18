@@ -35,7 +35,6 @@ class Channel0(object):
         :return:
         """
         LOGGER.debug('Frame Received: %s', frame_in.name)
-
         if frame_in.name == 'Heartbeat':
             self._write_frame(Heartbeat())
         elif frame_in.name == 'Connection.Start':

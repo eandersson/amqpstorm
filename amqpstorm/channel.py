@@ -107,8 +107,7 @@ class Channel(BaseChannel, Stateful):
         :param pamqp.Frame frame_in: Amqp frame.
         :return:
         """
-        rpc_request = self.rpc.on_frame(frame_in)
-        if rpc_request:
+        if self.rpc.on_frame(frame_in):
             return
 
         if frame_in.name in CONTENT_FRAME:
