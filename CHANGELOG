@@ -1,4 +1,7 @@
 ##### Changelog
+###### Version 1.1.10
+- Fixed validation bug with Basic.nack, Basic.reject and Basic.qos.
+
 ###### Version 1.1.9
 - Added additional logging for Issue #3.
 - Added additional validation on incoming messages for Issue #3.
