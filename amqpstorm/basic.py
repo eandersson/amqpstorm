@@ -12,6 +12,7 @@ from amqpstorm import compatibility
 from amqpstorm.base import FRAME_MAX
 from amqpstorm.message import Message
 from amqpstorm.exception import AMQPMessageError
+from amqpstorm.exception import AMQPChannelError
 from amqpstorm.exception import AMQPInvalidArgument
 
 
@@ -38,14 +39,13 @@ class Basic(object):
             raise AMQPInvalidArgument('prefetch_size should be an integer')
         elif not isinstance(global_, bool):
             raise AMQPInvalidArgument('global_ should be an boolean')
-
         qos_frame = pamqp_spec.Basic.Qos(prefetch_count=prefetch_count,
                                          prefetch_size=prefetch_size,
                                          global_=global_)
         return self._channel.rpc_request(qos_frame)
 
     def get(self, queue='', no_ack=False):
-        """Get a single message.
+        """Fetch a single message.
 
         :param str queue:
         :param bool no_ack: No acknowledgement needed
@@ -55,37 +55,12 @@ class Basic(object):
             raise AMQPInvalidArgument('queue should be a string')
         elif not isinstance(no_ack, bool):
             raise AMQPInvalidArgument('no_ack should be a boolean')
-
-        if self._channel.consumer_tags:
-            LOGGER.warning('Unable to execute Basic.Get when '
-                           'actively consuming messages.')
-            return None
-
+        elif self._channel.consumer_tags:
+            raise AMQPChannelError('Cannot call \'get\' when set to consume.')
         get_frame = pamqp_spec.Basic.Get(queue=queue,
                                          no_ack=no_ack)
-
         with self._channel.lock and self._channel.rpc.lock:
-            uuid_get = self._channel.rpc.register_request(
-                get_frame.valid_responses)
-            uuid_header = self._channel.rpc.register_request(['ContentHeader'])
-            uuid_body = self._channel.rpc.register_request(['ContentBody'])
-
-            self._channel.write_frame(get_frame)
-            get_frame = self._channel.rpc.get_request(uuid_get, True)
-
-            if not isinstance(get_frame, pamqp_spec.Basic.GetOk):
-                self._channel.rpc.remove(uuid_header)
-                self._channel.rpc.remove(uuid_body)
-                return None
-
-            content_header = self._channel.rpc.get_request(uuid_header, True)
-            body = self._get_content_body(uuid_body, content_header.body_size)
-
-        message = Message(body, self._channel,
-                          dict(get_frame),
-                          dict(content_header.properties)).to_dict()
-
-        return message
+            return self._get_message(get_frame)
 
     def recover(self, requeue=False):
         """Redeliver unacknowledged messages.
@@ -95,7 +70,6 @@ class Basic(object):
         """
         if not isinstance(requeue, bool):
             raise AMQPInvalidArgument('requeue should be a boolean')
-
         recover_frame = pamqp_spec.Basic.Recover(requeue=requeue)
         return self._channel.rpc_request(recover_frame)
 
@@ -124,7 +98,6 @@ class Basic(object):
             raise AMQPInvalidArgument('no_local should be a boolean')
         elif arguments is not None and not isinstance(arguments, dict):
             raise AMQPInvalidArgument('arguments should be a dict or None')
-
         self._channel.consumer_callback = callback
         consume_frame = pamqp_spec.Basic.Consume(queue=queue,
                                                  consumer_tag=consumer_tag,
@@ -145,7 +118,6 @@ class Basic(object):
         """
         if not compatibility.is_string(consumer_tag):
             raise AMQPInvalidArgument('consumer_tag should be a string')
-
         cancel_frame = pamqp_spec.Basic.Cancel(consumer_tag=consumer_tag)
         result = self._channel.rpc_request(cancel_frame)
         self._channel.remove_consumer_tag(consumer_tag)
@@ -175,7 +147,6 @@ class Basic(object):
             raise AMQPInvalidArgument('mandatory should be a boolean')
         elif not isinstance(immediate, bool):
             raise AMQPInvalidArgument('immediate should be a boolean')
-
         properties = properties or {}
         body = self._handle_utf8_payload(body, properties)
         properties = pamqp_spec.Basic.Properties(**properties)
@@ -208,7 +179,6 @@ class Basic(object):
                                       'or None')
         elif not isinstance(multiple, bool):
             raise AMQPInvalidArgument('multiple should be a boolean')
-
         ack_frame = pamqp_spec.Basic.Ack(delivery_tag=delivery_tag,
                                          multiple=multiple)
         self._channel.write_frame(ack_frame)
@@ -225,7 +195,6 @@ class Basic(object):
                                       'or None')
         elif not isinstance(requeue, bool):
             raise AMQPInvalidArgument('requeue should be a boolean')
-
         reject_frame = pamqp_spec.Basic.Reject(delivery_tag=delivery_tag,
                                                requeue=requeue)
         self._channel.write_frame(reject_frame)
@@ -245,7 +214,6 @@ class Basic(object):
             raise AMQPInvalidArgument('multiple should be a boolean')
         elif not isinstance(requeue, bool):
             raise AMQPInvalidArgument('requeue should be a boolean')
-
         nack_frame = pamqp_spec.Basic.Nack(delivery_tag=delivery_tag,
                                            multiple=multiple,
                                            requeue=requeue)
@@ -267,6 +235,31 @@ class Basic(object):
         elif compatibility.PYTHON3 and isinstance(body, str):
             body = bytes(body, encoding='utf-8')
         return body
+
+    def _get_message(self, get_frame):
+        """Get and return a message using a Basic.Get frame.
+
+        :param Basic.Get get_frame:
+        :rtype: dict or None
+        """
+        uuid_get = \
+            self._channel.rpc.register_request(get_frame.valid_responses)
+        uuid_header = self._channel.rpc.register_request(['ContentHeader'])
+        uuid_body = self._channel.rpc.register_request(['ContentBody'])
+        self._channel.write_frame(get_frame)
+        get_frame = self._channel.rpc.get_request(uuid_get, True)
+
+        if not isinstance(get_frame, pamqp_spec.Basic.GetOk):
+            self._channel.rpc.remove(uuid_header)
+            self._channel.rpc.remove(uuid_body)
+            return None
+
+        content_header = self._channel.rpc.get_request(uuid_header, True)
+        body = self._get_content_body(uuid_body, content_header.body_size)
+
+        return Message(body, self._channel,
+                       dict(get_frame),
+                       dict(content_header.properties)).to_dict()
 
     def _publish_confirm(self, send_buffer):
         """Confirm that message was published successfully.
