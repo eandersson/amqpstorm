@@ -219,26 +219,24 @@ class Connection(Stateful):
         """
         if not compatibility.is_string(self.parameters['hostname']):
             raise AMQPInvalidArgument('hostname should be a string')
-        if not isinstance(self.parameters['port'], int):
+        elif not isinstance(self.parameters['port'], int):
             raise AMQPInvalidArgument('port should be an integer')
-        if not compatibility.is_string(self.parameters['username']):
+        elif not compatibility.is_string(self.parameters['username']):
             raise AMQPInvalidArgument('username should be a string')
-        if not compatibility.is_string(self.parameters['password']):
+        elif not compatibility.is_string(self.parameters['password']):
             raise AMQPInvalidArgument('password should be a string')
-        if not compatibility.is_string(self.parameters['virtual_host']):
+        elif not compatibility.is_string(self.parameters['virtual_host']):
             raise AMQPInvalidArgument('virtual_host should be a string')
-        if not isinstance(self.parameters['timeout'], (int, float)):
+        elif not isinstance(self.parameters['timeout'], (int, float)):
             raise AMQPInvalidArgument('timeout should be an integer or float')
-        if not isinstance(self.parameters['heartbeat'], int):
+        elif not isinstance(self.parameters['heartbeat'], int):
             raise AMQPInvalidArgument('heartbeat should be an integer')
 
-    def _open_socket(self, hostname, port, keep_alive=1, no_delay=0):
+    def _open_socket(self, hostname, port):
         """Open Socket and establish a connection.
 
         :param str hostname:
         :param int port:
-        :param keep_alive:
-        :param no_delay:
         :return:
         """
         try:
@@ -252,8 +250,8 @@ class Connection(Stateful):
             sock_address_tuple = sock_addr
             break
         sock = socket.socket(sock_address_tuple[0], socket.SOCK_STREAM, 0)
-        sock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, no_delay)
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, keep_alive)
+        sock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 0)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
         sock.setblocking(0)
         sock.settimeout(self.parameters['timeout'] or None)
 

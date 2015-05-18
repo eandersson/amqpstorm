@@ -32,15 +32,15 @@ class Exchange(object):
         """
         if not compatibility.is_string(exchange):
             raise AMQPInvalidArgument('exchange should be a string')
-        if not compatibility.is_string(exchange):
+        elif not compatibility.is_string(exchange_type):
             raise AMQPInvalidArgument('exchange_type should be a string')
-        if not isinstance(passive, bool):
+        elif not isinstance(passive, bool):
             raise AMQPInvalidArgument('passive should be a boolean')
-        if not isinstance(durable, bool):
+        elif not isinstance(durable, bool):
             raise AMQPInvalidArgument('durable should be a boolean')
-        if not isinstance(auto_delete, bool):
+        elif not isinstance(auto_delete, bool):
             raise AMQPInvalidArgument('auto_delete should be a boolean')
-        if arguments and not isinstance(arguments, dict):
+        elif arguments is not None and not isinstance(arguments, dict):
             raise AMQPInvalidArgument('arguments should be a dict or None')
 
         declare_frame = pamqp_exchange.Declare(exchange=exchange,
@@ -77,11 +77,11 @@ class Exchange(object):
         """
         if not compatibility.is_string(destination):
             raise AMQPInvalidArgument('destination should be a string')
-        if not compatibility.is_string(source):
+        elif not compatibility.is_string(source):
             raise AMQPInvalidArgument('source should be a string')
-        if not compatibility.is_string(routing_key):
+        elif not compatibility.is_string(routing_key):
             raise AMQPInvalidArgument('routing_key should be a string')
-        if arguments and not isinstance(arguments, dict):
+        elif arguments is not None and not isinstance(arguments, dict):
             raise AMQPInvalidArgument('arguments should be a dict or None')
 
         bind_frame = pamqp_exchange.Bind(destination=destination,
@@ -102,11 +102,11 @@ class Exchange(object):
         """
         if not compatibility.is_string(destination):
             raise AMQPInvalidArgument('destination should be a string')
-        if not compatibility.is_string(source):
+        elif not compatibility.is_string(source):
             raise AMQPInvalidArgument('source should be a string')
-        if not compatibility.is_string(routing_key):
+        elif not compatibility.is_string(routing_key):
             raise AMQPInvalidArgument('routing_key should be a string')
-        if arguments and not isinstance(arguments, dict):
+        elif arguments is not None and not isinstance(arguments, dict):
             raise AMQPInvalidArgument('arguments should be a dict or None')
 
         unbind_frame = pamqp_exchange.Unbind(destination=destination,

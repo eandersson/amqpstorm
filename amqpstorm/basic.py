@@ -34,9 +34,9 @@ class Basic(object):
         """
         if not isinstance(prefetch_count, int):
             raise AMQPInvalidArgument('prefetch_count should be an integer')
-        if not isinstance(prefetch_size, int):
+        elif not isinstance(prefetch_size, int):
             raise AMQPInvalidArgument('prefetch_size should be an integer')
-        if not isinstance(global_, bool):
+        elif not isinstance(global_, bool):
             raise AMQPInvalidArgument('global_ should be an boolean')
 
         qos_frame = pamqp_spec.Basic.Qos(prefetch_count=prefetch_count,
@@ -53,11 +53,12 @@ class Basic(object):
         """
         if not compatibility.is_string(queue):
             raise AMQPInvalidArgument('queue should be a string')
-        if not isinstance(no_ack, bool):
+        elif not isinstance(no_ack, bool):
             raise AMQPInvalidArgument('no_ack should be a boolean')
 
         if self._channel.consumer_tags:
-            LOGGER.warning('Unable to perform Basic.Get when consuming.')
+            LOGGER.warning('Unable to execute Basic.Get when '
+                           'actively consuming messages.')
             return None
 
         get_frame = pamqp_spec.Basic.Get(queue=queue,
@@ -113,15 +114,15 @@ class Basic(object):
         """
         if not compatibility.is_string(queue):
             raise AMQPInvalidArgument('queue should be a string')
-        if not compatibility.is_string(consumer_tag):
+        elif not compatibility.is_string(consumer_tag):
             raise AMQPInvalidArgument('consumer_tag should be a string')
-        if not isinstance(exclusive, bool):
+        elif not isinstance(exclusive, bool):
             raise AMQPInvalidArgument('exclusive should be a boolean')
-        if not isinstance(no_ack, bool):
+        elif not isinstance(no_ack, bool):
             raise AMQPInvalidArgument('no_ack should be a boolean')
-        if not isinstance(no_local, bool):
+        elif not isinstance(no_local, bool):
             raise AMQPInvalidArgument('no_local should be a boolean')
-        if arguments and not isinstance(arguments, dict):
+        elif arguments is not None and not isinstance(arguments, dict):
             raise AMQPInvalidArgument('arguments should be a dict or None')
 
         self._channel.consumer_callback = callback
@@ -164,15 +165,15 @@ class Basic(object):
         """
         if not compatibility.is_string(body):
             raise AMQPInvalidArgument('body should be a string')
-        if not compatibility.is_string(routing_key):
+        elif not compatibility.is_string(routing_key):
             raise AMQPInvalidArgument('routing_key should be a string')
-        if not compatibility.is_string(exchange):
+        elif not compatibility.is_string(exchange):
             raise AMQPInvalidArgument('exchange should be a string')
-        if properties and not isinstance(properties, dict):
+        elif properties and not isinstance(properties, dict):
             raise AMQPInvalidArgument('properties should be a dict or None')
-        if not isinstance(mandatory, bool):
+        elif not isinstance(mandatory, bool):
             raise AMQPInvalidArgument('mandatory should be a boolean')
-        if not isinstance(immediate, bool):
+        elif not isinstance(immediate, bool):
             raise AMQPInvalidArgument('immediate should be a boolean')
 
         properties = properties or {}
@@ -202,10 +203,10 @@ class Basic(object):
         :param bool multiple: Acknowledge multiple messages
         :return:
         """
-        if delivery_tag and not isinstance(delivery_tag, int):
-            raise AMQPInvalidArgument('delivery_tag should be a string '
+        if delivery_tag is not None and not isinstance(delivery_tag, int):
+            raise AMQPInvalidArgument('delivery_tag should be an integer '
                                       'or None')
-        if not isinstance(multiple, bool):
+        elif not isinstance(multiple, bool):
             raise AMQPInvalidArgument('multiple should be a boolean')
 
         ack_frame = pamqp_spec.Basic.Ack(delivery_tag=delivery_tag,
@@ -219,10 +220,10 @@ class Basic(object):
         :param bool requeue: Requeue the message
         :return:
         """
-        if delivery_tag and not compatibility.is_string(delivery_tag):
-            raise AMQPInvalidArgument('delivery_tag should be a string '
+        if delivery_tag is not None and not isinstance(delivery_tag, int):
+            raise AMQPInvalidArgument('delivery_tag should be an integer '
                                       'or None')
-        if not isinstance(requeue, bool):
+        elif not isinstance(requeue, bool):
             raise AMQPInvalidArgument('requeue should be a boolean')
 
         reject_frame = pamqp_spec.Basic.Reject(delivery_tag=delivery_tag,
@@ -237,12 +238,12 @@ class Basic(object):
         :param bool requeue:
         :return:
         """
-        if delivery_tag and not compatibility.is_string(delivery_tag):
-            raise AMQPInvalidArgument('delivery_tag should be a string '
+        if delivery_tag is not None and not isinstance(delivery_tag, int):
+            raise AMQPInvalidArgument('delivery_tag should be an integer '
                                       'or None')
-        if not isinstance(multiple, bool):
+        elif not isinstance(multiple, bool):
             raise AMQPInvalidArgument('multiple should be a boolean')
-        if not isinstance(requeue, bool):
+        elif not isinstance(requeue, bool):
             raise AMQPInvalidArgument('requeue should be a boolean')
 
         nack_frame = pamqp_spec.Basic.Nack(delivery_tag=delivery_tag,

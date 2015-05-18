@@ -21,5 +21,6 @@ class AMQPMessageError(AMQPChannelError):
     """AMQP Message Error."""
     pass
 
+
 class AMQPInvalidArgument(AMQPError):
     """AMQP Argument Error."""

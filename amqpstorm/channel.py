@@ -75,7 +75,7 @@ class Channel(BaseChannel, Stateful):
         LOGGER.debug('Channel #%d Closing.', self.channel_id)
         if not isinstance(reply_code, int):
             raise AMQPInvalidArgument('reply_code should be an integer')
-        if not compatibility.is_string(reply_text):
+        elif not compatibility.is_string(reply_text):
             raise AMQPInvalidArgument('reply_text should be a string')
 
         if not self._connection.is_open or not self.is_open:

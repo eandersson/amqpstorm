@@ -32,15 +32,15 @@ class Queue(object):
         """
         if not compatibility.is_string(queue):
             raise AMQPInvalidArgument('queue should be a string')
-        if not isinstance(passive, bool):
+        elif not isinstance(passive, bool):
             raise AMQPInvalidArgument('passive should be a boolean')
-        if not isinstance(durable, bool):
+        elif not isinstance(durable, bool):
             raise AMQPInvalidArgument('durable should be a boolean')
-        if not isinstance(exclusive, bool):
+        elif not isinstance(exclusive, bool):
             raise AMQPInvalidArgument('exclusive should be a boolean')
-        if not isinstance(auto_delete, bool):
+        elif not isinstance(auto_delete, bool):
             raise AMQPInvalidArgument('auto_delete should be a boolean')
-        if arguments and not isinstance(arguments, dict):
+        elif arguments is not None and not isinstance(arguments, dict):
             raise AMQPInvalidArgument('arguments should be a dict or None')
 
         declare_frame = pamqp_queue.Declare(queue=queue,
@@ -61,9 +61,9 @@ class Queue(object):
         """
         if not compatibility.is_string(queue):
             raise AMQPInvalidArgument('queue should be a string')
-        if not isinstance(if_unused, bool):
+        elif not isinstance(if_unused, bool):
             raise AMQPInvalidArgument('if_unused should be a boolean')
-        if not isinstance(if_empty, bool):
+        elif not isinstance(if_empty, bool):
             raise AMQPInvalidArgument('if_empty should be a boolean')
 
         delete_frame = pamqp_queue.Delete(queue=queue, if_unused=if_unused,
@@ -94,11 +94,11 @@ class Queue(object):
         """
         if not compatibility.is_string(queue):
             raise AMQPInvalidArgument('queue should be a string')
-        if not compatibility.is_string(exchange):
+        elif not compatibility.is_string(exchange):
             raise AMQPInvalidArgument('exchange should be a string')
-        if not compatibility.is_string(routing_key):
+        elif not compatibility.is_string(routing_key):
             raise AMQPInvalidArgument('routing_key should be a string')
-        if arguments and not isinstance(arguments, dict):
+        elif arguments is not None and not isinstance(arguments, dict):
             raise AMQPInvalidArgument('arguments should be a dict or None')
 
         bind_frame = pamqp_queue.Bind(queue=queue,
@@ -118,11 +118,11 @@ class Queue(object):
         """
         if not compatibility.is_string(queue):
             raise AMQPInvalidArgument('queue should be a string')
-        if not compatibility.is_string(exchange):
+        elif not compatibility.is_string(exchange):
             raise AMQPInvalidArgument('exchange should be a string')
-        if not compatibility.is_string(routing_key):
+        elif not compatibility.is_string(routing_key):
             raise AMQPInvalidArgument('routing_key should be a string')
-        if arguments and not isinstance(arguments, dict):
+        elif arguments is not None and not isinstance(arguments, dict):
             raise AMQPInvalidArgument('arguments should be a dict or None')
 
         unbind_frame = pamqp_queue.Unbind(queue=queue,
