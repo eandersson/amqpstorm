@@ -8,7 +8,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 def publisher():
-    with UriConnection('amqp://guest:guest@localhost:5672/%2F') as connection:
+    with UriConnection('amqp://guest:guest@127.0.0.1:5672/%2F') as connection:
         with connection.channel() as channel:
             channel.queue.declare('simple_queue')
             channel.basic.publish(body='Hello World!',

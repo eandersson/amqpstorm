@@ -64,7 +64,7 @@ class FibonacciRpcClient(object):
         self.response = body
 
 
-fibonacci_rpc = FibonacciRpcClient('localhost', 'guest', 'guest')
+fibonacci_rpc = FibonacciRpcClient('127.0.0.1', 'guest', 'guest')
 
 print(" [x] Requesting fib(30)")
 response = fibonacci_rpc.call(30)

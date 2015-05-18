@@ -6,7 +6,7 @@ http://www.rabbitmq.com/tutorials/tutorial-six-python.html
 import amqpstorm
 
 
-CONNECTION = amqpstorm.Connection('localhost', 'guest', 'guest')
+CONNECTION = amqpstorm.Connection('127.0.0.1', 'guest', 'guest')
 CHANNEL = CONNECTION.channel()
 CHANNEL.queue.declare(queue='rpc_queue')
 

@@ -26,7 +26,7 @@ class RpcClient(object):
 
     def _connect(self):
         """Open Connection."""
-        self.connection = amqpstorm.Connection('localhost', 'guest', 'guest')
+        self.connection = amqpstorm.Connection('127.0.0.1', 'guest', 'guest')
         self.channel = self.connection.channel()
         self.channel.queue.declare(self.rpc_queue)
         result = self.channel.queue.declare(exclusive=True)
