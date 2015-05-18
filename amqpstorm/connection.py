@@ -3,17 +3,10 @@ __author__ = 'eandersson'
 
 import ssl
 import socket
-import select
 import logging
 import threading
 from time import sleep
-from errno import EINTR
 from errno import EWOULDBLOCK
-
-try:
-    import urlparse
-except ImportError:
-    import urllib.parse as urlparse
 
 from pamqp import frame as pamqp_frame
 from pamqp import header as pamqp_header
@@ -21,6 +14,7 @@ from pamqp import specification as pamqp_spec
 from pamqp import exceptions as pamqp_exception
 
 from amqpstorm import compatibility
+from amqpstorm.io import Poller
 from amqpstorm.base import Stateful
 from amqpstorm.base import IDLE_WAIT
 from amqpstorm.base import FRAME_MAX
@@ -32,36 +26,6 @@ from amqpstorm.exception import AMQPInvalidArgument
 
 EMPTY_BUFFER = bytes()
 LOGGER = logging.getLogger(__name__)
-
-
-class Poller(object):
-    """Socket Read/Write Poller."""
-
-    def __init__(self, fileno, timeout=10):
-        self._fileno = fileno
-        self.timeout = timeout
-
-    @property
-    def fileno(self):
-        """Socket Fileno.
-
-        :return:
-        """
-        return self._fileno
-
-    @property
-    def is_ready(self):
-        """Is Socket Ready.
-
-        :rtype: tuple
-        """
-        try:
-            ready, write, _ = select.select([self.fileno], [self.fileno], [],
-                                            self.timeout)
-            return bool(ready), bool(write)
-        except select.error as why:
-            if why.args[0] != EINTR:
-                raise
 
 
 class Connection(Stateful):
@@ -143,10 +107,8 @@ class Connection(Stateful):
         self._buffer = EMPTY_BUFFER
         self._exceptions = []
         self.set_state(self.OPENING)
-        self._socket, error = self._open_socket(self.parameters['hostname'],
-                                                self.parameters['port'])
-        if error:
-            raise AMQPConnectionError(error)
+        self._socket = self._open_socket(self.parameters['hostname'],
+                                         self.parameters['port'])
         self._poller = Poller(self._socket.fileno())
         self._channel0 = Channel0(self)
         self._send_handshake()
@@ -239,31 +201,49 @@ class Connection(Stateful):
         :param int port:
         :return:
         """
-        try:
-            addresses = socket.getaddrinfo(hostname, port)
-        except socket.gaierror as why:
-            return None, why
-        sock_address_tuple = None
-        for sock_addr in addresses:
-            if not sock_addr:
-                continue
-            sock_address_tuple = sock_addr
-            break
-        sock = socket.socket(sock_address_tuple[0], socket.SOCK_STREAM, 0)
-        sock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 0)
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
-        sock.setblocking(0)
-        sock.settimeout(self.parameters['timeout'] or None)
-
+        sock_address_tuple = self._get_socket_address(hostname, port)
+        sock = self._create_socket(socket_family=sock_address_tuple[0])
         if self.parameters['ssl']:
             sock = self._ssl_wrap_socket(sock)
 
         try:
             sock.connect(sock_address_tuple[4])
         except (socket.error, ssl.SSLError) as why:
-            LOGGER.error(why, exc_info=False)
-            return None, why
-        return sock, None
+            raise AMQPConnectionError(why)
+        return sock
+
+    @staticmethod
+    def _get_socket_address(hostname, port):
+        """Get Socket address information.
+
+        :param str hostname:
+        :param int port:
+        :rtype: tuple
+        """
+        try:
+            addresses = socket.getaddrinfo(hostname, port)
+        except socket.gaierror as why:
+            raise AMQPConnectionError(why)
+        result = None
+        for address in addresses:
+            if not address:
+                continue
+            result = address
+            break
+        return result
+
+    def _create_socket(self, socket_family):
+        """Create Socket.
+
+        :param int family:
+        :return:
+        """
+        sock = socket.socket(socket_family, socket.SOCK_STREAM, 0)
+        sock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 0)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+        sock.setblocking(0)
+        sock.settimeout(self.parameters['timeout'] or None)
+        return sock
 
     def _ssl_wrap_socket(self, sock):
         """Wrap SSLSocket around the socket.
@@ -423,34 +403,3 @@ class Connection(Stateful):
                 self._handle_socket_error(why)
                 break
         return total_bytes_written
-
-
-class UriConnection(Connection):
-    """Wrapper of the Connection class that takes the AMQP uri schema."""
-
-    def __init__(self, uri):
-        """Create a new Connection instance using an AMQP Uri string.
-
-            e.g.
-                amqp://guest:guest@localhost:5672/%2F
-                amqps://guest:guest@localhost:5671/%2F
-
-        :param str uri: AMQP Connection string
-        """
-        parsed = urlparse.urlparse(uri)
-        use_ssl = parsed.scheme == 'amqps'
-        hostname = parsed.hostname or 'localhost'
-        port = parsed.port or 5672
-        username = parsed.username or 'guest'
-        password = parsed.password or 'guest'
-        virtual_host = urlparse.unquote(parsed.path[1:]) or '/'
-        kwargs = urlparse.parse_qs(parsed.query)
-        heartbeat = kwargs.get('heartbeat', [60])
-        timeout = kwargs.get('timeout', [0])
-
-        super(UriConnection, self).__init__(hostname, username,
-                                            password, port,
-                                            virtual_host=virtual_host,
-                                            heartbeat=int(heartbeat[0]),
-                                            timeout=int(timeout[0]),
-                                            ssl=use_ssl)
