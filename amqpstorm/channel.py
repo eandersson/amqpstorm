@@ -172,7 +172,7 @@ class Channel(BaseChannel, Stateful):
         :return:
         """
         self.check_for_errors()
-        self._connection.write_frame(self.channel_id, frame_out)
+        self._connection.io.write_frame(self.channel_id, frame_out)
 
     def write_frames(self, frames_out):
         """Write multiple pamqp frames from the current channel.
@@ -181,7 +181,7 @@ class Channel(BaseChannel, Stateful):
         :return:
         """
         self.check_for_errors()
-        self._connection.write_frames(self.channel_id, frames_out)
+        self._connection.io.write_frames(self.channel_id, frames_out)
 
     def check_for_errors(self):
         """Check for errors.

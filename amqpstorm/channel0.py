@@ -1,6 +1,7 @@
 """AMQP-Storm Connection.Channel0."""
 __author__ = 'eandersson'
 
+import locale
 import logging
 import platform
 
@@ -92,7 +93,7 @@ class Channel0(object):
         :param pamqp_spec.Frame frame_out: Amqp frame.
         :return:
         """
-        self._connection.write_frame(0, frame_out)
+        self._connection.io.write_frame(0, frame_out)
 
     def _send_start_ok_frame(self):
         """Send Start OK frame.
@@ -103,7 +104,7 @@ class Channel0(object):
         frame = pamqp_connection.StartOk(
             client_properties=self._client_properties(),
             response=self._credentials(),
-            locale='en_US')
+            locale=locale.getdefaultlocale()[0])
         self._write_frame(frame)
 
     def _send_tune_ok_frame(self):

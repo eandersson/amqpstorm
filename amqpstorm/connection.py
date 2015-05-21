@@ -1,23 +1,19 @@
 """AMQP-Storm Connection."""
 __author__ = 'eandersson'
 
-import ssl
-import socket
 import logging
 import threading
 from time import sleep
-from errno import EWOULDBLOCK
 
 from pamqp import frame as pamqp_frame
 from pamqp import header as pamqp_header
 from pamqp import specification as pamqp_spec
 from pamqp import exceptions as pamqp_exception
 
+from amqpstorm.io import IO
 from amqpstorm import compatibility
-from amqpstorm.io import Poller
 from amqpstorm.base import Stateful
 from amqpstorm.base import IDLE_WAIT
-from amqpstorm.base import FRAME_MAX
 from amqpstorm.channel import Channel
 from amqpstorm.channel0 import Channel0
 from amqpstorm.exception import AMQPConnectionError
@@ -33,9 +29,6 @@ class Connection(Stateful):
     lock = threading.Lock()
     _buffer = EMPTY_BUFFER
     _channel0 = None
-    _io_thread = None
-    _poller = None
-    _socket = None
 
     def __init__(self, hostname, username, password, port=5672, **kwargs):
         """Create a new instance of the Connection class.
@@ -52,6 +45,8 @@ class Connection(Stateful):
         :return:
         """
         super(Connection, self).__init__()
+        self.io = IO(self, on_read=self._read_buffer,
+                     on_error=self._handle_socket_error)
         self.parameters = {
             'hostname': hostname,
             'username': username,
@@ -63,6 +58,7 @@ class Connection(Stateful):
             'ssl': kwargs.get('ssl', False),
             'ssl_options': kwargs.get('ssl_options', {})
         }
+        self._channel0 = Channel0(self)
         self._channels = {}
         self._validate_parameters()
         self.open()
@@ -99,7 +95,7 @@ class Connection(Stateful):
 
         :return:
         """
-        return self._socket
+        return self.io.socket
 
     def open(self):
         """Open Connection."""
@@ -107,12 +103,9 @@ class Connection(Stateful):
         self._buffer = EMPTY_BUFFER
         self._exceptions = []
         self.set_state(self.OPENING)
-        self._socket = self._open_socket(self.parameters['hostname'],
-                                         self.parameters['port'])
-        self._poller = Poller(self._socket.fileno())
-        self._channel0 = Channel0(self)
+        self.io.open(self.parameters['hostname'],
+                     self.parameters['port'])
         self._send_handshake()
-        self._io_thread = self._create_inbound_thread()
         while not self.is_open:
             self.check_for_errors()
             sleep(IDLE_WAIT)
@@ -125,7 +118,7 @@ class Connection(Stateful):
             self._close_channels()
             self.set_state(self.CLOSING)
             self._channel0.send_close_connection_frame()
-        self._close_socket()
+        self.io.close()
         self.set_state(self.CLOSED)
         LOGGER.debug('Connection Closed.')
 
@@ -134,7 +127,6 @@ class Connection(Stateful):
         LOGGER.debug('Opening new Channel.')
         if not isinstance(rpc_timeout, int):
             raise AMQPInvalidArgument('rpc_timeout should be an integer')
-
         with self.lock:
             channel_id = len(self._channels) + 1
             channel = Channel(channel_id, self, rpc_timeout)
@@ -143,34 +135,12 @@ class Connection(Stateful):
         LOGGER.debug('Channel #%d Opened.', channel_id)
         return self._channels[channel_id]
 
-    def write_frame(self, channel_id, frame_out):
-        """Marshal and write an outgoing pamqp frame to the socket.
-
-        :param int channel_id:
-        :param pamqp_spec.Frame frame_out: Amqp frame.
-        :return:
-        """
-        frame_data = pamqp_frame.marshal(frame_out, channel_id)
-        self._write_to_socket(frame_data)
-
-    def write_frames(self, channel_id, frames_out):
-        """Marshal and write any outgoing pamqp frames to the socket.
-
-        :param int channel_id:
-        :param list frames_out: Amqp frames.
-        :return:
-        """
-        frame_data = EMPTY_BUFFER
-        for single_frame in frames_out:
-            frame_data += pamqp_frame.marshal(single_frame, channel_id)
-        self._write_to_socket(frame_data)
-
     def check_for_errors(self):
         """Check connection for potential errors.
 
         :return:
         """
-        if not self._socket:
+        if not self.io.socket:
             self._handle_socket_error('socket/connection closed')
         super(Connection, self).check_for_errors()
 
@@ -194,106 +164,22 @@ class Connection(Stateful):
         elif not isinstance(self.parameters['heartbeat'], int):
             raise AMQPInvalidArgument('heartbeat should be an integer')
 
-    def _open_socket(self, hostname, port):
-        """Open Socket and establish a connection.
-
-        :param str hostname:
-        :param int port:
-        :return:
-        """
-        sock_address_tuple = self._get_socket_address(hostname, port)
-        sock = self._create_socket(socket_family=sock_address_tuple[0])
-        if self.parameters['ssl']:
-            sock = self._ssl_wrap_socket(sock)
-
-        try:
-            sock.connect(sock_address_tuple[4])
-        except (socket.error, ssl.SSLError) as why:
-            raise AMQPConnectionError(why)
-        return sock
-
-    @staticmethod
-    def _get_socket_address(hostname, port):
-        """Get Socket address information.
-
-        :param str hostname:
-        :param int port:
-        :rtype: tuple
-        """
-        try:
-            addresses = socket.getaddrinfo(hostname, port)
-        except socket.gaierror as why:
-            raise AMQPConnectionError(why)
-        result = None
-        for address in addresses:
-            if not address:
-                continue
-            result = address
-            break
-        return result
-
-    def _create_socket(self, socket_family):
-        """Create Socket.
-
-        :param int family:
-        :return:
-        """
-        sock = socket.socket(socket_family, socket.SOCK_STREAM, 0)
-        sock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 0)
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
-        sock.setblocking(0)
-        sock.settimeout(self.parameters['timeout'] or None)
-        return sock
-
-    def _ssl_wrap_socket(self, sock):
-        """Wrap SSLSocket around the socket.
-
-        :param socket sock:
-        :return:
-        """
-        return ssl.wrap_socket(sock, do_handshake_on_connect=True,
-                               **self.parameters['ssl_options'])
-
     def _send_handshake(self):
         """Send RabbitMQ Handshake.
 
         :return:
         """
-        self._write_to_socket(pamqp_header.ProtocolHeader().marshal())
+        self.io.write_to_socket(pamqp_header.ProtocolHeader().marshal())
 
-    def _create_inbound_thread(self):
-        """Internal Thread that handles all incoming traffic.
-
-        :rtype: threading.Thread
-        """
-        io_thread = threading.Thread(target=self._process_incoming_data,
-                                     name=__name__)
-        io_thread.setDaemon(True)
-        io_thread.start()
-        return io_thread
-
-    def _process_incoming_data(self):
-        """Retrieve and process any incoming data.
-
-        :return:
-        """
-        while not self.is_closed:
-            if self.is_closing:
-                break
-            if self._poller.is_ready[0]:
-                self._buffer += self._receive()
-                self._read_buffer()
-            sleep(IDLE_WAIT)
-
-    def _read_buffer(self):
+    def _read_buffer(self, buffer):
         """Process the socket buffer, and direct the data to the correct
         channel.
 
         :return:
         """
-        while self._buffer:
-            self._buffer, channel_id, frame_in = \
-                self._handle_amqp_frame(self._buffer)
+        while buffer:
+            buffer, channel_id, frame_in = \
+                self._handle_amqp_frame(buffer)
 
             if frame_in is None:
                 break
@@ -302,6 +188,8 @@ class Connection(Stateful):
                 self._channel0.on_frame(frame_in)
             else:
                 self._channels[channel_id].on_frame(frame_in)
+
+        return buffer
 
     @staticmethod
     def _handle_amqp_frame(data_in):
@@ -331,23 +219,8 @@ class Connection(Stateful):
                 continue
             self._channels[channel_id].close()
 
-    def _close_socket(self):
-        """Close Socket.
-
-        :return:
-        """
-        if not self._socket:
-            return
-        try:
-            self._socket.shutdown(socket.SHUT_RDWR)
-        except socket.error:
-            pass
-        self._socket.close()
-        self._socket = None
-
     def _handle_socket_error(self, why):
-        """Handle any socket errors. If requested we will try to
-        re-establish the connection.
+        """Handle any critical errors.
 
         :param exception why:
         :return:
@@ -356,50 +229,6 @@ class Connection(Stateful):
         self.set_state(self.CLOSED)
         if previous_state != self.CLOSED:
             LOGGER.error(why, exc_info=False)
-        self._close_socket()
+        self.io.close()
         self._exceptions.append(AMQPConnectionError(why))
 
-    def _receive(self):
-        """Receive any incoming socket data.
-
-            If an error is thrown, handle it and return an empty string.
-
-        :return: buffer
-        :rtype: str
-        """
-        result = EMPTY_BUFFER
-        try:
-            result = self._socket.recv(FRAME_MAX)
-        except socket.timeout:
-            pass
-        except (socket.error, AttributeError) as why:
-            self._handle_socket_error(why)
-        return result
-
-    def _write_to_socket(self, frame_data):
-        """Write data to the socket.
-
-        :param str frame_data:
-        :return:
-        """
-        while not self._poller.is_ready[1]:
-            sleep(0.001)
-        total_bytes_written = 0
-        bytes_to_send = len(frame_data)
-        while total_bytes_written < bytes_to_send:
-            try:
-                bytes_written = \
-                    self.socket.send(frame_data[total_bytes_written:])
-                if bytes_written == 0:
-                    why = AMQPConnectionError('connection/socket error')
-                    self._handle_socket_error(why)
-                    break
-                total_bytes_written += bytes_written
-            except socket.timeout:
-                pass
-            except socket.error as why:
-                if why.args[0] == EWOULDBLOCK:
-                    continue
-                self._handle_socket_error(why)
-                break
-        return total_bytes_written
