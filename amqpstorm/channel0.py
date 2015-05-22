@@ -32,7 +32,7 @@ class Channel0(object):
     def on_frame(self, frame_in):
         """Handle frame sent to channel 0.
 
-        :param pamqp_spec.Frame frame_in: Amqp frame.
+        :param frame_in: Amqp frame.
         :return:
         """
         LOGGER.debug('Frame Received: %s', frame_in.name)
@@ -90,7 +90,7 @@ class Channel0(object):
     def _write_frame(self, frame_out):
         """Write a pamqp frame from channel0.
 
-        :param pamqp_spec.Frame frame_out: Amqp frame.
+        :param frame_out: Amqp frame.
         :return:
         """
         self._connection.io.write_frame(0, frame_out)
@@ -101,10 +101,13 @@ class Channel0(object):
         :param pamqp_spec.Frame frame_out: Amqp frame.
         :return:
         """
+        _locale = locale.getdefaultlocale()[0]
+        if not _locale:
+            _locale = 'en_US'
         frame = pamqp_connection.StartOk(
             client_properties=self._client_properties(),
             response=self._credentials(),
-            locale=locale.getdefaultlocale()[0])
+            locale=_locale)
         self._write_frame(frame)
 
     def _send_tune_ok_frame(self):

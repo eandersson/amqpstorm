@@ -133,9 +133,7 @@ class IO(object):
                 bytes_written = \
                     self.socket.send(frame_data[total_bytes_written:])
                 if bytes_written == 0:
-                    why = AMQPConnectionError('connection/socket error')
-                    self.on_error(why)
-                    break
+                    raise socket.error('connection/socket error')
                 total_bytes_written += bytes_written
             except socket.timeout:
                 pass
@@ -173,7 +171,7 @@ class IO(object):
         :return:
         """
         sock = socket.socket(socket_family, socket.SOCK_STREAM, 0)
-        sock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 0)
+        sock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 1)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
         sock.setblocking(0)
         sock.settimeout(self.connection.parameters['timeout'] or None)

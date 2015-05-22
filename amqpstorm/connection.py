@@ -97,6 +97,14 @@ class Connection(Stateful):
         """
         return self.io.socket
 
+    @property
+    def fileno(self):
+        """Socket Fileno.
+
+        :return:
+        """
+        return self.io.socket.fileno
+
     def open(self):
         """Open Connection."""
         LOGGER.debug('Connection Opening.')
