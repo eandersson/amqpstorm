@@ -168,20 +168,21 @@ class Channel(BaseChannel, Stateful):
     def write_frame(self, frame_out):
         """Write a pamqp frame from the current channel.
 
-        :param pamqp_spec.Frame frame_out: Amqp frame.
+        :param pamqp_spec.Frame frame_out: A single pamqp frame.
         :return:
         """
         self.check_for_errors()
         self._connection.io.write_frame(self.channel_id, frame_out)
 
-    def write_frames(self, frames_out):
+    def write_multiple_frames(self, multiple_frames):
         """Write multiple pamqp frames from the current channel.
 
-        :param list frames_out: Amqp frames.
+        :param list multiple_frames: A list of pamqp frames.
         :return:
         """
         self.check_for_errors()
-        self._connection.io.write_frames(self.channel_id, frames_out)
+        self._connection.io.write_multiple_frames(self.channel_id,
+                                                  multiple_frames)
 
     def check_for_errors(self):
         """Check for errors.

@@ -34,10 +34,10 @@ try:
             # Increment message counter.
             messages_sent += 1
 
-    connection = Connection('127.0.0.1', 'guest', 'guest')
+    connection = Connection('127.0.0.1', 'test', 'test')
 
     threads = []
-    for index in range(2):
+    for index in range(5):
         publisher_thread = threading.Thread(target=send_messages,
                                             args=(connection,))
         publisher_thread.daemon = True

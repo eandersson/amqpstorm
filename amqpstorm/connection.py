@@ -45,8 +45,6 @@ class Connection(Stateful):
         :return:
         """
         super(Connection, self).__init__()
-        self.io = IO(self, on_read=self._read_buffer,
-                     on_error=self._handle_socket_error)
         self.parameters = {
             'hostname': hostname,
             'username': username,
@@ -58,6 +56,9 @@ class Connection(Stateful):
             'ssl': kwargs.get('ssl', False),
             'ssl_options': kwargs.get('ssl_options', {})
         }
+        self.io = IO(self.parameters,
+                     on_read=self._read_buffer,
+                     on_error=self._handle_socket_error)
         self._channel0 = Channel0(self)
         self._channels = {}
         self._validate_parameters()
@@ -239,4 +240,3 @@ class Connection(Stateful):
             LOGGER.error(why, exc_info=False)
         self.io.close()
         self._exceptions.append(AMQPConnectionError(why))
-
