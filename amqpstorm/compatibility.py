@@ -6,6 +6,12 @@ import sys
 
 PYTHON3 = sys.version_info >= (3, 0, 0)
 
+try:
+    import __pypy__
+    PYPY = True
+except ImportError:
+    PYPY = False
+
 if PYTHON3:
     RANGE = range
 else:
@@ -25,6 +31,12 @@ def is_string(obj):
     return isinstance(obj, str_type)
 
 
+def is_integer(obj):
+    if PYPY and not PYTHON3:
+        return isinstance(obj, (int, long))
+    return isinstance(obj, int)
+
+
 def is_unicode(obj):
     """Is this a unicode string.
 
@@ -36,3 +48,6 @@ def is_unicode(obj):
     if PYTHON3:
         return False
     return isinstance(obj, unicode)
+
+
+print(is_integer(1))

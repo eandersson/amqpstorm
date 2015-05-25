@@ -213,10 +213,11 @@ class Rpc(object):
         raise AMQPChannelError(message.format(uuid, ', '.join(requests)))
 
 
-class BaseChannel(object):
+class BaseChannel(Stateful):
     """Base Channel Class."""
 
     def __init__(self, channel_id):
+        super(BaseChannel, self).__init__()
         self.lock = threading.Lock()
         self._consumer_tags = []
         self._channel_id = channel_id

@@ -123,7 +123,7 @@ class Connection(Stateful):
     def close(self):
         """Close connection."""
         LOGGER.debug('Connection Closing.')
-        if not self.is_closed and self.socket:
+        if not self.is_closed and self.io.socket:
             self._close_channels()
             self.set_state(self.CLOSING)
             self._channel0.send_close_connection_frame()
@@ -134,7 +134,7 @@ class Connection(Stateful):
     def channel(self, rpc_timeout=360):
         """Open Channel."""
         LOGGER.debug('Opening new Channel.')
-        if not isinstance(rpc_timeout, int):
+        if not compatibility.is_integer(rpc_timeout):
             raise AMQPInvalidArgument('rpc_timeout should be an integer')
         with self.lock:
             channel_id = len(self._channels) + 1
@@ -160,7 +160,7 @@ class Connection(Stateful):
         """
         if not compatibility.is_string(self.parameters['hostname']):
             raise AMQPInvalidArgument('hostname should be a string')
-        elif not isinstance(self.parameters['port'], int):
+        elif not compatibility.is_integer(self.parameters['port']):
             raise AMQPInvalidArgument('port should be an integer')
         elif not compatibility.is_string(self.parameters['username']):
             raise AMQPInvalidArgument('username should be a string')
@@ -170,7 +170,7 @@ class Connection(Stateful):
             raise AMQPInvalidArgument('virtual_host should be a string')
         elif not isinstance(self.parameters['timeout'], (int, float)):
             raise AMQPInvalidArgument('timeout should be an integer or float')
-        elif not isinstance(self.parameters['heartbeat'], int):
+        elif not compatibility.is_integer(self.parameters['heartbeat']):
             raise AMQPInvalidArgument('heartbeat should be an integer')
 
     def _send_handshake(self):
