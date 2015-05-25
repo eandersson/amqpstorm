@@ -235,8 +235,7 @@ class Channel(BaseChannel):
         if frame_in.reply_code != 200:
             message = 'Channel %d was closed by remote server: %s' % \
                       (self._channel_id, frame_in.reply_text.decode('utf-8'))
-            why = AMQPChannelError(message)
-            self._exceptions.append(why)
+            self._exceptions.append(AMQPChannelError(message))
         del self._inbound[:]
         self.set_state(self.CLOSED)
 
@@ -275,7 +274,6 @@ class Channel(BaseChannel):
                                content_header)
                 return None
             body = self._build_message_body(content_header.body_size)
-
         message = Message(channel=self,
                           body=body,
                           method=dict(basic_deliver),

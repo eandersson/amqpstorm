@@ -23,6 +23,10 @@ import threading
 
 from amqpstorm import Connection
 
+from examples import HOST
+from examples import USERNAME
+from examples import PASSWORD
+
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -47,7 +51,7 @@ def consume_messages(channel):
     channel.start_consuming()
 
 
-connection = Connection('127.0.0.1', 'guest', 'guest')
+connection = Connection(USERNAME, USERNAME, PASSWORD)
 channel = connection.channel()
 channel.basic.qos(prefetch_count=100)
 channel.basic.consume(on_message, 'simple_queue', no_ack=False)
