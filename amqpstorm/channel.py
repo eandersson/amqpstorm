@@ -26,7 +26,7 @@ LOGGER = logging.getLogger(__name__)
 CONTENT_FRAME = ['Basic.Deliver', 'ContentHeader', 'ContentBody']
 
 
-class Channel(BaseChannel, Stateful):
+class Channel(BaseChannel):
     """RabbitMQ Channel Class."""
 
     def __init__(self, channel_id, connection, rpc_timeout):
@@ -73,7 +73,7 @@ class Channel(BaseChannel, Stateful):
         :return:
         """
         LOGGER.debug('Channel #%d Closing.', self.channel_id)
-        if not isinstance(reply_code, int):
+        if not compatibility.is_integer(reply_code):
             raise AMQPInvalidArgument('reply_code should be an integer')
         elif not compatibility.is_string(reply_text):
             raise AMQPInvalidArgument('reply_text should be a string')
@@ -157,12 +157,26 @@ class Channel(BaseChannel, Stateful):
         """
         if not self.consumer_callback:
             raise AMQPChannelError('no consumer_callback defined')
+        for message in self.build_inbound_messages():
+            self.consumer_callback(*message.to_tuple())
+
+    def build_inbound_messages(self, break_on_empty=True):
+        """Build messages in the inbound queue.
+
+        :param bool break_on_empty: Should we break the loop if there are
+                                    no more messages in the inbound queue.
+        :return:
+        """
         self.check_for_errors()
         while self._inbound and not self.is_closed:
             message = self._fetch_message()
             if not message:
-                break
-            self.consumer_callback(*message.to_tuple())
+                if break_on_empty:
+                    break
+                self.check_for_errors()
+                sleep(IDLE_WAIT)
+                continue
+            yield message
         sleep(IDLE_WAIT)
 
     def write_frame(self, frame_out):
@@ -262,9 +276,10 @@ class Channel(BaseChannel, Stateful):
                 return None
             body = self._build_message_body(content_header.body_size)
 
-        message = Message(body, self,
-                          dict(basic_deliver),
-                          dict(content_header.properties))
+        message = Message(channel=self,
+                          body=body,
+                          method=dict(basic_deliver),
+                          properties=dict(content_header.properties))
         return message
 
     def _build_message_body(self, body_size):

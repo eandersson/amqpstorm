@@ -48,6 +48,3 @@ def is_unicode(obj):
     if PYTHON3:
         return False
     return isinstance(obj, unicode)
-
-
-print(is_integer(1))
