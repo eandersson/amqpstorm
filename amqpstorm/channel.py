@@ -169,7 +169,7 @@ class Channel(BaseChannel):
         """
         self.check_for_errors()
         while self._inbound and not self.is_closed:
-            message = self._fetch_message()
+            message = self._build_message()
             if not message:
                 if break_on_empty:
                     break
@@ -253,8 +253,8 @@ class Channel(BaseChannel):
                     frame_in.exchange)
         self.exceptions.append(AMQPMessageError(message))
 
-    def _fetch_message(self):
-        """Fetch a message from the inbound queue.
+    def _build_message(self):
+        """Fetch and build a complete Message from the inbound queue.
 
         :rtype: Message
         """

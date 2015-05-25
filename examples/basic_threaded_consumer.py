@@ -51,7 +51,7 @@ def consume_messages(channel):
     channel.start_consuming()
 
 
-connection = Connection(USERNAME, USERNAME, PASSWORD)
+connection = Connection(HOST, USERNAME, PASSWORD)
 channel = connection.channel()
 channel.basic.qos(prefetch_count=100)
 channel.basic.consume(on_message, 'simple_queue', no_ack=False)
