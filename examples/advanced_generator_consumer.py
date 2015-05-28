@@ -12,11 +12,14 @@ from examples import PASSWORD
 logging.basicConfig(level=logging.DEBUG)
 
 
+def consumer():
     with Connection(HOST, USERNAME, PASSWORD) as connection:
         with connection.channel() as channel:
+            channel.basic.consume('simple_queue', no_ack=False)
             for message in channel.build_inbound_messages():
+                print(message.body)
                 message.ack()
 
 
 if __name__ == '__main__':
-
+    consumer()
