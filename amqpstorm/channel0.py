@@ -93,7 +93,7 @@ class Channel0(object):
         :param frame_out: Amqp frame.
         :return:
         """
-        self._connection.io.write_frame(0, frame_out)
+        self._connection.write_frame(0, frame_out)
 
     def _send_start_ok_frame(self):
         """Send Start OK frame.

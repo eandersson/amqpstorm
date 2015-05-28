@@ -73,8 +73,8 @@ class Basic(object):
         recover_frame = pamqp_spec.Basic.Recover(requeue=requeue)
         return self._channel.rpc_request(recover_frame)
 
-    def consume(self, callback, queue='', consumer_tag='', exclusive=False,
-                no_ack=False, no_local=False, arguments=None):
+    def consume(self, callback=None, queue='', consumer_tag='',
+                exclusive=False, no_ack=False, no_local=False, arguments=None):
         """Start a queue consumer.
 
         :param function callback:

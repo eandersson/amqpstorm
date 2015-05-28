@@ -156,10 +156,10 @@ class Channel(BaseChannel):
         """
         if not self.consumer_callback:
             raise AMQPChannelError('no consumer_callback defined')
-        for message in self.build_inbound_messages():
+        for message in self.build_inbound_messages(break_on_empty=True):
             self.consumer_callback(*message.to_tuple())
 
-    def build_inbound_messages(self, break_on_empty=True):
+    def build_inbound_messages(self, break_on_empty=False):
         """Build messages in the inbound queue.
 
         :param bool break_on_empty: Should we break the loop if there are
@@ -167,7 +167,7 @@ class Channel(BaseChannel):
         :return:
         """
         self.check_for_errors()
-        while self._inbound and not self.is_closed:
+        while not self.is_closed:
             message = self._build_message()
             if not message:
                 if break_on_empty:
