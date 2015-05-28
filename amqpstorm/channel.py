@@ -9,7 +9,6 @@ from pamqp import specification as pamqp_spec
 
 from amqpstorm.base import Rpc
 from amqpstorm.base import IDLE_WAIT
-from amqpstorm.base import Stateful
 from amqpstorm.base import BaseChannel
 from amqpstorm.queue import Queue
 from amqpstorm.basic import Basic
@@ -186,7 +185,7 @@ class Channel(BaseChannel):
         :return:
         """
         self.check_for_errors()
-        self._connection.io.write_frame(self.channel_id, frame_out)
+        self._connection.write_frame(self.channel_id, frame_out)
 
     def write_multiple_frames(self, multiple_frames):
         """Write multiple pamqp frames from the current channel.
@@ -195,8 +194,8 @@ class Channel(BaseChannel):
         :return:
         """
         self.check_for_errors()
-        self._connection.io.write_multiple_frames(self.channel_id,
-                                                  multiple_frames)
+        self._connection.write_multiple_frames(self.channel_id,
+                                               multiple_frames)
 
     def check_for_errors(self):
         """Check for errors.

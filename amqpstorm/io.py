@@ -10,9 +10,6 @@ from time import sleep
 from errno import EINTR
 from errno import EWOULDBLOCK
 
-from pamqp import frame as pamqp_frame
-from pamqp import specification as pamqp_spec
-
 from amqpstorm.base import Stateful
 from amqpstorm.base import IDLE_WAIT
 from amqpstorm.base import FRAME_MAX
@@ -100,28 +97,6 @@ class IO(Stateful):
         self.socket.close()
         self.socket = None
         self.set_state(self.CLOSED)
-
-    def write_frame(self, channel_id, frame_out):
-        """Marshal and write an outgoing pamqp frame to the socket.
-
-        :param int channel_id:
-        :param pamqp_spec.Frame frame_out: Amqp frame.
-        :return:
-        """
-        frame_data = pamqp_frame.marshal(frame_out, channel_id)
-        self.write_to_socket(frame_data)
-
-    def write_multiple_frames(self, channel_id, multiple_frames):
-        """Marshal and write multiple outgoing pamqp frames to the socket.
-
-        :param int channel_id:
-        :param list multiple_frames: Amqp frames.
-        :return:
-        """
-        frame_data = EMPTY_BUFFER
-        for single_frame in multiple_frames:
-            frame_data += pamqp_frame.marshal(single_frame, channel_id)
-        self.write_to_socket(frame_data)
 
     def write_to_socket(self, frame_data):
         """Write data to the socket.

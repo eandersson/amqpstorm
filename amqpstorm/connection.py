@@ -153,6 +153,28 @@ class Connection(Stateful):
             self._handle_socket_error('socket/connection closed')
         super(Connection, self).check_for_errors()
 
+    def write_frame(self, channel_id, frame_out):
+        """Marshal and write an outgoing pamqp frame to the socket.
+
+        :param int channel_id:
+        :param pamqp_spec.Frame frame_out: Amqp frame.
+        :return:
+        """
+        frame_data = pamqp_frame.marshal(frame_out, channel_id)
+        self.io.write_to_socket(frame_data)
+
+    def write_multiple_frames(self, channel_id, multiple_frames):
+        """Marshal and write multiple outgoing pamqp frames to the socket.
+
+        :param int channel_id:
+        :param list multiple_frames: Amqp frames.
+        :return:
+        """
+        frame_data = EMPTY_BUFFER
+        for single_frame in multiple_frames:
+            frame_data += pamqp_frame.marshal(single_frame, channel_id)
+        self.io.write_to_socket(frame_data)
+
     def _validate_parameters(self):
         """Validate Connection Parameters.
 
