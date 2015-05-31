@@ -37,7 +37,7 @@ class BasicBasicTests(unittest.TestCase):
         self.assertEqual(len(results), 8)
 
         # Rebuild the string
-        result_body = ''
+        result_body = b''
         for frame in results:
             result_body += frame.value
 
