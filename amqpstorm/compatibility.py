@@ -32,7 +32,7 @@ def is_string(obj):
 
 
 def is_integer(obj):
-    if PYPY and not PYTHON3:
+    if not PYTHON3:
         return isinstance(obj, (int, long))
     return isinstance(obj, int)
 
