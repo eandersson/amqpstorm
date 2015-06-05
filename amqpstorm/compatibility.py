@@ -32,9 +32,9 @@ def is_string(obj):
 
 
 def is_integer(obj):
-    if not PYTHON3:
-        return isinstance(obj, (int, long))
-    return isinstance(obj, int)
+    if PYTHON3:
+        return isinstance(obj, int)
+    return isinstance(obj, (int, long))
 
 
 def is_unicode(obj):

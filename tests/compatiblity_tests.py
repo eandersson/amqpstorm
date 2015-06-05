@@ -15,7 +15,6 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 class CompatibilityTests(unittest.TestCase):
-
     def test_basic_integer(self):
         x = 0
         self.assertTrue(compatibility.is_integer(x))

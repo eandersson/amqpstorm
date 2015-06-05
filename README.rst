@@ -2,7 +2,7 @@ AMQP-Storm 1.1.10
 -------------
 Thread-safe Python AMQP Client Library based on pamqp.
 
-|Version| |Downloads| |License| |CodeClimate|
+|Version| |Downloads| |License| |CodeClimate| |Travis|
 
 Introduction
 -------------
@@ -31,3 +31,6 @@ Special thanks to gmr (Gavin M. Roy) for creating pamqp, and in addition amqp-st
 .. |Bitdeli| image:: https://d2weczhvl823v0.cloudfront.net/eandersson/amqp-storm/trend.png
    :alt: Bitdeli badge
    :target: https://bitdeli.com/free
+   
+.. |Travis| image:: https://travis-ci.org/eandersson/amqp-storm.svg?branch=1.2.0
+    :target: https://travis-ci.org/eandersson/amqp-storm

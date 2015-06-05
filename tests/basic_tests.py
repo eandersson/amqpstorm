@@ -14,7 +14,6 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 class BasicBasicTests(unittest.TestCase):
-
     def test_basic_return(self):
         basic = Basic(None)
 
