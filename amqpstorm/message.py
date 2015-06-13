@@ -29,17 +29,11 @@ class Message(object):
 
     @property
     def method(self):
-        method = {}
-        for key, value in self._method.items():
-            method[key] = try_utf8_decode(value)
-        return method
+        return self._decode_utf8_content(self._method)
 
     @property
     def properties(self):
-        properties = {}
-        for key, value in self._properties.items():
-            properties[key] = try_utf8_decode(value)
-        return properties
+        return self._decode_utf8_content(self._properties)
 
     def ack(self):
         if not self._method:
@@ -78,3 +72,10 @@ class Message(object):
         :rtype: tuple
         """
         return self._body, self._channel, self._method, self._properties
+
+    @staticmethod
+    def _decode_utf8_content(content):
+        result = {}
+        for key, value in content.items():
+            result[key] = try_utf8_decode(value)
+        return result
