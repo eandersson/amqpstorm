@@ -101,9 +101,7 @@ class Channel0(object):
         :param pamqp_spec.Frame frame_out: Amqp frame.
         :return:
         """
-        _locale = locale.getdefaultlocale()[0]
-        if not _locale:
-            _locale = 'en_US'
+        _locale = locale.getdefaultlocale()[0] or 'en_US'
         frame = pamqp_connection.StartOk(
             client_properties=self._client_properties(),
             response=self._credentials(),

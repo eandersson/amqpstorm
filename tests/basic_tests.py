@@ -7,8 +7,13 @@ try:
 except ImportError:
     import unittest
 
-from amqpstorm.channel import Basic
+from pamqp.body import ContentBody
 
+from amqpstorm import exception
+from amqpstorm.channel import Basic
+from amqpstorm.channel import Channel
+
+from tests.utility import FakeConnection
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -42,3 +47,25 @@ class BasicBasicTests(unittest.TestCase):
 
         # Confirm that it matches the original string.
         self.assertEqual(result_body, message)
+
+    def test_get_content_body(self):
+        message = b'Hello World!'
+        body = ContentBody(value=message)
+        channel = Channel(0, FakeConnection(), 360)
+        channel.set_state(Channel.OPEN)
+        basic = Basic(channel)
+        uuid = channel.rpc.register_request([body.name])
+        channel.rpc.on_frame(body)
+        self.assertEqual(basic._get_content_body(uuid, len(message)),
+                         message)
+
+    def test_get_content_body_timeout_error(self):
+        message = b'Hello World!'
+        body = ContentBody(value=message)
+        channel = Channel(0, FakeConnection(), 0.0001)
+        channel.set_state(Channel.OPEN)
+        basic = Basic(channel)
+        uuid = channel.rpc.register_request([body.name])
+        self.assertRaises(exception.AMQPChannelError, basic._get_content_body,
+                          uuid, len(message))
+

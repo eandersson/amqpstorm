@@ -127,13 +127,15 @@ class Channel(BaseChannel):
             LOGGER.error('Unhandled Frame: %s -- %s',
                          frame_in.name, dict(frame_in))
 
-    def start_consuming(self):
+    def start_consuming(self, to_tuple=True):
         """Start consuming events.
 
+        :param bool to_tuple: Should incoming messages be converted to
+                              arguments before delivery.
         :return:
         """
         while self.consumer_tags and not self.is_closed:
-            self.process_data_events()
+            self.process_data_events(to_tuple=to_tuple)
 
     def stop_consuming(self):
         """Stop consuming events.
@@ -146,24 +148,31 @@ class Channel(BaseChannel):
             self.basic.cancel(tag)
         self.remove_consumer_tag()
 
-    def process_data_events(self):
+    def process_data_events(self, to_tuple=True):
         """Consume inbound messages.
 
             This is only required when consuming messages. All other
             events are automatically handled in the background.
 
+        :param bool to_tuple: Should incoming messages be converted to
+                              arguments before delivery.
         :return:
         """
         if not self.consumer_callback:
             raise AMQPChannelError('no consumer_callback defined')
         for message in self.build_inbound_messages(break_on_empty=True):
+            if not to_tuple:
+                self.consumer_callback(message)
+                continue
             self.consumer_callback(*message.to_tuple())
 
-    def build_inbound_messages(self, break_on_empty=False):
+    def build_inbound_messages(self, break_on_empty=False, to_dict=False):
         """Build messages in the inbound queue.
 
         :param bool break_on_empty: Should we break the loop if there are
                                     no more messages in the inbound queue.
+        :param bool to_dict: Should incoming messages be converted to a
+                             dictionary before delivery.
         :return:
         """
         self.check_for_errors()
@@ -174,6 +183,9 @@ class Channel(BaseChannel):
                     break
                 self.check_for_errors()
                 sleep(IDLE_WAIT)
+                continue
+            if to_dict:
+                yield message.to_dict()
                 continue
             yield message
         sleep(IDLE_WAIT)

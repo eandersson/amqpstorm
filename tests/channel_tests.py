@@ -12,21 +12,13 @@ from pamqp.body import ContentBody
 from pamqp.header import ContentHeader
 
 from amqpstorm import exception
-from amqpstorm.base import Stateful
 from amqpstorm.message import Message
 from amqpstorm.channel import Channel
 
+from tests.utility import FakeConnection
+
 
 logging.basicConfig(level=logging.DEBUG)
-
-
-class FakeConnection(Stateful):
-    def __init__(self, state=3):
-        super(FakeConnection, self).__init__()
-        self.set_state(state)
-
-    def check_for_errors(self):
-        pass
 
 
 class BasicChannelTests(unittest.TestCase):
@@ -43,7 +35,7 @@ class BasicChannelTests(unittest.TestCase):
         channel._inbound = [deliver, header, body]
         result = channel._build_message()
 
-        self.assertEqual(result.body, message)
+        self.assertEqual(result._body, message)
 
     def test_build_out_of_order_message(self):
         channel = Channel(0, None, 360)
@@ -125,9 +117,9 @@ class BasicChannelTests(unittest.TestCase):
         channel._basic_return(basic_return)
 
         self.assertEqual(len(channel.exceptions), 1)
-        exception = channel.exceptions.pop(0)
-        self.assertEqual(str(exception), "Message not delivered: Error (500) "
-                                         "to queue '' from exchange ''")
+        why = channel.exceptions.pop(0)
+        self.assertEqual(str(why), "Message not delivered: Error (500) "
+                                   "to queue '' from exchange ''")
 
     def test_close_channel(self):
         channel = Channel(0, None, 360)
