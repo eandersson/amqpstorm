@@ -155,8 +155,7 @@ class Basic(object):
         if self._channel.confirming_deliveries:
             with self._channel.rpc.lock:
                 return self._publish_confirm(send_buffer)
-        else:
-            self._channel.write_multiple_frames(send_buffer)
+        self._channel.write_multiple_frames(send_buffer)
 
     def ack(self, delivery_tag=None, multiple=False):
         """Acknowledge Message.

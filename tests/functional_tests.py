@@ -9,7 +9,7 @@ except ImportError:
     import unittest
 
 from amqpstorm import Connection
-from amqpstorm.exception import AMQPChannelError
+from amqpstorm.exception import AMQPMessageError
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -141,9 +141,9 @@ class PublisherConfirmsTest(unittest.TestCase):
         self.channel = self.connection.channel()
         self.channel.queue.declare('test.basic.confirm')
         self.channel.queue.purge('test.basic.confirm')
+        self.channel.confirm_deliveries()
 
     def test_publish_and_confirm(self):
-        self.channel.confirm_deliveries()
         self.channel.basic.publish(body=str(uuid.uuid4()),
                                    routing_key='test.basic.confirm')
         payload = self.channel.queue.declare('test.basic.confirm',
@@ -160,15 +160,15 @@ class PublisherConfirmFailsTest(unittest.TestCase):
     def setUp(self):
         self.connection = Connection('localhost', 'guest', 'guest')
         self.channel = self.connection.channel()
+        self.channel.confirm_deliveries()
 
     def test_publish_confirm_to_invalid_queue(self):
-        self.channel.confirm_deliveries()
-        self.channel.basic.publish(body=str(uuid.uuid4()),
-                                   routing_key='test.basic.confirm.fails')
-        self.assertRaises(AMQPChannelError,
-                          self.channel.queue.declare,
-                          'test.basic.confirm.fails',
-                          passive=True)
+        self.assertRaises(AMQPMessageError,
+                          self.channel.basic.publish,
+                          body=str(uuid.uuid4()),
+                          exchange='amq.direct',
+                          mandatory=True,
+                          routing_key='test.basic.confirm.fails')
 
     def tearDown(self):
         self.channel.close()
