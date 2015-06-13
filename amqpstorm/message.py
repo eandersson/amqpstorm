@@ -46,13 +46,13 @@ class Message(object):
             raise AMQPMessageError('method is None')
         self._channel.basic.ack(delivery_tag=self._method['delivery_tag'])
 
-    def nack(self, requeue=False):
+    def nack(self, requeue=True):
         if not self._method:
             raise AMQPMessageError('method is None')
         self._channel.basic.nack(delivery_tag=self._method['delivery_tag'],
                                  requeue=requeue)
 
-    def reject(self, requeue=False):
+    def reject(self, requeue=True):
         if not self._method:
             raise AMQPMessageError('method is None')
         self._channel.basic.reject(delivery_tag=self._method['delivery_tag'],

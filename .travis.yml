@@ -16,3 +16,5 @@ install:
 script: nosetests
 after_success:
   - codecov
+services:
+  - rabbitmq
