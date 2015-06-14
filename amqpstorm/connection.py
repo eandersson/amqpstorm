@@ -163,7 +163,7 @@ class Connection(Stateful):
         frame_data = pamqp_frame.marshal(frame_out, channel_id)
         self.io.write_to_socket(frame_data)
 
-    def write_multiple_frames(self, channel_id, multiple_frames):
+    def write_frames(self, channel_id, multiple_frames):
         """Marshal and write multiple outgoing pamqp frames to the socket.
 
         :param int channel_id:

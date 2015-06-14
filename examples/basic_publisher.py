@@ -18,7 +18,8 @@ def publisher():
             channel.queue.declare('simple_queue')
             channel.basic.publish(body='Hello World!',
                                   routing_key='simple_queue',
-                                  properties={'content_type': 'text/plain'})
+                                  properties={'content_type': 'text/plain',
+                                              'headers': {'key': 'value'}})
 
 
 if __name__ == '__main__':

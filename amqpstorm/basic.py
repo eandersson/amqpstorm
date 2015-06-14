@@ -155,7 +155,7 @@ class Basic(object):
         if self._channel.confirming_deliveries:
             with self._channel.rpc.lock:
                 return self._publish_confirm(send_buffer)
-        self._channel.write_multiple_frames(send_buffer)
+        self._channel.write_frames(send_buffer)
 
     def ack(self, delivery_tag=None, multiple=False):
         """Acknowledge Message.
@@ -290,7 +290,7 @@ class Basic(object):
         """
         confirm_uuid = self._channel.rpc.register_request(['Basic.Ack',
                                                            'Basic.Nack'])
-        self._channel.write_multiple_frames(send_buffer)
+        self._channel.write_frames(send_buffer)
         result = self._channel.rpc.get_request(confirm_uuid, True)
         self._channel.check_for_errors()
         if isinstance(result, pamqp_spec.Basic.Ack):

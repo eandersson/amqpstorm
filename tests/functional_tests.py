@@ -8,9 +8,11 @@ try:
 except ImportError:
     import unittest
 
+from amqpstorm import Message
+from amqpstorm import Channel
 from amqpstorm import Connection
 from amqpstorm import UriConnection
-from amqpstorm.exception import AMQPMessageError
+from amqpstorm import AMQPMessageError
 
 from tests import HOST
 from tests import USERNAME
@@ -61,6 +63,10 @@ class PublishAndConsumeMessagesTest(unittest.TestCase):
         inbound_messages = []
 
         def on_message(*args):
+            self.assertIsInstance(args[0], (bytes, str))
+            self.assertIsInstance(args[1], Channel)
+            self.assertIsInstance(args[2], dict)
+            self.assertIsInstance(args[3], dict)
             inbound_messages.append(args)
 
         self.channel.basic.consume(callback=on_message,
@@ -73,6 +79,37 @@ class PublishAndConsumeMessagesTest(unittest.TestCase):
 
     def tearDown(self):
         self.channel.queue.delete('test.basic.consume')
+        self.channel.close()
+        self.connection.close()
+
+
+class GeneratorConsumeMessagesTest(unittest.TestCase):
+    def setUp(self):
+        self.connection = Connection(HOST, USERNAME, PASSWORD)
+        self.channel = self.connection.channel()
+        self.channel.queue.declare('test.basic.generator')
+        self.channel.queue.purge('test.basic.generator')
+
+    def test_generator_consume(self):
+        for _ in range(5):
+            self.channel.basic.publish(body=str(uuid.uuid4()),
+                                       routing_key='test.basic.generator')
+
+        # Store and inbound messages.
+        inbound_messages = []
+
+        self.channel.basic.consume(queue='test.basic.generator',
+                                   no_ack=True)
+        for message in \
+                self.channel.build_inbound_messages(break_on_empty=True):
+            self.assertIsInstance(message, Message)
+            inbound_messages.append(message)
+
+        # Make sure all five messages were downloaded.
+        self.assertEqual(len(inbound_messages), 5)
+
+    def tearDown(self):
+        self.channel.queue.delete('test.basic.generator')
         self.channel.close()
         self.connection.close()
 

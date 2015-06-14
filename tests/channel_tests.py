@@ -12,8 +12,8 @@ from pamqp.body import ContentBody
 from pamqp.header import ContentHeader
 
 from amqpstorm import exception
-from amqpstorm.message import Message
-from amqpstorm.channel import Channel
+from amqpstorm import Message
+from amqpstorm import Channel
 
 from tests.utility import FakeConnection
 

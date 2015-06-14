@@ -162,9 +162,12 @@ class Channel(BaseChannel):
             raise AMQPChannelError('no consumer_callback defined')
         for message in self.build_inbound_messages(break_on_empty=True):
             if not to_tuple:
+                # noinspection PyCallingNonCallable
                 self.consumer_callback(message)
                 continue
+            # noinspection PyCallingNonCallable
             self.consumer_callback(*message.to_tuple())
+        sleep(IDLE_WAIT)
 
     def build_inbound_messages(self, break_on_empty=False, to_tuple=False):
         """Build messages in the inbound queue.
@@ -173,7 +176,7 @@ class Channel(BaseChannel):
                                     no more messages in the inbound queue.
         :param bool to_tuple: Should incoming messages be converted to
                               arguments before delivery.
-        :return:
+        :rtype: :py:class:`generator`
         """
         self.check_for_errors()
         while not self.is_closed:
@@ -188,7 +191,6 @@ class Channel(BaseChannel):
                 yield message.to_tuple()
                 continue
             yield message
-        sleep(IDLE_WAIT)
 
     def write_frame(self, frame_out):
         """Write a pamqp frame from the current channel.
@@ -199,15 +201,15 @@ class Channel(BaseChannel):
         self.check_for_errors()
         self._connection.write_frame(self.channel_id, frame_out)
 
-    def write_multiple_frames(self, multiple_frames):
+    def write_frames(self, multiple_frames):
         """Write multiple pamqp frames from the current channel.
 
         :param list multiple_frames: A list of pamqp frames.
         :return:
         """
         self.check_for_errors()
-        self._connection.write_multiple_frames(self.channel_id,
-                                               multiple_frames)
+        self._connection.write_frames(self.channel_id,
+                                      multiple_frames)
 
     def check_for_errors(self):
         """Check for errors.

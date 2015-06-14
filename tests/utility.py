@@ -19,6 +19,9 @@ class FakeConnection(Stateful):
     def write_frame(self, channel_id, frame_out):
         self.frames_out.append((channel_id, frame_out))
 
+    def write_frames(self, channel_id, frames_out):
+        self.frames_out.append((channel_id, frames_out))
+
 
 class TestPayload(object):
     __slots__ = ['name']

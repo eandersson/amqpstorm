@@ -7,7 +7,7 @@ try:
 except ImportError:
     import unittest
 
-from amqpstorm.message import Message
+from amqpstorm import Message
 
 
 logging.basicConfig(level=logging.DEBUG)

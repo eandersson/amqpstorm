@@ -11,7 +11,7 @@ except ImportError:
 from pamqp.specification import Connection
 
 from amqpstorm.channel0 import Channel0
-from amqpstorm.exception import AMQPConnectionError
+from amqpstorm import AMQPConnectionError
 
 from tests.utility import FakeConnection
 

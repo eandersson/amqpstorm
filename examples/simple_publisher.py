@@ -17,7 +17,8 @@ def publisher():
         with connection.channel() as channel:
             channel.queue.declare('simple_queue')
             message = Message.create(channel, 'Hello World!',
-                                     {'content_type': 'text/plain'})
+                                     {'content_type': 'text/plain',
+                                      'headers': {'key': 'value'}})
             message.publish('simple_queue')
 
 
