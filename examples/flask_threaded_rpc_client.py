@@ -8,6 +8,10 @@ from flask import Flask
 
 import amqpstorm
 
+from examples import HOST
+from examples import USERNAME
+from examples import PASSWORD
+
 
 app = Flask(__name__)
 
@@ -15,22 +19,26 @@ app = Flask(__name__)
 class RpcClient(object):
     """Asynchronous Rpc client."""
 
-    def __init__(self, rpc_queue):
+    def __init__(self, host, username, password, rpc_queue):
         self.queue = {}
+        self.host = host
+        self.username = username
+        self.password = password
         self.channel = None
         self.connection = None
         self.callback_queue = None
         self.rpc_queue = rpc_queue
-        self._connect()
-        self._create_process_thread()
+        self.open()
 
-    def _connect(self):
+    def open(self):
         """Open Connection."""
-        self.connection = amqpstorm.Connection('127.0.0.1', 'guest', 'guest')
+        self.connection = amqpstorm.Connection(self.host, self.username,
+                                               self.password)
         self.channel = self.connection.channel()
         self.channel.queue.declare(self.rpc_queue)
         result = self.channel.queue.declare(exclusive=True)
         self.callback_queue = result['queue']
+        self._create_process_thread()
 
     def _create_process_thread(self):
         """Create a thread responsible for consuming messages in response
@@ -88,5 +96,5 @@ def rpc_call(payload):
 
 
 if __name__ == '__main__':
-    rpc_client = RpcClient('rpc_queue')
+    rpc_client = RpcClient(HOST, USERNAME, PASSWORD, 'rpc_queue')
     app.run()

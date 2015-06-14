@@ -7,6 +7,10 @@ import uuid
 
 import amqpstorm
 
+from examples import HOST
+from examples import USERNAME
+from examples import PASSWORD
+
 
 class FibonacciRpcClient(object):
     def __init__(self, host, username, password):
@@ -64,7 +68,7 @@ class FibonacciRpcClient(object):
         self.response = body
 
 
-fibonacci_rpc = FibonacciRpcClient('127.0.0.1', 'guest', 'guest')
+fibonacci_rpc = FibonacciRpcClient(HOST, USERNAME, PASSWORD)
 
 print(" [x] Requesting fib(30)")
 response = fibonacci_rpc.call(30)

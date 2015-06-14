@@ -1,27 +1,120 @@
 """AMQP-Storm Message."""
 __author__ = 'eandersson'
 
+from amqpstorm.compatibility import try_utf8_decode
+from amqpstorm.exception import AMQPMessageError
+
 
 class Message(object):
     """RabbitMQ Message Class."""
+    __slots__ = ['_channel', '_body', '_method', '_properties']
 
-    def __init__(self, body,
-                 channel,
-                 method,
-                 properties):
-        self.body = body
-        self.channel = channel
-        self.method = method
-        self.properties = properties
+    def __init__(self, channel, **message):
+        self._channel = channel
+        self._body = message.get('body', None)
+        self._method = message.get('method', None)
+        self._properties = message.get('properties', dict())
+
+    def __iter__(self):
+        for attribute in self.__slots__:
+            yield (attribute[1::], getattr(self, attribute))
+
+    @staticmethod
+    def create(channel, body, properties=None):
+        """Create a new Message.
+
+        :param Channel channel:
+        :param str|unicode body:
+        :param dict properties:
+        :return:
+        """
+        return Message(channel, body=body, properties=properties)
+
+    @property
+    def body(self):
+        return try_utf8_decode(self._body)
+
+    @property
+    def channel(self):
+        return self._channel
+
+    @property
+    def method(self):
+        return self._decode_utf8_content(self._method)
+
+    @property
+    def properties(self):
+        return self._decode_utf8_content(self._properties)
+
+    def ack(self):
+        """Acknowledge Message.
+
+        :return:
+        """
+        if not self._method:
+            raise AMQPMessageError('ack only available on incoming messages.')
+        self._channel.basic.ack(delivery_tag=self._method['delivery_tag'])
+
+    def nack(self, requeue=True):
+        """Negative Acknowledgement.
+
+        :param bool requeue:
+        :return:
+        """
+        if not self._method:
+            raise AMQPMessageError('nack only available on incoming messages.')
+        self._channel.basic.nack(delivery_tag=self._method['delivery_tag'],
+                                 requeue=requeue)
+
+    def reject(self, requeue=True):
+        """Reject Message.
+
+        :param bool requeue: Requeue the message
+        :return:
+        """
+        if not self._method:
+            raise AMQPMessageError('reject only available on '
+                                   'incoming messages.')
+        self._channel.basic.reject(delivery_tag=self._method['delivery_tag'],
+                                   requeue=requeue)
+
+    def publish(self, routing_key, exchange='', mandatory=False,
+                immediate=False):
+        """Publish Message.
+
+        :param str routing_key:
+        :param str exchange:
+        :param bool mandatory:
+        :param bool immediate:
+        :raises AMQPInvalidArgument: Invalid Parameters
+        """
+        return self._channel.basic.publish(body=self._body,
+                                           routing_key=routing_key,
+                                           exchange=exchange,
+                                           properties=self._properties,
+                                           mandatory=mandatory,
+                                           immediate=immediate)
 
     def to_dict(self):
         """To Dictionary.
         :rtype: dict
         """
-        return self.__dict__
+        return {
+            'body': self._body,
+            'method': self._method,
+            'properties': self._properties,
+            'channel': self._channel
+        }
 
     def to_tuple(self):
         """To Tuple.
         :rtype: tuple
         """
-        return self.body, self.channel, self.method, self.properties
+        return self._body, self._channel, self._method, self._properties
+
+    @staticmethod
+    def _decode_utf8_content(content):
+        result = {}
+        for key, value in content.items():
+            result[key] = try_utf8_decode(value)
+        return result

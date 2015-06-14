@@ -33,9 +33,9 @@ class Basic(object):
         :param bool global_: Apply to entire connection
         :rtype: dict
         """
-        if not isinstance(prefetch_count, int):
+        if not compatibility.is_integer(prefetch_count):
             raise AMQPInvalidArgument('prefetch_count should be an integer')
-        elif not isinstance(prefetch_size, int):
+        elif not compatibility.is_integer(prefetch_size):
             raise AMQPInvalidArgument('prefetch_size should be an integer')
         elif not isinstance(global_, bool):
             raise AMQPInvalidArgument('global_ should be an boolean')
@@ -73,8 +73,8 @@ class Basic(object):
         recover_frame = pamqp_spec.Basic.Recover(requeue=requeue)
         return self._channel.rpc_request(recover_frame)
 
-    def consume(self, callback, queue='', consumer_tag='', exclusive=False,
-                no_ack=False, no_local=False, arguments=None):
+    def consume(self, callback=None, queue='', consumer_tag='',
+                exclusive=False, no_ack=False, no_local=False, arguments=None):
         """Start a queue consumer.
 
         :param function callback:
@@ -134,19 +134,10 @@ class Basic(object):
         :param bool mandatory:
         :param bool immediate:
         :rtype: bool|None
+        :raises AMQPInvalidArgument: Invalid Parameters
         """
-        if not compatibility.is_string(body):
-            raise AMQPInvalidArgument('body should be a string')
-        elif not compatibility.is_string(routing_key):
-            raise AMQPInvalidArgument('routing_key should be a string')
-        elif not compatibility.is_string(exchange):
-            raise AMQPInvalidArgument('exchange should be a string')
-        elif properties and not isinstance(properties, dict):
-            raise AMQPInvalidArgument('properties should be a dict or None')
-        elif not isinstance(mandatory, bool):
-            raise AMQPInvalidArgument('mandatory should be a boolean')
-        elif not isinstance(immediate, bool):
-            raise AMQPInvalidArgument('immediate should be a boolean')
+        self._validate_publish_parameters(body, exchange, immediate, mandatory,
+                                          properties, routing_key)
         properties = properties or {}
         body = self._handle_utf8_payload(body, properties)
         properties = pamqp_spec.Basic.Properties(**properties)
@@ -164,8 +155,7 @@ class Basic(object):
         if self._channel.confirming_deliveries:
             with self._channel.rpc.lock:
                 return self._publish_confirm(send_buffer)
-        else:
-            self._channel.write_frames(send_buffer)
+        self._channel.write_frames(send_buffer)
 
     def ack(self, delivery_tag=None, multiple=False):
         """Acknowledge Message.
@@ -174,7 +164,8 @@ class Basic(object):
         :param bool multiple: Acknowledge multiple messages
         :return:
         """
-        if delivery_tag is not None and not isinstance(delivery_tag, int):
+        if delivery_tag is not None \
+                and not compatibility.is_integer(delivery_tag):
             raise AMQPInvalidArgument('delivery_tag should be an integer '
                                       'or None')
         elif not isinstance(multiple, bool):
@@ -190,7 +181,8 @@ class Basic(object):
         :param bool requeue: Requeue the message
         :return:
         """
-        if delivery_tag is not None and not isinstance(delivery_tag, int):
+        if delivery_tag is not None \
+                and not compatibility.is_integer(delivery_tag):
             raise AMQPInvalidArgument('delivery_tag should be an integer '
                                       'or None')
         elif not isinstance(requeue, bool):
@@ -207,7 +199,8 @@ class Basic(object):
         :param bool requeue:
         :return:
         """
-        if delivery_tag is not None and not isinstance(delivery_tag, int):
+        if delivery_tag is not None \
+                and not compatibility.is_integer(delivery_tag):
             raise AMQPInvalidArgument('delivery_tag should be an integer '
                                       'or None')
         elif not isinstance(multiple, bool):
@@ -218,6 +211,33 @@ class Basic(object):
                                            multiple=multiple,
                                            requeue=requeue)
         self._channel.write_frame(nack_frame)
+
+    @staticmethod
+    def _validate_publish_parameters(body, exchange, immediate, mandatory,
+                                     properties, routing_key):
+        """Validate Publish Parameters.
+
+        :param str|unicode body:
+        :param str routing_key:
+        :param str exchange:
+        :param dict properties:
+        :param bool mandatory:
+        :param bool immediate:
+        :raises  AMQPInvalidArgument: Invalid Parameters
+        :return:
+        """
+        if not compatibility.is_string(body):
+            raise AMQPInvalidArgument('body should be a string')
+        elif not compatibility.is_string(routing_key):
+            raise AMQPInvalidArgument('routing_key should be a string')
+        elif not compatibility.is_string(exchange):
+            raise AMQPInvalidArgument('exchange should be a string')
+        elif properties and not isinstance(properties, dict):
+            raise AMQPInvalidArgument('properties should be a dict or None')
+        elif not isinstance(mandatory, bool):
+            raise AMQPInvalidArgument('mandatory should be a boolean')
+        elif not isinstance(immediate, bool):
+            raise AMQPInvalidArgument('immediate should be a boolean')
 
     @staticmethod
     def _handle_utf8_payload(body, properties):
@@ -240,7 +260,7 @@ class Basic(object):
         """Get and return a message using a Basic.Get frame.
 
         :param Basic.Get get_frame:
-        :rtype: dict or None
+        :rtype: dict|None
         """
         uuid_get = \
             self._channel.rpc.register_request(get_frame.valid_responses)
@@ -257,9 +277,10 @@ class Basic(object):
         content_header = self._channel.rpc.get_request(uuid_header, True)
         body = self._get_content_body(uuid_body, content_header.body_size)
 
-        return Message(body, self._channel,
-                       dict(get_frame),
-                       dict(content_header.properties)).to_dict()
+        return Message(channel=self._channel,
+                       body=body,
+                       method=dict(get_frame),
+                       properties=dict(content_header.properties)).to_dict()
 
     def _publish_confirm(self, send_buffer):
         """Confirm that message was published successfully.

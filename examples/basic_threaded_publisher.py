@@ -6,6 +6,10 @@ import threading
 
 from amqpstorm import Connection
 
+from examples import HOST
+from examples import USERNAME
+from examples import PASSWORD
+
 
 logging.basicConfig(level=logging.DEBUG)
 connection = None
@@ -34,10 +38,10 @@ try:
             # Increment message counter.
             messages_sent += 1
 
-    connection = Connection('127.0.0.1', 'guest', 'guest')
+    connection = Connection(HOST, USERNAME, PASSWORD)
 
     threads = []
-    for index in range(2):
+    for index in range(5):
         publisher_thread = threading.Thread(target=send_messages,
                                             args=(connection,))
         publisher_thread.daemon = True

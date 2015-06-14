@@ -9,7 +9,6 @@ from pamqp import specification as pamqp_spec
 
 from amqpstorm.base import Rpc
 from amqpstorm.base import IDLE_WAIT
-from amqpstorm.base import Stateful
 from amqpstorm.base import BaseChannel
 from amqpstorm.queue import Queue
 from amqpstorm.basic import Basic
@@ -26,7 +25,7 @@ LOGGER = logging.getLogger(__name__)
 CONTENT_FRAME = ['Basic.Deliver', 'ContentHeader', 'ContentBody']
 
 
-class Channel(BaseChannel, Stateful):
+class Channel(BaseChannel):
     """RabbitMQ Channel Class."""
 
     def __init__(self, channel_id, connection, rpc_timeout):
@@ -73,7 +72,7 @@ class Channel(BaseChannel, Stateful):
         :return:
         """
         LOGGER.debug('Channel #%d Closing.', self.channel_id)
-        if not isinstance(reply_code, int):
+        if not compatibility.is_integer(reply_code):
             raise AMQPInvalidArgument('reply_code should be an integer')
         elif not compatibility.is_string(reply_text):
             raise AMQPInvalidArgument('reply_text should be a string')
@@ -118,7 +117,7 @@ class Channel(BaseChannel, Stateful):
             self._close_channel(frame_in)
         elif frame_in.name == 'Basic.Cancel':
             LOGGER.warning('Received Basic.Cancel on consumer_tag: %s',
-                           frame_in.consumer_tag)
+                           frame_in.consumer_tag.decode('utf-8'))
             self.remove_consumer_tag(frame_in.consumer_tag)
         elif frame_in.name == 'Basic.CancelOk':
             self.remove_consumer_tag(frame_in.consumer_tag)
@@ -128,13 +127,15 @@ class Channel(BaseChannel, Stateful):
             LOGGER.error('Unhandled Frame: %s -- %s',
                          frame_in.name, dict(frame_in))
 
-    def start_consuming(self):
+    def start_consuming(self, to_tuple=True):
         """Start consuming events.
 
+        :param bool to_tuple: Should incoming messages be converted to
+                              arguments before delivery.
         :return:
         """
         while self.consumer_tags and not self.is_closed:
-            self.process_data_events()
+            self.process_data_events(to_tuple=to_tuple)
 
     def stop_consuming(self):
         """Stop consuming events.
@@ -147,41 +148,68 @@ class Channel(BaseChannel, Stateful):
             self.basic.cancel(tag)
         self.remove_consumer_tag()
 
-    def process_data_events(self):
+    def process_data_events(self, to_tuple=True):
         """Consume inbound messages.
 
             This is only required when consuming messages. All other
             events are automatically handled in the background.
 
+        :param bool to_tuple: Should incoming messages be converted to
+                              arguments before delivery.
         :return:
         """
         if not self.consumer_callback:
             raise AMQPChannelError('no consumer_callback defined')
-        self.check_for_errors()
-        while self._inbound and not self.is_closed:
-            message = self._fetch_message()
-            if not message:
-                break
+        for message in self.build_inbound_messages(break_on_empty=True):
+            if not to_tuple:
+                # noinspection PyCallingNonCallable
+                self.consumer_callback(message)
+                continue
+            # noinspection PyCallingNonCallable
             self.consumer_callback(*message.to_tuple())
         sleep(IDLE_WAIT)
+
+    def build_inbound_messages(self, break_on_empty=False, to_tuple=False):
+        """Build messages in the inbound queue.
+
+        :param bool break_on_empty: Should we break the loop if there are
+                                    no more messages in the inbound queue.
+        :param bool to_tuple: Should incoming messages be converted to
+                              arguments before delivery.
+        :rtype: :py:class:`generator`
+        """
+        self.check_for_errors()
+        while not self.is_closed:
+            message = self._build_message()
+            if not message:
+                if break_on_empty:
+                    break
+                self.check_for_errors()
+                sleep(IDLE_WAIT)
+                continue
+            if to_tuple:
+                yield message.to_tuple()
+                continue
+            yield message
 
     def write_frame(self, frame_out):
         """Write a pamqp frame from the current channel.
 
-        :param pamqp_spec.Frame frame_out: Amqp frame.
+        :param pamqp_spec.Frame frame_out: A single pamqp frame.
         :return:
         """
         self.check_for_errors()
         self._connection.write_frame(self.channel_id, frame_out)
 
-    def write_frames(self, frames_out):
+    def write_frames(self, multiple_frames):
         """Write multiple pamqp frames from the current channel.
 
-        :param list frames_out: Amqp frames.
+        :param list multiple_frames: A list of pamqp frames.
         :return:
         """
         self.check_for_errors()
-        self._connection.write_frames(self.channel_id, frames_out)
+        self._connection.write_frames(self.channel_id,
+                                      multiple_frames)
 
     def check_for_errors(self):
         """Check for errors.
@@ -220,8 +248,7 @@ class Channel(BaseChannel, Stateful):
         if frame_in.reply_code != 200:
             message = 'Channel %d was closed by remote server: %s' % \
                       (self._channel_id, frame_in.reply_text.decode('utf-8'))
-            why = AMQPChannelError(message)
-            self._exceptions.append(why)
+            self._exceptions.append(AMQPChannelError(message))
         del self._inbound[:]
         self.set_state(self.CLOSED)
 
@@ -239,8 +266,8 @@ class Channel(BaseChannel, Stateful):
                     frame_in.exchange)
         self.exceptions.append(AMQPMessageError(message))
 
-    def _fetch_message(self):
-        """Fetch a message from the inbound queue.
+    def _build_message(self):
+        """Fetch and build a complete Message from the inbound queue.
 
         :rtype: Message
         """
@@ -260,10 +287,10 @@ class Channel(BaseChannel, Stateful):
                                content_header)
                 return None
             body = self._build_message_body(content_header.body_size)
-
-        message = Message(body, self,
-                          dict(basic_deliver),
-                          dict(content_header.properties))
+        message = Message(channel=self,
+                          body=body,
+                          method=dict(basic_deliver),
+                          properties=dict(content_header.properties))
         return message
 
     def _build_message_body(self, body_size):

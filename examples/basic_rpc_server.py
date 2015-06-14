@@ -5,8 +5,12 @@ http://www.rabbitmq.com/tutorials/tutorial-six-python.html
 """
 import amqpstorm
 
+from examples import HOST
+from examples import USERNAME
+from examples import PASSWORD
 
-CONNECTION = amqpstorm.Connection('127.0.0.1', 'guest', 'guest')
+
+CONNECTION = amqpstorm.Connection(HOST, USERNAME, PASSWORD)
 CHANNEL = CONNECTION.channel()
 CHANNEL.queue.declare(queue='rpc_queue')
 

@@ -5,11 +5,16 @@ import logging
 from amqpstorm import Connection
 from amqpstorm.exception import AMQPMessageError
 
+from examples import HOST
+from examples import USERNAME
+from examples import PASSWORD
+
+
 logging.basicConfig(level=logging.DEBUG)
 
 
 def publisher():
-    connection = Connection('127.0.0.1', 'guest', 'guest')
+    connection = Connection(HOST, USERNAME, PASSWORD)
     channel = connection.channel()
     channel.queue.declare('simple_queue')
     channel.confirm_deliveries()

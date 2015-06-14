@@ -5,6 +5,10 @@ import logging
 from amqpstorm import Connection
 from amqpstorm import AMQPError
 
+from examples import HOST
+from examples import USERNAME
+from examples import PASSWORD
+
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -53,6 +57,6 @@ class Publisher(object):
 
 
 if __name__ == '__main__':
-    PUBLISHER = Publisher('127.0.0.1', 'guest', 'guest')
+    PUBLISHER = Publisher(HOST, USERNAME, PASSWORD)
     PUBLISHER.send_message('simple_queue', 'Hello World!')
     PUBLISHER.close_connection()

@@ -1,6 +1,6 @@
 __author__ = 'eandersson'
 
-HOST = '127.0.0.1'
+HOST = 'localhost'
 USERNAME = 'guest'
 PASSWORD = 'guest'
-URI = 'amqp://guest:guest@127.0.0.1:5672/%2F'
+URI = 'amqp://guest:guest@localhost:5672/%2F'

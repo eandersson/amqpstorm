@@ -4,6 +4,11 @@ import logging
 
 from amqpstorm import Connection
 
+from examples import HOST
+from examples import USERNAME
+from examples import PASSWORD
+
+
 logging.basicConfig(level=logging.DEBUG)
 
 
@@ -13,7 +18,7 @@ def on_message(body, channel, header, properties):
 
 
 def consumer():
-    connection = Connection('127.0.0.1', 'guest', 'guest',
+    connection = Connection(HOST, USERNAME, PASSWORD,
                             ssl=True, port=5671)
     channel = connection.channel()
     channel.queue.declare('simple_queue')
