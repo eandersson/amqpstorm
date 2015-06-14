@@ -19,6 +19,17 @@ class Message(object):
         for attribute in self.__slots__:
             yield (attribute[1::], getattr(self, attribute))
 
+    @staticmethod
+    def create(channel, body, properties=None):
+        """Create a new Message.
+
+        :param Channel channel:
+        :param str|unicode body:
+        :param dict properties:
+        :return:
+        """
+        return Message(channel, body=body, properties=properties)
+
     @property
     def body(self):
         return try_utf8_decode(self._body)
@@ -36,25 +47,53 @@ class Message(object):
         return self._decode_utf8_content(self._properties)
 
     def ack(self):
+        """Acknowledge Message.
+
+        :return:
+        """
         if not self._method:
-            raise AMQPMessageError('method is None')
+            raise AMQPMessageError('ack only available on incoming messages.')
         self._channel.basic.ack(delivery_tag=self._method['delivery_tag'])
 
     def nack(self, requeue=True):
+        """Negative Acknowledgement.
+
+        :param bool requeue:
+        :return:
+        """
         if not self._method:
-            raise AMQPMessageError('method is None')
+            raise AMQPMessageError('nack only available on incoming messages.')
         self._channel.basic.nack(delivery_tag=self._method['delivery_tag'],
                                  requeue=requeue)
 
     def reject(self, requeue=True):
+        """Reject Message.
+
+        :param bool requeue: Requeue the message
+        :return:
+        """
         if not self._method:
-            raise AMQPMessageError('method is None')
+            raise AMQPMessageError('reject only available on '
+                                   'incoming messages.')
         self._channel.basic.reject(delivery_tag=self._method['delivery_tag'],
                                    requeue=requeue)
 
-    def publish(self, routing_key, exchange=''):
-        self._channel.basic.publish(self._body, routing_key, exchange,
-                                    self._properties)
+    def publish(self, routing_key, exchange='', mandatory=False,
+                immediate=False):
+        """Publish Message.
+
+        :param str routing_key:
+        :param str exchange:
+        :param bool mandatory:
+        :param bool immediate:
+        :raises AMQPInvalidArgument: Invalid Parameters
+        """
+        return self._channel.basic.publish(body=self._body,
+                                           routing_key=routing_key,
+                                           exchange=exchange,
+                                           properties=self._properties,
+                                           mandatory=mandatory,
+                                           immediate=immediate)
 
     def to_dict(self):
         """To Dictionary.

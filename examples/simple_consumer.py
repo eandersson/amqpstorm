@@ -21,6 +21,7 @@ def consumer():
         with connection.channel() as channel:
             channel.queue.declare('simple_queue')
             channel.basic.consume(on_message, 'simple_queue', no_ack=False)
+
             try:
                 channel.start_consuming(to_tuple=False)
             except KeyboardInterrupt:

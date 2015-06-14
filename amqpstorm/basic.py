@@ -134,7 +134,7 @@ class Basic(object):
         :param bool mandatory:
         :param bool immediate:
         :rtype: bool|None
-        :raises  AMQPInvalidArgument: Invalid Parameters
+        :raises AMQPInvalidArgument: Invalid Parameters
         """
         self._validate_publish_parameters(body, exchange, immediate, mandatory,
                                           properties, routing_key)
@@ -260,7 +260,7 @@ class Basic(object):
         """Get and return a message using a Basic.Get frame.
 
         :param Basic.Get get_frame:
-        :rtype: dict or None
+        :rtype: dict|None
         """
         uuid_get = \
             self._channel.rpc.register_request(get_frame.valid_responses)

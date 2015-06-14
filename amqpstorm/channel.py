@@ -166,13 +166,13 @@ class Channel(BaseChannel):
                 continue
             self.consumer_callback(*message.to_tuple())
 
-    def build_inbound_messages(self, break_on_empty=False, to_dict=False):
+    def build_inbound_messages(self, break_on_empty=False, to_tuple=False):
         """Build messages in the inbound queue.
 
         :param bool break_on_empty: Should we break the loop if there are
                                     no more messages in the inbound queue.
-        :param bool to_dict: Should incoming messages be converted to a
-                             dictionary before delivery.
+        :param bool to_tuple: Should incoming messages be converted to
+                              arguments before delivery.
         :return:
         """
         self.check_for_errors()
@@ -184,8 +184,8 @@ class Channel(BaseChannel):
                 self.check_for_errors()
                 sleep(IDLE_WAIT)
                 continue
-            if to_dict:
-                yield message.to_dict()
+            if to_tuple:
+                yield message.to_tuple()
                 continue
             yield message
         sleep(IDLE_WAIT)

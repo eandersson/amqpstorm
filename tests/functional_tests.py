@@ -9,7 +9,13 @@ except ImportError:
     import unittest
 
 from amqpstorm import Connection
+from amqpstorm import UriConnection
 from amqpstorm.exception import AMQPMessageError
+
+from tests import HOST
+from tests import USERNAME
+from tests import PASSWORD
+from tests import URI
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -17,7 +23,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 class PublishAndGetMessagesTest(unittest.TestCase):
     def setUp(self):
-        self.connection = Connection('localhost', 'guest', 'guest')
+        self.connection = Connection(HOST, USERNAME, PASSWORD)
         self.channel = self.connection.channel()
         self.channel.queue.declare('test.basic.get')
         self.channel.queue.purge('test.basic.get')
@@ -41,7 +47,7 @@ class PublishAndGetMessagesTest(unittest.TestCase):
 
 class PublishAndConsumeMessagesTest(unittest.TestCase):
     def setUp(self):
-        self.connection = Connection('localhost', 'guest', 'guest')
+        self.connection = Connection(HOST, USERNAME, PASSWORD)
         self.channel = self.connection.channel()
         self.channel.queue.declare('test.basic.consume')
         self.channel.queue.purge('test.basic.consume')
@@ -73,7 +79,7 @@ class PublishAndConsumeMessagesTest(unittest.TestCase):
 
 class ConsumeAndRedeliverTest(unittest.TestCase):
     def setUp(self):
-        self.connection = Connection('localhost', 'guest', 'guest')
+        self.connection = Connection(HOST, USERNAME, PASSWORD)
         self.channel = self.connection.channel()
         self.channel.queue.declare('test.consume.redeliver')
         self.channel.queue.purge('test.consume.redeliver')
@@ -113,7 +119,7 @@ class ConsumeAndRedeliverTest(unittest.TestCase):
 
 class GetAndRedeliverTest(unittest.TestCase):
     def setUp(self):
-        self.connection = Connection('localhost', 'guest', 'guest')
+        self.connection = Connection(HOST, USERNAME, PASSWORD)
         self.channel = self.connection.channel()
         self.channel.queue.declare('test.get.redeliver')
         self.channel.queue.purge('test.get.redeliver')
@@ -137,7 +143,7 @@ class GetAndRedeliverTest(unittest.TestCase):
 
 class PublisherConfirmsTest(unittest.TestCase):
     def setUp(self):
-        self.connection = Connection('localhost', 'guest', 'guest')
+        self.connection = Connection(HOST, USERNAME, PASSWORD)
         self.channel = self.connection.channel()
         self.channel.queue.declare('test.basic.confirm')
         self.channel.queue.purge('test.basic.confirm')
@@ -158,7 +164,7 @@ class PublisherConfirmsTest(unittest.TestCase):
 
 class PublisherConfirmFailsTest(unittest.TestCase):
     def setUp(self):
-        self.connection = Connection('localhost', 'guest', 'guest')
+        self.connection = Connection(HOST, USERNAME, PASSWORD)
         self.channel = self.connection.channel()
         self.channel.confirm_deliveries()
 
@@ -173,3 +179,13 @@ class PublisherConfirmFailsTest(unittest.TestCase):
     def tearDown(self):
         self.channel.close()
         self.connection.close()
+
+
+class UriConnectionTest(unittest.TestCase):
+    def test_uri_connection(self):
+        self.connection = UriConnection(URI)
+        self.channel = self.connection.channel()
+        self.assertTrue(self.connection.is_open)
+        self.channel.close()
+        self.connection.close()
+

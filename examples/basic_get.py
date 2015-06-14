@@ -22,7 +22,8 @@ def consumer():
     channel.queue.declare(QUEUE_NAME)
 
     # Publish something we can get.
-    channel.basic.publish(body='Hello World!', routing_key=QUEUE_NAME)
+    channel.basic.publish(body='Hello World!', routing_key=QUEUE_NAME,
+                          properties={'content_type': 'text/plain'})
 
     # Retrieve a single message.
     result = channel.basic.get(queue=QUEUE_NAME, no_ack=False)

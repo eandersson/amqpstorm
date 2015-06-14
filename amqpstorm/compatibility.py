@@ -53,10 +53,9 @@ def is_unicode(obj):
 def try_utf8_decode(value):
     if not is_string(value):
         return value
-
-    if PYTHON3 and not isinstance(value, bytes):
+    elif PYTHON3 and not isinstance(value, bytes):
         return value
-    if not PYTHON3 and not is_unicode(value):
+    elif not PYTHON3 and not is_unicode(value):
         return value
 
     try:
