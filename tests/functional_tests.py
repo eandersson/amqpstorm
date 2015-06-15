@@ -47,12 +47,51 @@ class PublishAndGetMessagesTest(unittest.TestCase):
         self.connection.close()
 
 
+class PublishWithPropertiesAndGetTest(unittest.TestCase):
+    def setUp(self):
+        self.connection = Connection(HOST, USERNAME, PASSWORD)
+        self.channel = self.connection.channel()
+        self.channel.queue.declare('test.basic.properties')
+        self.channel.queue.purge('test.basic.properties')
+        self.channel.confirm_deliveries()
+
+    def test_publish_with_properties_and_get(self):
+        message = str(uuid.uuid4())
+        properties = {
+            'headers': {
+                'key': 1234567890,
+                'alpha': 'omega'
+            }
+        }
+
+        self.channel.basic.publish(body=message,
+                                   routing_key='test.basic.properties',
+                                   properties=properties)
+
+        # New way
+        payload = self.channel.basic.get('test.basic.properties',
+                                         to_dict=False)
+        self.assertEqual(payload.properties['headers']['key'], 1234567890)
+        self.assertEqual(payload.properties['headers']['alpha'], 'omega')
+
+        # Old way
+        result = payload.to_dict()
+        self.assertEqual(result['properties']['headers'][b'key'], 1234567890)
+        self.assertEqual(result['properties']['headers'][b'alpha'], b'omega')
+
+    def tearDown(self):
+        self.channel.queue.delete('test.basic.properties')
+        self.channel.close()
+        self.connection.close()
+
+
 class PublishAndConsumeMessagesTest(unittest.TestCase):
     def setUp(self):
         self.connection = Connection(HOST, USERNAME, PASSWORD)
         self.channel = self.connection.channel()
         self.channel.queue.declare('test.basic.consume')
         self.channel.queue.purge('test.basic.consume')
+        self.channel.confirm_deliveries()
 
     def test_publish_and_consume_five_messages(self):
         for _ in range(5):
@@ -89,6 +128,7 @@ class GeneratorConsumeMessagesTest(unittest.TestCase):
         self.channel = self.connection.channel()
         self.channel.queue.declare('test.basic.generator')
         self.channel.queue.purge('test.basic.generator')
+        self.channel.confirm_deliveries()
 
     def test_generator_consume(self):
         for _ in range(5):
@@ -160,6 +200,7 @@ class GetAndRedeliverTest(unittest.TestCase):
         self.channel = self.connection.channel()
         self.channel.queue.declare('test.get.redeliver')
         self.channel.queue.purge('test.get.redeliver')
+        self.channel.confirm_deliveries()
         self.message = str(uuid.uuid4())
         self.channel.basic.publish(body=self.message,
                                    routing_key='test.get.redeliver')

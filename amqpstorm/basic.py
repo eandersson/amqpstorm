@@ -44,12 +44,14 @@ class Basic(object):
                                          global_=global_)
         return self._channel.rpc_request(qos_frame)
 
-    def get(self, queue='', no_ack=False):
+    def get(self, queue='', no_ack=False, to_dict=True):
         """Fetch a single message.
 
         :param str queue:
         :param bool no_ack: No acknowledgement needed
-        :rtype: dict or None
+        :param bool to_dict: Should incoming messages be converted to a
+                    dictionary before delivery.
+        :rtype: dict|None
         """
         if not compatibility.is_string(queue):
             raise AMQPInvalidArgument('queue should be a string')
@@ -60,7 +62,10 @@ class Basic(object):
         get_frame = pamqp_spec.Basic.Get(queue=queue,
                                          no_ack=no_ack)
         with self._channel.lock and self._channel.rpc.lock:
-            return self._get_message(get_frame)
+            message = self._get_message(get_frame)
+            if message and to_dict:
+                return message.to_dict()
+            return message
 
     def recover(self, requeue=False):
         """Redeliver unacknowledged messages.
@@ -260,7 +265,7 @@ class Basic(object):
         """Get and return a message using a Basic.Get frame.
 
         :param Basic.Get get_frame:
-        :rtype: dict|None
+        :rtype: Message
         """
         uuid_get = \
             self._channel.rpc.register_request(get_frame.valid_responses)
@@ -280,7 +285,7 @@ class Basic(object):
         return Message(channel=self._channel,
                        body=body,
                        method=dict(get_frame),
-                       properties=dict(content_header.properties)).to_dict()
+                       properties=dict(content_header.properties))
 
     def _publish_confirm(self, send_buffer):
         """Confirm that message was published successfully.
