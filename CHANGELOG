@@ -1,44 +1,7 @@
 ##### Changelog
-###### Version 1.1.10
-- Fixed validation bug with Basic.nack, Basic.reject and Basic.qos.
-
-###### Version 1.1.9
-- Added additional logging for Issue #3.
-- Added additional validation on incoming messages for Issue #3.
-- Fixed a minor bug when a Queue was deleted while still in use by a consumer.
-
-###### Version 1.1.8
-- Added Argument validation to all essential functionality.
-- Improved Logging.
-- pamqp 1.6.1 is now required.
-
-###### Version 1.1.7
-- Fixed a minor bug when a Channel was closed, it did not properly wait for the Channel CloseOk message.
-- Moved heartbeat parameter validation to the _validate_parameters function.
-- socket is now set to None when a socket is closed.
-
-###### Version 1.1.6
-- pamqp 1.6.0 now supported.
-
-###### Version 1.1.5
-- pamqp 1.6.0 or newer is not supported.
-- Modified the requirements accordingly.
-
-###### Version 1.1.4
-- Upgraded to pamqp 1.5.0.
-
-###### Version 1.1.3
-- Cleaned up shutdown process.
-- Invalid Connection parameters now correctly throw an AMQPConnectionError, instead of the more generic AMQPError.
-
-###### Version 1.1.2
-- Fixed typo in _close_socket exception handling possibly causing an unexpected exception when the connection is forcefully closed.
-
-###### Version 1.1.1
-- Fixed a bug with the Consumer callback not being accepted in very specific scenarios.
-- Minor improvements to the error handling and shutdown process.
-
-###### Version 1.1.0
-- Python 3 Support.
-- Added support for Connection.Blocked and Connection.Unblocked.
-- Improved Rpc Error Handling.
+###### Version 1.2.0
+- Expanded on Message class functionality.
+- Allow incoming messages to be delivers as a Message class.
+- Added generator based consumer function called, 'build_inbound_messages'.
+- Fixed PyPy specific bug.
+- Re-factored Connection and IO handling.

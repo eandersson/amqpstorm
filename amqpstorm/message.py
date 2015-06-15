@@ -112,9 +112,12 @@ class Message(object):
         """
         return self._body, self._channel, self._method, self._properties
 
-    @staticmethod
-    def _decode_utf8_content(content):
+    def _decode_utf8_content(self, content):
         result = {}
         for key, value in content.items():
+            key = try_utf8_decode(key)
+            if isinstance(value, dict):
+                result[key] = self._decode_utf8_content(value)
+                continue
             result[key] = try_utf8_decode(value)
         return result

@@ -35,3 +35,14 @@ class MessageTests(unittest.TestCase):
         self.assertIsInstance(method, dict)
         self.assertIsInstance(properties, dict)
         self.assertIsNone(channel)
+
+    def test_python3_byte_conversion(self):
+        body = b'Hello World'
+        message = Message(body=body,
+                          properties={'key': 'value',
+                                      'headers': {b'name': b'eandersson'}},
+                          method={'key': 'value'},
+                          channel=None)
+        self.assertIn('name', message.properties['headers'])
+        self.assertIn(b'name', message._properties['headers'])
+        self.assertIsInstance(message.properties['headers']['name'], str)
