@@ -14,6 +14,64 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 class MessageTests(unittest.TestCase):
+    def test_create_new_message(self):
+        body = b'Hello World'
+        message = Message.create(None, body,
+                                 properties={'key': 'value',
+                                             'headers': {
+                                                 b'name': b'eandersson'}
+                                             })
+        self.assertIsInstance(message, Message)
+        self.assertEqual(message._body, body)
+
+        result = message.to_dict()
+        self.assertIsNone(result['method'])
+        self.assertEqual(result['body'], body)
+        self.assertEqual(result['properties']['key'], 'value')
+
+    def test_auto_decode_enabled(self):
+        message = Message(body='Hello World',
+                          properties={'key': 'value',
+                                      'headers': {b'name': b'eandersson'}},
+                          method={'key': 'value'},
+                          channel=None)
+        self.assertIn('name', message.properties['headers'])
+        self.assertIn(b'name', message._properties['headers'])
+        self.assertIsInstance(message.properties['headers']['name'], str)
+
+    def test_auto_decode_when_method_is_none(self):
+        message = Message(body='Hello World',
+                          properties={'key': 'value'},
+                          method=None,
+                          channel=None)
+        self.assertIsNone(message.method)
+
+    def test_auto_decode_when_method_is_list(self):
+        method_data = [1, 2, 3, 4, 5]
+        message = Message(body='Hello World',
+                          properties={'key': 'value'},
+                          method=method_data,
+                          channel=None)
+        self.assertEqual(method_data, message.method)
+
+    def test_auto_decode_when_method_is_tuple(self):
+        method_data = (1, 2, 3, 4, 5)
+        message = Message(body='Hello World',
+                          properties={'key': 'value'},
+                          method=method_data,
+                          channel=None)
+        self.assertEqual(method_data, message.method)
+
+    def test_auto_decode_disabled(self):
+        message = Message(body='Hello World',
+                          properties={'key': 'value',
+                                      'headers': {b'name': b'eandersson'}},
+                          method={'key': 'value'},
+                          channel=None,
+                          auto_decode=False)
+        self.assertIn(b'name', message.properties['headers'])
+        self.assertIsInstance(message.properties['headers'][b'name'], bytes)
+
     def test_to_dict(self):
         body = b'Hello World'
         message = Message(body=body,
@@ -35,14 +93,3 @@ class MessageTests(unittest.TestCase):
         self.assertIsInstance(method, dict)
         self.assertIsInstance(properties, dict)
         self.assertIsNone(channel)
-
-    def test_python3_byte_conversion(self):
-        body = b'Hello World'
-        message = Message(body=body,
-                          properties={'key': 'value',
-                                      'headers': {b'name': b'eandersson'}},
-                          method={'key': 'value'},
-                          channel=None)
-        self.assertIn('name', message.properties['headers'])
-        self.assertIn(b'name', message._properties['headers'])
-        self.assertIsInstance(message.properties['headers']['name'], str)

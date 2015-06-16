@@ -13,6 +13,7 @@ from amqpstorm import Channel
 from amqpstorm import Connection
 from amqpstorm import UriConnection
 from amqpstorm import AMQPMessageError
+from amqpstorm import AMQPChannelError
 
 from tests import HOST
 from tests import USERNAME
@@ -259,6 +260,80 @@ class PublisherConfirmFailsTest(unittest.TestCase):
         self.connection.close()
 
 
+class QueueCreateTest(unittest.TestCase):
+    def setUp(self):
+        self.connection = Connection(HOST, USERNAME, PASSWORD)
+        self.channel = self.connection.channel()
+
+    def test_queue_create(self):
+        # Create the Queue.
+        self.channel.queue.declare('test.queue.create')
+
+        # Confirm that the Queue was declared.
+        self.channel.queue.declare('test.queue.create', passive=True)
+
+    def tearDown(self):
+        self.channel.queue.delete('test.queue.create')
+        self.channel.close()
+        self.connection.close()
+
+
+class QueueDeleteTest(unittest.TestCase):
+    def setUp(self):
+        self.connection = Connection(HOST, USERNAME, PASSWORD)
+        self.channel = self.connection.channel()
+        self.channel.queue.declare('test.queue.delete')
+
+    def test_queue_delete(self):
+        # Delete the Queue.
+        self.channel.queue.delete('test.queue.delete')
+
+        # Confirm that the Queue was deleted.
+        self.assertRaises(AMQPChannelError, self.channel.queue.declare,
+                          'test.queue.delete', passive=True)
+
+    def tearDown(self):
+        self.channel.close()
+        self.connection.close()
+
+
+class ExchangeCreateTest(unittest.TestCase):
+    def setUp(self):
+        self.connection = Connection(HOST, USERNAME, PASSWORD)
+        self.channel = self.connection.channel()
+
+    def test_exchange_create(self):
+        # Create the Exchange.
+        self.channel.exchange.declare('test.exchange.create')
+
+        # Confirm that the Exchange was declared.
+        self.channel.exchange.declare('test.exchange.create', passive=True)
+
+    def tearDown(self):
+        self.channel.exchange.delete('test.exchange.create')
+        self.channel.close()
+        self.connection.close()
+
+
+class ExchangeDeleteTest(unittest.TestCase):
+    def setUp(self):
+        self.connection = Connection(HOST, USERNAME, PASSWORD)
+        self.channel = self.connection.channel()
+        self.channel.exchange.declare('test.exchange.delete')
+
+    def test_exchange_delete(self):
+        # Delete the Exchange.
+        self.channel.exchange.delete('test.exchange.delete')
+
+        # Confirm that the Exchange was deleted.
+        self.assertRaises(AMQPChannelError, self.channel.exchange.declare,
+                          'test.exchange.delete', passive=True)
+
+    def tearDown(self):
+        self.channel.close()
+        self.connection.close()
+
+
 class UriConnectionTest(unittest.TestCase):
     def test_uri_connection(self):
         self.connection = UriConnection(URI)
@@ -266,4 +341,3 @@ class UriConnectionTest(unittest.TestCase):
         self.assertTrue(self.connection.is_open)
         self.channel.close()
         self.connection.close()
-

@@ -1,15 +1,24 @@
 """AMQP-Storm Message."""
 __author__ = 'eandersson'
 
-from amqpstorm.compatibility import try_utf8_decode
 from amqpstorm.exception import AMQPMessageError
+from amqpstorm.compatibility import try_utf8_decode
 
 
 class Message(object):
     """RabbitMQ Message Class."""
-    __slots__ = ['_channel', '_body', '_method', '_properties']
+    __slots__ = ['auto_decode', '_body', '_channel', '_method', '_properties']
 
-    def __init__(self, channel, **message):
+    def __init__(self, channel, auto_decode=True, **message):
+        """
+        :param Channel channel: amqp-storm Channel
+        :param bool auto_decode: Auto-decode strings when possible. Does not
+                                 apply to to_dict, or to_tuple.
+        :param str|unicode body: Message body
+        :param dict method: Message method
+        :param dict properties: Message properties
+        """
+        self.auto_decode = auto_decode
         self._channel = channel
         self._body = message.get('body', None)
         self._method = message.get('method', None)
@@ -17,33 +26,67 @@ class Message(object):
 
     def __iter__(self):
         for attribute in self.__slots__:
+            if not attribute.startswith('_'):
+                continue
             yield (attribute[1::], getattr(self, attribute))
 
     @staticmethod
     def create(channel, body, properties=None):
         """Create a new Message.
 
-        :param Channel channel:
-        :param str|unicode body:
-        :param dict properties:
-        :return:
+        :param Channel channel: AMQP-Storm Channel
+        :param str|unicode body: Message body
+        :param dict properties: Message properties
+        :rtype: Message
         """
-        return Message(channel, body=body, properties=properties)
+        return Message(channel, auto_decode=False,
+                       body=body, properties=properties)
 
     @property
     def body(self):
+        """Return the Message Body.
+
+            If auto_decode is enabled, the body will automatically be
+            decoded using decode('utf-8') if possible.
+
+        :rtype: bytes|str|unicode
+        """
+        if not self.auto_decode:
+            return self._body
         return try_utf8_decode(self._body)
 
     @property
     def channel(self):
+        """Return the Channel.
+
+        :rtype: Channel
+        """
         return self._channel
 
     @property
     def method(self):
+        """Return the Message Method.
+
+            If auto_decode is enabled, the any strings will automatically be
+            decoded using decode('utf-8') if possible.
+
+        :rtype: dict
+        """
+        if not self.auto_decode:
+            return self._method
         return self._decode_utf8_content(self._method)
 
     @property
     def properties(self):
+        """Returns the Message Properties.
+
+            If auto_decode is enabled, the any strings will automatically be
+            decoded using decode('utf-8') if possible.
+
+        :rtype: dict
+        """
+        if not self.auto_decode:
+            return self._properties
         return self._decode_utf8_content(self._properties)
 
     def ack(self):
@@ -52,17 +95,18 @@ class Message(object):
         :return:
         """
         if not self._method:
-            raise AMQPMessageError('ack only available on incoming messages.')
+            raise AMQPMessageError('Message.ack only available on '
+                                   'incoming messages.')
         self._channel.basic.ack(delivery_tag=self._method['delivery_tag'])
 
     def nack(self, requeue=True):
         """Negative Acknowledgement.
 
         :param bool requeue:
-        :return:
         """
         if not self._method:
-            raise AMQPMessageError('nack only available on incoming messages.')
+            raise AMQPMessageError('Message.nack only available on '
+                                   'incoming messages.')
         self._channel.basic.nack(delivery_tag=self._method['delivery_tag'],
                                  requeue=requeue)
 
@@ -70,10 +114,9 @@ class Message(object):
         """Reject Message.
 
         :param bool requeue: Requeue the message
-        :return:
         """
         if not self._method:
-            raise AMQPMessageError('reject only available on '
+            raise AMQPMessageError('Message.reject only available on '
                                    'incoming messages.')
         self._channel.basic.reject(delivery_tag=self._method['delivery_tag'],
                                    requeue=requeue)
@@ -86,7 +129,6 @@ class Message(object):
         :param str exchange:
         :param bool mandatory:
         :param bool immediate:
-        :raises AMQPInvalidArgument: Invalid Parameters
         """
         return self._channel.basic.publish(body=self._body,
                                            routing_key=routing_key,
@@ -96,7 +138,8 @@ class Message(object):
                                            immediate=immediate)
 
     def to_dict(self):
-        """To Dictionary.
+        """Message to Dictionary.
+
         :rtype: dict
         """
         return {
@@ -107,12 +150,17 @@ class Message(object):
         }
 
     def to_tuple(self):
-        """To Tuple.
+        """Message to Tuple.
+
         :rtype: tuple
         """
         return self._body, self._channel, self._method, self._properties
 
     def _decode_utf8_content(self, content):
+        if not content:
+            return content
+        if not isinstance(content, dict):
+            return try_utf8_decode(content)
         result = {}
         for key, value in content.items():
             key = try_utf8_decode(key)
