@@ -1,4 +1,4 @@
-AMQP-Storm 1.2.0-RC1
+AMQP-Storm 1.2.0-RC2
 -------------
 Thread-safe Python AMQP Client Library based on pamqp.
 

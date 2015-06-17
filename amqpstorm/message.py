@@ -159,13 +159,25 @@ class Message(object):
     def _decode_utf8_content(self, content):
         if not content:
             return content
-        if not isinstance(content, dict):
-            return try_utf8_decode(content)
-        result = {}
+        if isinstance(content, dict):
+            return self._decode_dict_content(content)
+        return try_utf8_decode(content)
+
+    def _decode_dict_content(self, content):
+        result = dict()
         for key, value in content.items():
             key = try_utf8_decode(key)
             if isinstance(value, dict):
-                result[key] = self._decode_utf8_content(value)
-                continue
-            result[key] = try_utf8_decode(value)
+                result[key] = self._decode_dict_content(value)
+            elif isinstance(value, list):
+                result[key] = self._decode_list_content(value)
+            else:
+                result[key] = try_utf8_decode(value)
+        return result
+
+    @staticmethod
+    def _decode_list_content(content):
+        result = list()
+        for value in content:
+            result.append(try_utf8_decode(value))
         return result

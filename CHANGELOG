@@ -1,7 +1,10 @@
 ##### Changelog
 ###### Version 1.2.0
-- Expanded on Message class functionality.
-- Allow incoming messages to be delivers as a Message class.
-- Added generator based consumer function called, 'build_inbound_messages'.
+- Introduced shortcuts in the Message class.
+    - Publish
+    - Ack / Nack / Reject
+- Added generator based consumer function called => build_inbound_messages.
+- Allow incoming messages to be delivered as a Message class.
+
 - Fixed PyPy specific bug.
 - Re-factored Connection and IO handling.

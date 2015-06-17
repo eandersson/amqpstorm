@@ -46,6 +46,15 @@ class MessageTests(unittest.TestCase):
                           channel=None)
         self.assertIsNone(message.method)
 
+    def test_auto_decode_when_method_contains_list(self):
+        method_data = {'key': [b'a', b'b']}
+        message = Message(body='Hello World',
+                          properties={'key': 'value'},
+                          method=method_data,
+                          channel=None)
+        self.assertEqual(method_data['key'][0].decode('utf-8'),
+                         message.method['key'][0])
+
     def test_auto_decode_when_method_is_list(self):
         method_data = [1, 2, 3, 4, 5]
         message = Message(body='Hello World',
