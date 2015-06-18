@@ -11,6 +11,7 @@ from pamqp import specification as pamqp_spec
 from pamqp import exceptions as pamqp_exception
 
 from amqpstorm.io import IO
+from amqpstorm.io import EMPTY_BUFFER
 from amqpstorm import compatibility
 from amqpstorm.base import Stateful
 from amqpstorm.base import IDLE_WAIT
@@ -20,15 +21,12 @@ from amqpstorm.exception import AMQPConnectionError
 from amqpstorm.exception import AMQPInvalidArgument
 
 
-EMPTY_BUFFER = bytes()
 LOGGER = logging.getLogger(__name__)
 
 
 class Connection(Stateful):
     """RabbitMQ Connection Class."""
     lock = threading.Lock()
-    _buffer = EMPTY_BUFFER
-    _channel0 = None
 
     def __init__(self, hostname, username, password, port=5672, **kwargs):
         """Create a new instance of the Connection class.
@@ -109,7 +107,6 @@ class Connection(Stateful):
     def open(self):
         """Open Connection."""
         LOGGER.debug('Connection Opening.')
-        self._buffer = EMPTY_BUFFER
         self._exceptions = []
         self.set_state(self.OPENING)
         self.io.open(self.parameters['hostname'],

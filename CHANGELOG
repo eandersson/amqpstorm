@@ -1,10 +1,11 @@
 ##### Changelog
 ###### Version 1.2.0
-- Introduced shortcuts in the Message class.
-    - Publish
-    - Ack / Nack / Reject
-- Added generator based consumer function called => build_inbound_messages.
+- Added additional SSL parameters to UriConnection.
 - Allow incoming messages to be delivered as a Message class.
+- Introduced shortcuts to the Message class.
+    - Message.Publish
+    - Message.Ack / Message.Nack / Message.Reject
+- Added generator based consumer function called => build_inbound_messages.
 
 - Fixed PyPy specific bug.
 - Re-factored Connection and IO handling.

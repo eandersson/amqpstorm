@@ -22,7 +22,7 @@ class Message(object):
         self._channel = channel
         self._body = message.get('body', None)
         self._method = message.get('method', None)
-        self._properties = message.get('properties', dict())
+        self._properties = message.get('properties', {'headers': {}})
 
     def __iter__(self):
         for attribute in self.__slots__:
