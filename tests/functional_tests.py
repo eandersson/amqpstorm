@@ -19,6 +19,7 @@ from tests import HOST
 from tests import USERNAME
 from tests import PASSWORD
 from tests import URI
+from tests import SSL_URI
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -341,3 +342,13 @@ class UriConnectionTest(unittest.TestCase):
         self.assertTrue(self.connection.is_open)
         self.channel.close()
         self.connection.close()
+
+
+class SSLUriConnectionTest(unittest.TestCase):
+    def test_uri_connection(self):
+        self.connection = UriConnection(SSL_URI)
+        self.channel = self.connection.channel()
+        self.assertTrue(self.connection.is_open)
+        self.channel.close()
+        self.connection.close()
+
