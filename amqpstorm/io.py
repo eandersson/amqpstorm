@@ -1,7 +1,6 @@
 """AMQP-Storm IO."""
 __author__ = 'eandersson'
 
-import ssl
 import select
 import socket
 import logging
@@ -15,9 +14,19 @@ from amqpstorm.base import IDLE_WAIT
 from amqpstorm.base import FRAME_MAX
 from amqpstorm.exception import AMQPConnectionError
 
+try:
+    import ssl
+except ImportError:
+    ssl = None
+
 
 EMPTY_BUFFER = bytes()
 LOGGER = logging.getLogger(__name__)
+
+if ssl:
+    DEFAULT_SSL_VERSION = ssl.PROTOCOL_SSLv3
+    if hasattr(ssl, 'PROTOCOL_TLSv1'):
+        DEFAULT_SSL_VERSION = ssl.PROTOCOL_TLSv1
 
 
 class Poller(object):
@@ -74,6 +83,9 @@ class IO(Stateful):
         sock_address_tuple = self._get_socket_address(hostname, port)
         sock = self._create_socket(socket_family=sock_address_tuple[0])
         if self.parameters['ssl']:
+            if not ssl:
+                raise AMQPConnectionError('Python not compiled '
+                                          'with SSL support')
             sock = self._ssl_wrap_socket(sock)
         try:
             sock.connect(sock_address_tuple[4])
@@ -165,6 +177,8 @@ class IO(Stateful):
         :param socket sock:
         :return:
         """
+        if 'ssl_version' not in self.parameters['ssl_options']:
+            self.parameters['ssl_options']['ssl_version'] = DEFAULT_SSL_VERSION
         return ssl.wrap_socket(sock, do_handshake_on_connect=True,
                                **self.parameters['ssl_options'])
 

@@ -1,5 +1,6 @@
 __author__ = 'eandersson'
 
+import ssl
 import logging
 
 from amqpstorm import Connection
@@ -18,8 +19,11 @@ def on_message(body, channel, header, properties):
 
 
 def consumer():
-    connection = Connection(HOST, USERNAME, PASSWORD,
-                            ssl=True, port=5671)
+    connection = Connection(HOST, USERNAME, PASSWORD, ssl=True, port=5671,
+                            ssl_options={
+                                'ssl_version': ssl.PROTOCOL_TLSv1,
+                                'cert_reqs': ssl.CERT_NONE
+                            })
     channel = connection.channel()
     channel.queue.declare('simple_queue')
     channel.basic.publish(body='Hello World!', routing_key='simple_queue')
