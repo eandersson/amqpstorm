@@ -2,7 +2,6 @@
 __author__ = 'eandersson'
 
 import logging
-import threading
 from time import sleep
 
 from pamqp import frame as pamqp_frame
@@ -26,7 +25,6 @@ LOGGER = logging.getLogger(__name__)
 
 class Connection(Stateful):
     """RabbitMQ Connection Class."""
-    lock = threading.Lock()
 
     def __init__(self, hostname, username, password, port=5672, **kwargs):
         """Create a new instance of the Connection class.
@@ -133,7 +131,7 @@ class Connection(Stateful):
         LOGGER.debug('Opening new Channel.')
         if not compatibility.is_integer(rpc_timeout):
             raise AMQPInvalidArgument('rpc_timeout should be an integer')
-        with self.lock:
+        with self.io.lock:
             channel_id = len(self._channels) + 1
             channel = Channel(channel_id, self, rpc_timeout)
             self._channels[channel_id] = channel

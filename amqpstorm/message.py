@@ -72,9 +72,7 @@ class Message(object):
 
         :rtype: dict
         """
-        if not self.auto_decode:
-            return self._method
-        return self._decode_utf8_content(self._method)
+        return self._try_decode_utf8_content(self._method)
 
     @property
     def properties(self):
@@ -85,9 +83,7 @@ class Message(object):
 
         :rtype: dict
         """
-        if not self.auto_decode:
-            return self._properties
-        return self._decode_utf8_content(self._properties)
+        return self._try_decode_utf8_content(self._properties)
 
     def ack(self):
         """Acknowledge Message.
@@ -156,27 +152,42 @@ class Message(object):
         """
         return self._body, self._channel, self._method, self._properties
 
-    def _decode_utf8_content(self, content):
-        if not content:
+    def _try_decode_utf8_content(self, content):
+        """Generic function to decode content.
+
+        :param object content:
+        :return:
+        """
+        if not self.auto_decode or not content:
             return content
         if isinstance(content, dict):
-            return self._decode_dict_content(content)
+            return self._try_decode_dict_content(content)
         return try_utf8_decode(content)
 
-    def _decode_dict_content(self, content):
+    def _try_decode_dict_content(self, content):
+        """Decode content of a dictionary.
+
+        :param dict content:
+        :return:
+        """
         result = dict()
         for key, value in content.items():
             key = try_utf8_decode(key)
             if isinstance(value, dict):
-                result[key] = self._decode_dict_content(value)
+                result[key] = self._try_decode_dict_content(value)
             elif isinstance(value, list):
-                result[key] = self._decode_list_content(value)
+                result[key] = self._try_decode_list_content(value)
             else:
                 result[key] = try_utf8_decode(value)
         return result
 
     @staticmethod
-    def _decode_list_content(content):
+    def _try_decode_list_content(content):
+        """Decode content of a list.
+
+        :param list content:
+        :return:
+        """
         result = list()
         for value in content:
             result.append(try_utf8_decode(value))

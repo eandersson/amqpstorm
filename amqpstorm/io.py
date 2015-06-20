@@ -51,6 +51,7 @@ class Poller(object):
 
 
 class IO(Stateful):
+    lock = threading.Lock()
     socket = None
     poller = None
     buffer = EMPTY_BUFFER
@@ -68,6 +69,7 @@ class IO(Stateful):
         :param int port:
         :return:
         """
+        self.buffer = EMPTY_BUFFER
         self.set_state(self.OPENING)
         sock_address_tuple = self._get_socket_address(hostname, port)
         sock = self._create_socket(socket_family=sock_address_tuple[0])

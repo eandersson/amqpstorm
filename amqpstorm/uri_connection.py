@@ -18,11 +18,13 @@ from amqpstorm.connection import Connection
 LOGGER = logging.getLogger(__name__)
 
 if ssl:
-    SSL_VERSIONS = {
-        'tlsv1': ssl.PROTOCOL_TLSv1,
-        'sslv23': ssl.PROTOCOL_SSLv23,
-        'sslv3': ssl.PROTOCOL_SSLv3
-    }
+    SSL_VERSIONS = {}
+    if hasattr(ssl, 'PROTOCOL_TLSv1'):
+        SSL_VERSIONS['tlsv1'] = ssl.PROTOCOL_TLSv1
+    if hasattr(ssl, 'PROTOCOL_SSLv23'):
+        SSL_VERSIONS['sslv23'] = ssl.PROTOCOL_SSLv23
+    if hasattr(ssl, 'PROTOCOL_SSLv3'):
+        SSL_VERSIONS['sslv3'] = ssl.PROTOCOL_SSLv3
 
     SSL_CERT_MAP = {
         'cert_none': ssl.CERT_NONE,
@@ -99,7 +101,7 @@ class UriConnection(Connection):
         :return:
         """
         for version in SSL_VERSIONS:
-            if version.endswith(value.lower()):
+            if not version.endswith(value.lower()):
                 continue
             return SSL_VERSIONS[version]
         LOGGER.warning('ssl_options: ssl_version \'%s\' not found '
