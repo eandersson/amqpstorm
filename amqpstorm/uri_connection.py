@@ -20,11 +20,15 @@ LOGGER = logging.getLogger(__name__)
 if ssl:
     SSL_VERSIONS = {}
     if hasattr(ssl, 'PROTOCOL_TLSv1'):
-        SSL_VERSIONS['tlsv1'] = ssl.PROTOCOL_TLSv1
+        SSL_VERSIONS['protocol_tlsv1'] = ssl.PROTOCOL_TLSv1
+    if hasattr(ssl, 'PROTOCOL_TLSv1_1'):
+        SSL_VERSIONS['protocol_tlsv1_1'] = ssl.PROTOCOL_TLSv1_1
+    if hasattr(ssl, 'PROTOCOL_TLSv1_2'):
+        SSL_VERSIONS['protocol_tlsv1_2'] = ssl.PROTOCOL_TLSv1_2
     if hasattr(ssl, 'PROTOCOL_SSLv23'):
-        SSL_VERSIONS['sslv23'] = ssl.PROTOCOL_SSLv23
+        SSL_VERSIONS['protocol_sslv23'] = ssl.PROTOCOL_SSLv23
     if hasattr(ssl, 'PROTOCOL_SSLv3'):
-        SSL_VERSIONS['sslv3'] = ssl.PROTOCOL_SSLv3
+        SSL_VERSIONS['protocol_sslv3'] = ssl.PROTOCOL_SSLv3
 
     SSL_CERT_MAP = {
         'cert_none': ssl.CERT_NONE,
