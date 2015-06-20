@@ -1,11 +1,19 @@
-##### Changelog
-###### Version 1.2.0
-- Added additional SSL parameters to UriConnection.
+# Changelog
+
+### Version 1.2.0
+
+#### Features
 - Allow incoming messages to be delivered as a Message class.
 - Introduced shortcuts to the Message class.
     - Message.Publish
     - Message.Ack / Message.Nack / Message.Reject
 - Added generator based consumer function called => build_inbound_messages.
 
-- Fixed PyPy specific bug.
+#### Improvements
+- TSLv1 is now set as default on SSL connections.
+- Added additional SSL parameters to UriConnection.
 - Re-factored Connection and IO handling.
+
+#### Bug Fixes
+- Fixed PyPy bug with handling of integers.
+- Python compiled without SSL support should no longer trigger an exception.
