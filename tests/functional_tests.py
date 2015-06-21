@@ -1,5 +1,6 @@
 __author__ = 'eandersson'
 
+import time
 import uuid
 import logging
 
@@ -37,6 +38,9 @@ class PublishAndGetMessagesTest(unittest.TestCase):
             self.channel.basic.publish(body=str(uuid.uuid4()),
                                        routing_key='test.basic.get')
 
+        # Sleep for 0.5s to make sure RabbitMQ has time to catch up.
+        time.sleep(0.5)
+
         # Get 5 messages.
         for _ in range(5):
             payload = self.channel.basic.get('test.basic.get')
@@ -69,6 +73,9 @@ class PublishWithPropertiesAndGetTest(unittest.TestCase):
                                    routing_key='test.basic.properties',
                                    properties=properties)
 
+        # Sleep for 0.5s to make sure RabbitMQ has time to catch up.
+        time.sleep(0.5)
+
         # New way
         payload = self.channel.basic.get('test.basic.properties',
                                          to_dict=False)
@@ -98,6 +105,9 @@ class PublishAndConsumeMessagesTest(unittest.TestCase):
         for _ in range(5):
             self.channel.basic.publish(body=str(uuid.uuid4()),
                                        routing_key='test.basic.consume')
+
+        # Sleep for 0.5s to make sure RabbitMQ has time to catch up.
+        time.sleep(0.5)
 
         # Store and inbound messages.
         inbound_messages = []
@@ -130,17 +140,17 @@ class GeneratorConsumeMessagesTest(unittest.TestCase):
         self.channel.queue.declare('test.basic.generator')
         self.channel.queue.purge('test.basic.generator')
         self.channel.confirm_deliveries()
-
-    def test_generator_consume(self):
         for _ in range(5):
             self.channel.basic.publish(body=str(uuid.uuid4()),
                                        routing_key='test.basic.generator')
-
-        # Store and inbound messages.
-        inbound_messages = []
-
         self.channel.basic.consume(queue='test.basic.generator',
                                    no_ack=True)
+        # Sleep for 0.5s to make sure RabbitMQ has time to catch up.
+        time.sleep(0.5)
+
+    def test_generator_consume(self):
+        # Store and inbound messages.
+        inbound_messages = []
         for message in \
                 self.channel.build_inbound_messages(break_on_empty=True):
             self.assertIsInstance(message, Message)
@@ -173,6 +183,9 @@ class ConsumeAndRedeliverTest(unittest.TestCase):
                                    queue='test.consume.redeliver',
                                    no_ack=False)
         self.channel.process_data_events(to_tuple=False)
+
+        # Sleep for 0.5s to make sure RabbitMQ has time to catch up.
+        time.sleep(0.5)
 
     def test_consume_and_redeliver(self):
         # Store and inbound messages.
@@ -209,6 +222,8 @@ class GetAndRedeliverTest(unittest.TestCase):
         self.channel.basic.reject(
             delivery_tag=payload['method']['delivery_tag']
         )
+        # Sleep for 0.5s to make sure RabbitMQ has time to catch up.
+        time.sleep(0.5)
 
     def test_get_and_redeliver(self):
         payload = self.channel.basic.get('test.get.redeliver', no_ack=False)
@@ -231,6 +246,10 @@ class PublisherConfirmsTest(unittest.TestCase):
     def test_publish_and_confirm(self):
         self.channel.basic.publish(body=str(uuid.uuid4()),
                                    routing_key='test.basic.confirm')
+
+        # Sleep for 0.5s to make sure RabbitMQ has time to catch up.
+        time.sleep(0.5)
+
         payload = self.channel.queue.declare('test.basic.confirm',
                                              passive=True)
         self.assertEqual(payload['message_count'], 1)
