@@ -32,5 +32,5 @@ Special thanks to gmr (Gavin M. Roy) for creating pamqp, and in addition amqp-st
    :alt: Bitdeli badge
    :target: https://bitdeli.com/free
    
-.. |Travis| image:: https://travis-ci.org/eandersson/amqp-storm.svg?branch=1.2.0
+.. |Travis| image:: https://travis-ci.org/eandersson/amqp-storm.svg
     :target: https://travis-ci.org/eandersson/amqp-storm
