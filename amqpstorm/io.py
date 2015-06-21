@@ -24,9 +24,14 @@ EMPTY_BUFFER = bytes()
 LOGGER = logging.getLogger(__name__)
 
 if ssl:
-    DEFAULT_SSL_VERSION = ssl.PROTOCOL_SSLv3
-    if hasattr(ssl, 'PROTOCOL_TLSv1'):
+    if hasattr(ssl, 'PROTOCOL_TLSv1_2'):
+        DEFAULT_SSL_VERSION = ssl.PROTOCOL_TLSv1_2
+    elif hasattr(ssl, 'PROTOCOL_TLSv1_1'):
+        DEFAULT_SSL_VERSION = ssl.PROTOCOL_TLSv1_1
+    elif hasattr(ssl, 'PROTOCOL_TLSv1'):
         DEFAULT_SSL_VERSION = ssl.PROTOCOL_TLSv1
+    elif hasattr(ssl, 'PROTOCOL_SSLv3'):
+        DEFAULT_SSL_VERSION = ssl.PROTOCOL_SSLv3
 
 
 class Poller(object):
