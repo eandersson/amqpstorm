@@ -7,7 +7,8 @@ from amqpstorm.compatibility import try_utf8_decode
 
 class Message(object):
     """RabbitMQ Message Class."""
-    __slots__ = ['auto_decode', '_body', '_channel', '_method', '_properties']
+    __slots__ = ['_auto_decode', '_cache', '_body', '_channel',
+                 '_method', '_properties']
 
     def __init__(self, channel, auto_decode=True, **message):
         """
@@ -18,16 +19,15 @@ class Message(object):
         :param dict method: Message method
         :param dict properties: Message properties
         """
-        self.auto_decode = auto_decode
+        self._cache = dict()
+        self._auto_decode = auto_decode
         self._channel = channel
         self._body = message.get('body', None)
         self._method = message.get('method', None)
         self._properties = message.get('properties', {'headers': {}})
 
     def __iter__(self):
-        for attribute in self.__slots__:
-            if not attribute.startswith('_'):
-                continue
+        for attribute in ['_body', '_channel', '_method', '_properties']:
             yield (attribute[1::], getattr(self, attribute))
 
     @staticmethod
@@ -51,9 +51,13 @@ class Message(object):
 
         :rtype: bytes|str|unicode
         """
-        if not self.auto_decode:
+        if not self._auto_decode:
             return self._body
-        return try_utf8_decode(self._body)
+        if 'body' in self._cache:
+            return self._cache['body']
+        body = try_utf8_decode(self._body)
+        self._cache['body'] = body
+        return body
 
     @property
     def channel(self):
@@ -72,7 +76,7 @@ class Message(object):
 
         :rtype: dict
         """
-        return self._try_decode_utf8_content(self._method)
+        return self._try_decode_utf8_content(self._method, 'method')
 
     @property
     def properties(self):
@@ -83,7 +87,7 @@ class Message(object):
 
         :rtype: dict
         """
-        return self._try_decode_utf8_content(self._properties)
+        return self._try_decode_utf8_content(self._properties, 'properties')
 
     def ack(self):
         """Acknowledge Message.
@@ -152,17 +156,21 @@ class Message(object):
         """
         return self._body, self._channel, self._method, self._properties
 
-    def _try_decode_utf8_content(self, content):
+    def _try_decode_utf8_content(self, content, content_type):
         """Generic function to decode content.
 
         :param object content:
         :return:
         """
-        if not self.auto_decode or not content:
+        if not self._auto_decode or not content:
             return content
+        if content_type in self._cache:
+            return self._cache[content_type]
         if isinstance(content, dict):
             return self._try_decode_dict_content(content)
-        return try_utf8_decode(content)
+        content = try_utf8_decode(content)
+        self._cache[content_type] = content
+        return content
 
     def _try_decode_dict_content(self, content):
         """Decode content of a dictionary.
