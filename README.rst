@@ -1,4 +1,4 @@
-AMQP-Storm 1.2.0
+AMQP-Storm
 -------------
 Thread-safe Python AMQP Client Library based on pamqp.
 
@@ -14,7 +14,7 @@ AMQP-Storm is a library designed to be easy to use, stable and thread-safe.
 
 Credits
 -------------
-Special thanks to gmr (Gavin M. Roy) for creating pamqp, and in addition amqp-storm is heavily influenced by pika and rabbitpy.
+Special thanks to gmr (Gavin M. Roy) for creating pamqp, and in addition amqp-storm is heavily influenced by his pika and rabbitpy libraries.
 
 .. |Version| image:: https://badge.fury.io/py/amqp-storm.svg?
    :target: http://badge.fury.io/py/amqp-storm

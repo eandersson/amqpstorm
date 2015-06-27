@@ -1,5 +1,10 @@
 # Changelog
 
+### Version 1.2.1
+- Changed default SSL version to TLSv1_2.
+- Added simple caching mechanism to Message auto decode functionality.
+- Fixed potential bug caused by Python being built with the OPENSSL_NO_SSLv3 flag.
+
 ### Version 1.2.0
 
 #### Features
@@ -12,6 +17,7 @@
 #### Improvements
 - TSLv1 is now set as default on SSL connections.
 - Added additional SSL parameters to UriConnection.
+- When using the new Message class, properties are automatically utf-8 decoded when possible.
 - Re-factored Connection and IO handling.
 
 #### Bug Fixes
