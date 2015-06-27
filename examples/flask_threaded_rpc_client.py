@@ -4,9 +4,8 @@ import uuid
 import threading
 from time import sleep
 
-from flask import Flask
-
 import amqpstorm
+from flask import Flask
 
 from examples import HOST
 from examples import USERNAME
@@ -38,6 +37,8 @@ class RpcClient(object):
         self.channel.queue.declare(self.rpc_queue)
         result = self.channel.queue.declare(exclusive=True)
         self.callback_queue = result['queue']
+        self.channel.basic.consume(self._on_response, no_ack=True,
+                                   queue=self.callback_queue)
         self._create_process_thread()
 
     def _create_process_thread(self):
@@ -50,15 +51,13 @@ class RpcClient(object):
 
     def _process_data_events(self):
         """Process Data Events using the Process Thread."""
-        self.channel.basic.consume(self._on_response, no_ack=True,
-                                   queue=self.callback_queue)
-        self.channel.start_consuming()
+        self.channel.start_consuming(to_tuple=False)
 
-    def _on_response(self, body, channel, header, properties):
+    def _on_response(self, message):
         """On Response store the message with the correlation id in a local
          dictionary.
         """
-        self.queue[properties['correlation_id'].decode('utf-8')] = body
+        self.queue[message.properties['correlation_id']] = message.body
 
     def send_request(self, payload):
         # Generate a Unique ID used to identify the request.

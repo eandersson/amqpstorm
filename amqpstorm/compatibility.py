@@ -32,6 +32,11 @@ def is_string(obj):
 
 
 def is_integer(obj):
+    """Is this an integer.
+
+    :param object obj:
+    :return:
+    """
     if PYTHON3:
         return isinstance(obj, int)
     return isinstance(obj, (int, long))
@@ -51,6 +56,11 @@ def is_unicode(obj):
 
 
 def try_utf8_decode(value):
+    """Try to decode an object.
+
+    :param value:
+    :return:
+    """
     if not is_string(value):
         return value
     elif PYTHON3 and not isinstance(value, bytes):
