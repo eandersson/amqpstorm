@@ -37,6 +37,7 @@ class Message(object):
 
     @property
     def content_encoding(self):
+        """AMQP attribute content_encoding.
 
         :return:
         """
@@ -44,6 +45,7 @@ class Message(object):
 
     @property
     def content_type(self):
+        """AMQP attribute content_type.
 
         :return:
         """
@@ -51,6 +53,7 @@ class Message(object):
 
     @property
     def correlation_id(self):
+        """AMQP attribute correlation_id.
 
         :return:
         """
@@ -58,6 +61,7 @@ class Message(object):
 
     @property
     def reply_to(self):
+        """AMQP attribute reply_to.
 
         :return:
         """
@@ -65,6 +69,7 @@ class Message(object):
 
     @property
     def delivery_mode(self):
+        """AMQP attribute delivery_mode.
 
         :return:
         """
@@ -72,6 +77,7 @@ class Message(object):
 
     @property
     def timestamp(self):
+        """AMQP attribute timestamp.
 
         :return:
         """
@@ -79,6 +85,7 @@ class Message(object):
 
     @property
     def priority(self):
+        """AMQP attribute priority.
 
         :return:
         """
