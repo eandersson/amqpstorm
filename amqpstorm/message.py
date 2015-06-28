@@ -1,13 +1,18 @@
 """AMQP-Storm Message."""
 __author__ = 'eandersson'
 
+import json
+import uuid
+
+from datetime import datetime
+
 from amqpstorm.exception import AMQPMessageError
 from amqpstorm.compatibility import try_utf8_decode
 
 
 class Message(object):
     """RabbitMQ Message Class."""
-    __slots__ = ['_auto_decode', '_cache', '_body', '_channel',
+    __slots__ = ['_auto_decode', '_decode_cache', '_body', '_channel',
                  '_method', '_properties']
 
     def __init__(self, channel, auto_decode=True, **message):
@@ -19,7 +24,7 @@ class Message(object):
         :param dict method: Message method
         :param dict properties: Message properties
         """
-        self._cache = dict()
+        self._decode_cache = dict()
         self._auto_decode = auto_decode
         self._channel = channel
         self._body = message.get('body', None)
@@ -30,15 +35,81 @@ class Message(object):
         for attribute in ['_body', '_channel', '_method', '_properties']:
             yield (attribute[1::], getattr(self, attribute))
 
+    @property
+    def content_encoding(self):
+
+        :return:
+        """
+        return self.properties.get('content_encoding')
+
+    @property
+    def content_type(self):
+
+        :return:
+        """
+        return self.properties.get('content_type')
+
+    @property
+    def correlation_id(self):
+
+        :return:
+        """
+        return self.properties.get('correlation_id')
+
+    @property
+    def reply_to(self):
+
+        :return:
+        """
+        return self.properties.get('reply_to')
+
+    @property
+    def delivery_mode(self):
+
+        :return:
+        """
+        return self.properties.get('delivery_mode')
+
+    @property
+    def timestamp(self):
+
+        :return:
+        """
+        return self.properties.get('timestamp')
+
+    @property
+    def priority(self):
+
+        :return:
+        """
+        return self.properties.get('priority')
+
     @staticmethod
-    def create(channel, body, properties=None):
+    def create(channel, body, properties=None, content_encoding='UTF-8',
+               content_type='text/plain', correlation_id='', reply_to='',
+               delivery_mode=None, priority=None, timestamp=None):
         """Create a new Message.
 
         :param Channel channel: AMQP-Storm Channel
-        :param str|unicode body: Message body
+        :param bytes|str|unicode body: Message body
         :param dict properties: Message properties
+        :param str content_encoding: Message content encoding
+        :param str correlation_id: Message correlation id
+        :param str reply_to: Message reply to
+        :param int delivery_mode: Message delivery mode
+        :param int priority: Message priority
+        :param datetime timestamp: Message timestamp
         :rtype: Message
         """
+        properties = properties or {}
+        properties['content_encoding'] = content_encoding
+        properties['content_type'] = content_type
+        properties['correlation_id'] = correlation_id or str(uuid.uuid4())
+        properties['reply_to'] = reply_to
+        properties['delivery_mode'] = delivery_mode
+        properties['priority'] = priority
+        properties['timestamp'] = timestamp or datetime.utcnow()
+
         return Message(channel, auto_decode=False,
                        body=body, properties=properties)
 
@@ -53,10 +124,10 @@ class Message(object):
         """
         if not self._auto_decode:
             return self._body
-        if 'body' in self._cache:
-            return self._cache['body']
+        if 'body' in self._decode_cache:
+            return self._decode_cache['body']
         body = try_utf8_decode(self._body)
-        self._cache['body'] = body
+        self._decode_cache['body'] = body
         return body
 
     @property
@@ -137,6 +208,13 @@ class Message(object):
                                            mandatory=mandatory,
                                            immediate=immediate)
 
+    def json(self):
+        """Deserialize the message body, if it is JSON.
+
+        :return:
+        """
+        return json.loads(self.body)
+
     def to_dict(self):
         """Message to Dictionary.
 
@@ -164,12 +242,12 @@ class Message(object):
         """
         if not self._auto_decode or not content:
             return content
-        if content_type in self._cache:
-            return self._cache[content_type]
+        if content_type in self._decode_cache:
+            return self._decode_cache[content_type]
         if isinstance(content, dict):
             return self._try_decode_dict_content(content)
         content = try_utf8_decode(content)
-        self._cache[content_type] = content
+        self._decode_cache[content_type] = content
         return content
 
     def _try_decode_dict_content(self, content):
