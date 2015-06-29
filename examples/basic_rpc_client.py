@@ -68,9 +68,10 @@ class FibonacciRpcClient(object):
         self.response = body
 
 
-fibonacci_rpc = FibonacciRpcClient(HOST, USERNAME, PASSWORD)
+if __name__ == '__main__':
+    FIBONACCI_RPC = FibonacciRpcClient(HOST, USERNAME, PASSWORD)
 
-print(" [x] Requesting fib(30)")
-response = fibonacci_rpc.call(30)
-print(" [.] Got %r" % (response,))
-fibonacci_rpc.close()
+    print(" [x] Requesting fib(30)")
+    RESPONSE = FIBONACCI_RPC.call(30)
+    print(" [.] Got %r" % (RESPONSE,))
+    FIBONACCI_RPC.close()

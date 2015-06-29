@@ -38,9 +38,9 @@ def on_request(body, channel, header, properties):
                           body=str(response))
     channel.basic.ack(delivery_tag=header['delivery_tag'])
 
+if __name__ == '__main__':
+    CHANNEL.basic.qos(prefetch_count=1)
+    CHANNEL.basic.consume(on_request, queue='rpc_queue')
 
-CHANNEL.basic.qos(prefetch_count=1)
-CHANNEL.basic.consume(on_request, queue='rpc_queue')
-
-print(" [x] Awaiting RPC requests")
-CHANNEL.start_consuming()
+    print(" [x] Awaiting RPC requests")
+    CHANNEL.start_consuming()

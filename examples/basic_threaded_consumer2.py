@@ -52,17 +52,18 @@ def consume_messages(connection):
     channel.start_consuming()
 
 
-connection = Connection(HOST, USERNAME, PASSWORD)
+if __name__ == '__main__':
+    CONNECTION = Connection(HOST, USERNAME, PASSWORD)
 
-threads = []
-for index in range(2):
-    consumer_thread = threading.Thread(target=consume_messages,
-                                       args=(connection,))
-    consumer_thread.daemon = True
-    consumer_thread.start()
-    threads.append(consumer_thread)
+    THREADS = []
+    for _ in range(2):
+        THREAD = threading.Thread(target=consume_messages,
+                                  args=(CONNECTION,))
+        THREAD.daemon = True
+        THREAD.start()
+        THREADS.append(THREAD)
 
-while sum([thread.isAlive() for thread in threads]):
-    time.sleep(1)
+    while sum([thread.isAlive() for thread in THREADS]):
+        time.sleep(1)
 
-connection.close()
+    CONNECTION.close()

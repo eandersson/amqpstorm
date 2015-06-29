@@ -3,9 +3,9 @@ __author__ = 'eandersson'
 RPC Client example based on code from the official RabbitMQ Tutorial.
 http://www.rabbitmq.com/tutorials/tutorial-six-python.html
 """
-import uuid
-
 import amqpstorm
+
+from amqpstorm import Message
 
 from examples import HOST
 from examples import USERNAME
@@ -50,27 +50,24 @@ class FibonacciRpcClient(object):
 
     def call(self, number):
         self.response = None
-        self.correlation_id = str(uuid.uuid4())
-        self.channel.basic.publish(exchange='',
-                                   routing_key='rpc_queue',
-                                   properties={
-                                       'reply_to': self.callback_queue,
-                                       'correlation_id': self.correlation_id,
-                                   },
-                                   body=str(number))
+        message = Message.create(self.channel, body=str(number),
+                                 reply_to=self.callback_queue)
+        self.correlation_id = message.correlation_id
+        message.publish(routing_key='rpc_queue')
+
         while not self.response:
             self.channel.process_data_events(to_tuple=False)
         return int(self.response)
 
     def _on_response(self, message):
-        if self.correlation_id != message.properties['correlation_id']:
+        if self.correlation_id != message.correlation_id:
             return
         self.response = message.body
 
+if __name__ == '__main__':
+    fibonacci_rpc = FibonacciRpcClient(HOST, USERNAME, PASSWORD)
 
-fibonacci_rpc = FibonacciRpcClient(HOST, USERNAME, PASSWORD)
-
-print(" [x] Requesting fib(30)")
-response = fibonacci_rpc.call(30)
-print(" [.] Got %r" % (response,))
-fibonacci_rpc.close()
+    print(" [x] Requesting fib(30)")
+    response = fibonacci_rpc.call(30)
+    print(" [.] Got %r" % (response,))
+    fibonacci_rpc.close()

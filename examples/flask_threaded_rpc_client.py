@@ -1,10 +1,12 @@
 __author__ = 'eandersson'
 
-import uuid
 import threading
+
 from time import sleep
 
 import amqpstorm
+
+from amqpstorm import Message
 from flask import Flask
 
 from examples import HOST
@@ -57,26 +59,22 @@ class RpcClient(object):
         """On Response store the message with the correlation id in a local
          dictionary.
         """
-        self.queue[message.properties['correlation_id']] = message.body
+        self.queue[message.correlation_id] = message.body
 
     def send_request(self, payload):
-        # Generate a Unique ID used to identify the request.
-        corr_id = str(uuid.uuid4())
+        # Create the Message object.
+        message = Message.create(self.channel, payload,
+                                 reply_to=self.callback_queue)
 
-        # Create an entry in our local dictionary.
-        self.queue[corr_id] = None
+        # Create an entry in our local dictionary, using the automatically
+        # generated correlation_id as our key.
+        self.queue[message.correlation_id] = None
 
         # Publish the RPC request.
-        self.channel.basic.publish(exchange='',
-                                   routing_key=self.rpc_queue,
-                                   properties={
-                                       'reply_to': self.callback_queue,
-                                       'correlation_id': corr_id,
-                                   },
-                                   body=payload)
+        message.publish(routing_key=self.rpc_queue)
 
         # Return the Unique ID used to identify the request.
-        return corr_id
+        return message.correlation_id
 
 
 @app.route('/rpc_call/<payload>')
@@ -84,16 +82,16 @@ def rpc_call(payload):
     """Simple Flask implementation for making asynchronous Rpc calls. """
 
     # Send the request and store the requests Unique ID.
-    corr_id = rpc_client.send_request(payload)
+    corr_id = RPC_CLIENT.send_request(payload)
 
     # Wait until we have received a response.
-    while rpc_client.queue[corr_id] is None:
+    while RPC_CLIENT.queue[corr_id] is None:
         sleep(0.1)
 
     # Return the response to the user.
-    return rpc_client.queue[corr_id]
+    return RPC_CLIENT.queue[corr_id]
 
 
 if __name__ == '__main__':
-    rpc_client = RpcClient(HOST, USERNAME, PASSWORD, 'rpc_queue')
+    RPC_CLIENT = RpcClient(HOST, USERNAME, PASSWORD, 'rpc_queue')
     app.run()

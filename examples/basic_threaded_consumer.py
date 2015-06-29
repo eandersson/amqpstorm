@@ -51,20 +51,21 @@ def consume_messages(channel):
     channel.start_consuming()
 
 
-connection = Connection(HOST, USERNAME, PASSWORD)
-channel = connection.channel()
-channel.basic.qos(prefetch_count=100)
-channel.basic.consume(on_message, 'simple_queue', no_ack=False)
+if __name__ == '__main__':
+    CONNECTION = Connection(HOST, USERNAME, PASSWORD)
+    CHANNEL = CONNECTION.channel()
+    CHANNEL.basic.qos(prefetch_count=100)
+    CHANNEL.basic.consume(on_message, 'simple_queue', no_ack=False)
 
-threads = []
-for index in range(2):
-    consumer_thread = threading.Thread(target=consume_messages,
-                                       args=(channel,))
-    consumer_thread.daemon = True
-    consumer_thread.start()
-    threads.append(consumer_thread)
+    THREADS = []
+    for _ in range(2):
+        THREAD = threading.Thread(target=consume_messages,
+                                  args=(CHANNEL,))
+        THREAD.daemon = True
+        THREAD.start()
+        THREADS.append(THREAD)
 
-while sum([thread.isAlive() for thread in threads]):
-    time.sleep(1)
+    while sum([thread.isAlive() for thread in THREADS]):
+        time.sleep(1)
 
-connection.close()
+    CONNECTION.close()
