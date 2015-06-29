@@ -40,12 +40,12 @@ class MessageTests(unittest.TestCase):
 
         message = Message.create(None, body)
 
-        self.assertEqual(message.app_id, '')
-        self.assertEqual(message.user_id, '')
-        self.assertEqual(message.message_id, '')
-        self.assertEqual(message.reply_to, '')
-        self.assertEqual(message.content_encoding, 'UTF-8')
-        self.assertEqual(message.content_type, 'text/plain')
+        self.assertIsNone(message.app_id)
+        self.assertIsNone(message.user_id)
+        self.assertIsNone(message.message_id)
+        self.assertIsNone(message.reply_to)
+        self.assertIsNone(message.content_encoding)
+        self.assertIsNone(message.content_type)
         self.assertIsNone(message.priority)
         self.assertIsNone(message.delivery_mode)
         self.assertIsInstance(message.correlation_id, str)
@@ -120,6 +120,23 @@ class MessageTests(unittest.TestCase):
         message = Message.create(None, '', reply_to=reply_to)
 
         self.assertEqual(reply_to, message.reply_to)
+
+    def test_message_do_not_override_properties(self):
+        reply_to = 'hello_world',
+        correlation_id = str(uuid.uuid4())
+        timestamp = datetime.now()
+
+        properties = {
+            'reply_to': reply_to,
+            'correlation_id': correlation_id,
+            'timestamp': timestamp
+        }
+
+        message = Message.create(None, '', properties)
+
+        self.assertEqual(reply_to, message.reply_to)
+        self.assertEqual(correlation_id, message.correlation_id)
+        self.assertEqual(timestamp, message.timestamp)
 
     def test_auto_decode_enabled(self):
         message = Message(body='Hello World',

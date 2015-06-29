@@ -116,10 +116,7 @@ class Message(object):
         return self.properties.get('priority')
 
     @staticmethod
-    def create(channel, body, properties=None, app_id='', message_id='',
-               user_id='', content_encoding='UTF-8', content_type='text/plain',
-               correlation_id='', reply_to='', delivery_mode=None,
-               priority=None, timestamp=None):
+    def create(channel, body, properties=None, **kwargs):
         """Create a new Message.
 
         :param Channel channel: AMQP-Storm Channel
@@ -137,16 +134,32 @@ class Message(object):
         :rtype: Message
         """
         properties = properties or {}
-        properties['app_id'] = app_id
-        properties['user_id'] = user_id
-        properties['message_id'] = message_id
-        properties['content_encoding'] = content_encoding
-        properties['content_type'] = content_type
-        properties['correlation_id'] = correlation_id or str(uuid.uuid4())
-        properties['reply_to'] = reply_to
-        properties['delivery_mode'] = delivery_mode
-        properties['priority'] = priority
-        properties['timestamp'] = timestamp or datetime.utcnow()
+        if 'app_id' in kwargs:
+            properties['app_id'] = kwargs['app_id']
+        if 'user_id' in kwargs:
+            properties['user_id'] = kwargs['user_id']
+        if 'message_id' in kwargs:
+            properties['message_id'] = kwargs['message_id']
+        if 'content_encoding' in kwargs:
+            properties['content_encoding'] = kwargs['content_encoding']
+        if 'content_type' in kwargs:
+            properties['content_type'] = kwargs['content_type']
+        if 'reply_to' in kwargs:
+            properties['reply_to'] = kwargs['reply_to']
+        if 'delivery_mode' in kwargs:
+            properties['delivery_mode'] = kwargs['delivery_mode']
+        if 'priority' in kwargs:
+            properties['priority'] = kwargs['priority']
+
+        if 'correlation_id' in kwargs:
+            properties['correlation_id'] = kwargs['correlation_id']
+        elif 'correlation_id' not in properties:
+            properties['correlation_id'] = str(uuid.uuid4())
+
+        if 'timestamp' in kwargs:
+            properties['timestamp'] = kwargs['timestamp']
+        elif 'timestamp' not in properties:
+            properties['timestamp'] = datetime.utcnow()
 
         return Message(channel, auto_decode=False,
                        body=body, properties=properties)
