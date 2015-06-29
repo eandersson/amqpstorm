@@ -36,6 +36,30 @@ class Message(object):
             yield (attribute[1::], getattr(self, attribute))
 
     @property
+    def app_id(self):
+        """AMQP attribute app_id.
+
+        :return:
+        """
+        return self.properties.get('app_id')
+
+    @property
+    def user_id(self):
+        """AMQP attribute user_id.
+
+        :return:
+        """
+        return self.properties.get('user_id')
+
+    @property
+    def message_id(self):
+        """AMQP attribute message_id.
+
+        :return:
+        """
+        return self.properties.get('message_id')
+
+    @property
     def content_encoding(self):
         """AMQP attribute content_encoding.
 
@@ -92,14 +116,18 @@ class Message(object):
         return self.properties.get('priority')
 
     @staticmethod
-    def create(channel, body, properties=None, content_encoding='UTF-8',
-               content_type='text/plain', correlation_id='', reply_to='',
-               delivery_mode=None, priority=None, timestamp=None):
+    def create(channel, body, properties=None, app_id='', message_id='',
+               user_id='', content_encoding='UTF-8', content_type='text/plain',
+               correlation_id='', reply_to='', delivery_mode=None,
+               priority=None, timestamp=None):
         """Create a new Message.
 
         :param Channel channel: AMQP-Storm Channel
         :param bytes|str|unicode body: Message body
         :param dict properties: Message properties
+        :param str app_id: Application id
+        :param str message_id: Message id
+        :param str user_id: User id
         :param str content_encoding: Message content encoding
         :param str correlation_id: Message correlation id
         :param str reply_to: Message reply to
@@ -109,6 +137,9 @@ class Message(object):
         :rtype: Message
         """
         properties = properties or {}
+        properties['app_id'] = app_id
+        properties['user_id'] = user_id
+        properties['message_id'] = message_id
         properties['content_encoding'] = content_encoding
         properties['content_type'] = content_type
         properties['correlation_id'] = correlation_id or str(uuid.uuid4())

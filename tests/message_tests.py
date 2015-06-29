@@ -40,6 +40,9 @@ class MessageTests(unittest.TestCase):
 
         message = Message.create(None, body)
 
+        self.assertEqual(message.app_id, '')
+        self.assertEqual(message.user_id, '')
+        self.assertEqual(message.message_id, '')
         self.assertEqual(message.reply_to, '')
         self.assertEqual(message.content_encoding, 'UTF-8')
         self.assertEqual(message.content_type, 'text/plain')
@@ -47,6 +50,27 @@ class MessageTests(unittest.TestCase):
         self.assertIsNone(message.delivery_mode)
         self.assertIsInstance(message.correlation_id, str)
         self.assertIsInstance(message.timestamp, datetime)
+
+    def test_message_app_id_custom_value(self):
+        app_id = 'my-app'
+
+        message = Message.create(None, '', app_id=app_id)
+
+        self.assertEqual(app_id, message.app_id)
+
+    def test_message_user_id_custom_value(self):
+        user_id = 'eandersson'
+
+        message = Message.create(None, '', user_id=user_id)
+
+        self.assertEqual(user_id, message.user_id)
+
+    def test_message_id_custom_value(self):
+        message_id = 'my-message-1'
+
+        message = Message.create(None, '', message_id=message_id)
+
+        self.assertEqual(message_id, message.message_id)
 
     def test_message_timestamp_custom_value(self):
         dt = datetime.now()
