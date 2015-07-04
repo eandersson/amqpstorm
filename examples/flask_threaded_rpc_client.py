@@ -63,8 +63,8 @@ class RpcClient(object):
 
     def send_request(self, payload):
         # Create the Message object.
-        message = Message.create(self.channel, payload,
-                                 reply_to=self.callback_queue)
+        message = Message.create(self.channel, payload)
+        message.reply_to = self.callback_queue
 
         # Create an entry in our local dictionary, using the automatically
         # generated correlation_id as our key.

@@ -35,130 +35,21 @@ class Message(object):
         for attribute in ['_body', '_channel', '_method', '_properties']:
             yield (attribute[1::], getattr(self, attribute))
 
-    @property
-    def app_id(self):
-        """AMQP attribute app_id.
-
-        :return:
-        """
-        return self.properties.get('app_id')
-
-    @property
-    def user_id(self):
-        """AMQP attribute user_id.
-
-        :return:
-        """
-        return self.properties.get('user_id')
-
-    @property
-    def message_id(self):
-        """AMQP attribute message_id.
-
-        :return:
-        """
-        return self.properties.get('message_id')
-
-    @property
-    def content_encoding(self):
-        """AMQP attribute content_encoding.
-
-        :return:
-        """
-        return self.properties.get('content_encoding')
-
-    @property
-    def content_type(self):
-        """AMQP attribute content_type.
-
-        :return:
-        """
-        return self.properties.get('content_type')
-
-    @property
-    def correlation_id(self):
-        """AMQP attribute correlation_id.
-
-        :return:
-        """
-        return self.properties.get('correlation_id')
-
-    @property
-    def reply_to(self):
-        """AMQP attribute reply_to.
-
-        :return:
-        """
-        return self.properties.get('reply_to')
-
-    @property
-    def delivery_mode(self):
-        """AMQP attribute delivery_mode.
-
-        :return:
-        """
-        return self.properties.get('delivery_mode')
-
-    @property
-    def timestamp(self):
-        """AMQP attribute timestamp.
-
-        :return:
-        """
-        return self.properties.get('timestamp')
-
-    @property
-    def priority(self):
-        """AMQP attribute priority.
-
-        :return:
-        """
-        return self.properties.get('priority')
-
     @staticmethod
-    def create(channel, body, properties=None, **kwargs):
+    def create(channel, body, properties=None):
         """Create a new Message.
 
         :param Channel channel: AMQP-Storm Channel
         :param bytes|str|unicode body: Message body
         :param dict properties: Message properties
-        :param str app_id: Application id
-        :param str message_id: Message id
-        :param str user_id: User id
-        :param str content_encoding: Message content encoding
-        :param str correlation_id: Message correlation id
-        :param str reply_to: Message reply to
-        :param int delivery_mode: Message delivery mode
-        :param int priority: Message priority
-        :param datetime timestamp: Message timestamp
         :rtype: Message
         """
         properties = properties or {}
-        if 'app_id' in kwargs:
-            properties['app_id'] = kwargs['app_id']
-        if 'user_id' in kwargs:
-            properties['user_id'] = kwargs['user_id']
-        if 'message_id' in kwargs:
-            properties['message_id'] = kwargs['message_id']
-        if 'content_encoding' in kwargs:
-            properties['content_encoding'] = kwargs['content_encoding']
-        if 'content_type' in kwargs:
-            properties['content_type'] = kwargs['content_type']
-        if 'reply_to' in kwargs:
-            properties['reply_to'] = kwargs['reply_to']
-        if 'delivery_mode' in kwargs:
-            properties['delivery_mode'] = kwargs['delivery_mode']
-        if 'priority' in kwargs:
-            properties['priority'] = kwargs['priority']
-
-        if 'correlation_id' in kwargs:
-            properties['correlation_id'] = kwargs['correlation_id']
-        elif 'correlation_id' not in properties:
+        if 'correlation_id' not in properties:
             properties['correlation_id'] = str(uuid.uuid4())
-
-        if 'timestamp' in kwargs:
-            properties['timestamp'] = kwargs['timestamp']
-        elif 'timestamp' not in properties:
+        if 'message_id' not in properties:
+            properties['message_id'] = str(uuid.uuid4())
+        if 'timestamp' not in properties:
             properties['timestamp'] = datetime.utcnow()
 
         return Message(channel, auto_decode=False,
@@ -284,6 +175,166 @@ class Message(object):
         :rtype: tuple
         """
         return self._body, self._channel, self._method, self._properties
+
+    @property
+    def app_id(self):
+        """AMQP attribute app_id.
+
+        :return:
+        """
+        return self.properties.get('app_id')
+
+    @property
+    def user_id(self):
+        """AMQP attribute user_id.
+
+        :return:
+        """
+        return self.properties.get('user_id')
+
+    @property
+    def message_id(self):
+        """AMQP attribute message_id.
+
+        :return:
+        """
+        return self.properties.get('message_id')
+
+    @property
+    def content_encoding(self):
+        """AMQP attribute content_encoding.
+
+        :return:
+        """
+        return self.properties.get('content_encoding')
+
+    @property
+    def content_type(self):
+        """AMQP attribute content_type.
+
+        :return:
+        """
+        return self.properties.get('content_type')
+
+    @property
+    def correlation_id(self):
+        """AMQP attribute correlation_id.
+
+        :return:
+        """
+        return self.properties.get('correlation_id')
+
+    @property
+    def reply_to(self):
+        """AMQP attribute reply_to.
+
+        :return:
+        """
+        return self.properties.get('reply_to')
+
+    @property
+    def delivery_mode(self):
+        """AMQP attribute delivery_mode.
+
+        :return:
+        """
+        return self.properties.get('delivery_mode')
+
+    @property
+    def timestamp(self):
+        """AMQP attribute timestamp.
+
+        :return:
+        """
+        return self.properties.get('timestamp')
+
+    @property
+    def priority(self):
+        """AMQP attribute priority.
+
+        :return:
+        """
+        return self.properties.get('priority')
+
+    @app_id.setter
+    def app_id(self, value):
+        """AMQP attribute app_id.
+
+        :return:
+        """
+        self.properties['app_id'] = value
+
+    @user_id.setter
+    def user_id(self, value):
+        """AMQP attribute user_id.
+
+        :return:
+        """
+        self.properties['user_id'] = value
+
+    @message_id.setter
+    def message_id(self, value):
+        """AMQP attribute message_id.
+
+        :return:
+        """
+        self.properties['message_id'] = value
+
+    @content_encoding.setter
+    def content_encoding(self, value):
+        """AMQP attribute content_encoding.
+
+        :return:
+        """
+        self.properties['content_encoding'] = value
+
+    @content_type.setter
+    def content_type(self, value):
+        """AMQP attribute content_type.
+
+        :return:
+        """
+        self.properties['content_type'] = value
+
+    @correlation_id.setter
+    def correlation_id(self, value):
+        """AMQP attribute correlation_id.
+
+        :return:
+        """
+        self.properties['correlation_id'] = value
+
+    @reply_to.setter
+    def reply_to(self, value):
+        """AMQP attribute reply_to.
+
+        :return:
+        """
+        self.properties['reply_to'] = value
+
+    @delivery_mode.setter
+    def delivery_mode(self, value):
+        """AMQP attribute delivery_mode.
+
+        :return:
+        """
+        self.properties['delivery_mode'] = value
+
+    @timestamp.setter
+    def timestamp(self, value):
+        """AMQP attribute timestamp.
+
+        :return:
+        """
+        self.properties['timestamp'] = value
+
+    @priority.setter
+    def priority(self, value):
+        """AMQP attribute priority.
+
+        :return:
+        """
+        self.properties['priority'] = value
 
     def _try_decode_utf8_content(self, content, content_type):
         """Generic function to decode content.

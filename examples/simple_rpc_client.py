@@ -50,8 +50,8 @@ class FibonacciRpcClient(object):
 
     def call(self, number):
         self.response = None
-        message = Message.create(self.channel, body=str(number),
-                                 reply_to=self.callback_queue)
+        message = Message.create(self.channel, body=str(number))
+        message.reply_to = self.callback_queue
         self.correlation_id = message.correlation_id
         message.publish(routing_key='rpc_queue')
 

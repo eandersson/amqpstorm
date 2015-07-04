@@ -42,82 +42,92 @@ class MessageTests(unittest.TestCase):
 
         self.assertIsNone(message.app_id)
         self.assertIsNone(message.user_id)
-        self.assertIsNone(message.message_id)
         self.assertIsNone(message.reply_to)
         self.assertIsNone(message.content_encoding)
         self.assertIsNone(message.content_type)
         self.assertIsNone(message.priority)
         self.assertIsNone(message.delivery_mode)
+        self.assertIsInstance(message.message_id, str)
         self.assertIsInstance(message.correlation_id, str)
         self.assertIsInstance(message.timestamp, datetime)
 
     def test_message_app_id_custom_value(self):
         app_id = 'my-app'
 
-        message = Message.create(None, '', app_id=app_id)
+        message = Message.create(None, '')
+        message.app_id = app_id
 
         self.assertEqual(app_id, message.app_id)
 
     def test_message_user_id_custom_value(self):
         user_id = 'eandersson'
 
-        message = Message.create(None, '', user_id=user_id)
+        message = Message.create(None, '')
+        message.user_id = user_id
 
         self.assertEqual(user_id, message.user_id)
 
     def test_message_id_custom_value(self):
         message_id = 'my-message-1'
 
-        message = Message.create(None, '', message_id=message_id)
+        message = Message.create(None, '')
+        message.message_id = message_id
 
         self.assertEqual(message_id, message.message_id)
 
     def test_message_timestamp_custom_value(self):
         dt = datetime.now()
 
-        message = Message.create(None, '', timestamp=dt)
+        message = Message.create(None, '')
+        message.timestamp = dt
 
         self.assertEqual(dt, message.timestamp)
 
     def test_message_content_encoding_custom_value(self):
         content_encoding = 'gzip'
 
-        message = Message.create(None, '', content_encoding=content_encoding)
+        message = Message.create(None, '')
+        message.content_encoding = content_encoding
 
         self.assertEqual(content_encoding, message.content_encoding)
 
     def test_message_content_type_custom_value(self):
         content_type = 'application/json'
 
-        message = Message.create(None, '', content_type=content_type)
+        message = Message.create(None, '')
+        message.content_type = content_type
 
         self.assertEqual(content_type, message.content_type)
 
     def test_message_delivery_mode_two(self):
         delivery_mode = 2
 
-        message = Message.create(None, '', delivery_mode=delivery_mode)
+        message = Message.create(None, '')
+        message.delivery_mode = delivery_mode
 
         self.assertEqual(delivery_mode, message.delivery_mode)
 
     def test_message_priority_three(self):
         priority = 3
 
-        message = Message.create(None, '', priority=priority)
+        message = Message.create(None, '')
+        message.priority = priority
 
         self.assertEqual(priority, message.priority)
 
     def test_message_correlation_id_custom_value(self):
         correlation_id = str(uuid.uuid4())
 
-        message = Message.create(None, '', correlation_id=correlation_id)
+        message = Message.create(None, '')
+        message.correlation_id = correlation_id
 
         self.assertEqual(correlation_id, message.correlation_id)
 
     def test_message_reply_to_custom_value(self):
         reply_to = str(uuid.uuid4())
 
-        message = Message.create(None, '', reply_to=reply_to)
+        message = Message.create(None, '')
+        message.reply_to = reply_to
 
         self.assertEqual(reply_to, message.reply_to)
 
