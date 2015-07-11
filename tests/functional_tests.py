@@ -52,6 +52,33 @@ class PublishAndGetMessagesTest(unittest.TestCase):
         self.connection.close()
 
 
+class Publish50kTest(unittest.TestCase):
+    def setUp(self):
+        self.connection = Connection(HOST, USERNAME, PASSWORD)
+        self.channel = self.connection.channel()
+        self.channel.queue.declare('test.basic.50k')
+        self.channel.queue.purge('test.basic.50k')
+
+    def test_publish_50k_messages(self):
+        body = str(uuid.uuid4())
+        # Publish 5 Messages.
+        for _ in range(50000):
+            self.channel.basic.publish(body=body,
+                                       routing_key='test.basic.50k')
+
+        # Sleep for 0.5s to make sure RabbitMQ has time to catch up.
+        time.sleep(0.5)
+
+        result = self.channel.queue.declare(queue='test.basic.50k',
+                                            passive=True)
+        self.assertEqual(result['message_count'], 50000)
+
+    def tearDown(self):
+        self.channel.queue.delete('test.basic.10k')
+        self.channel.close()
+        self.connection.close()
+
+
 class PublishWithPropertiesAndGetTest(unittest.TestCase):
     def setUp(self):
         self.connection = Connection(HOST, USERNAME, PASSWORD)
@@ -61,7 +88,7 @@ class PublishWithPropertiesAndGetTest(unittest.TestCase):
         self.channel.confirm_deliveries()
 
     def test_publish_with_properties_and_get(self):
-        message = str(uuid.uuid4())
+        app_id = 'travis-ci'.encode('utf-8')
         properties = {
             'headers': {
                 'key': 1234567890,
@@ -69,9 +96,20 @@ class PublishWithPropertiesAndGetTest(unittest.TestCase):
             }
         }
 
-        self.channel.basic.publish(body=message,
-                                   routing_key='test.basic.properties',
-                                   properties=properties)
+        message = Message.create(self.channel,
+                                 body=str(uuid.uuid4()),
+                                 properties=properties)
+        # Assign Property app_id
+        message.app_id = app_id
+
+        # Check that it was set correctly.
+        self.assertEqual(message.properties['app_id'], app_id)
+
+        # Get Property Correlation Id
+        correlation_id = message.correlation_id
+
+        # Publish Message
+        message.publish(routing_key='test.basic.properties')
 
         # Sleep for 0.5s to make sure RabbitMQ has time to catch up.
         time.sleep(0.5)
@@ -81,14 +119,80 @@ class PublishWithPropertiesAndGetTest(unittest.TestCase):
                                          to_dict=False)
         self.assertEqual(payload.properties['headers']['key'], 1234567890)
         self.assertEqual(payload.properties['headers']['alpha'], 'omega')
+        self.assertEqual(payload.app_id, app_id.decode('utf-8'))
+        self.assertEqual(payload.correlation_id, correlation_id)
+        self.assertIsInstance(payload.properties['app_id'], str)
+        self.assertIsInstance(payload.properties['correlation_id'], str)
 
         # Old way
         result = payload.to_dict()
         self.assertEqual(result['properties']['headers'][b'key'], 1234567890)
         self.assertEqual(result['properties']['headers'][b'alpha'], b'omega')
+        self.assertIsInstance(result['properties']['app_id'], bytes)
+        self.assertIsInstance(result['properties']['correlation_id'], bytes)
+        self.assertEqual(result['properties']['app_id'], app_id)
+        self.assertEqual(result['properties']['correlation_id'],
+                         correlation_id.encode('utf-8'))
 
     def tearDown(self):
         self.channel.queue.delete('test.basic.properties')
+        self.channel.close()
+        self.connection.close()
+
+
+class PublishMessageAndResend(unittest.TestCase):
+    def setUp(self):
+        self.connection = Connection(HOST, USERNAME, PASSWORD)
+        self.channel = self.connection.channel()
+        self.channel.queue.declare('test.basic.resend')
+        self.channel.queue.purge('test.basic.resend')
+        self.channel.confirm_deliveries()
+        message = Message.create(self.channel,
+                                 body=str(uuid.uuid4()))
+        message.app_id = 'travis-ci'
+        message.publish('test.basic.resend')
+
+    def test_publish_with_properties_and_get(self):
+        message = self.channel.basic.get('test.basic.resend',
+                                         to_dict=False, no_ack=True)
+
+        # Check original app_id
+        self.assertEqual(message.app_id, 'travis-ci')
+
+        # Assign Property app_id
+        app_id = 'travis-ci-2'.encode('utf-8')
+        message.app_id = app_id
+
+        # Check that it was set correctly.
+        self.assertEqual(message.properties['app_id'], app_id)
+
+        # Get Property Correlation Id
+        correlation_id = message.correlation_id
+
+        # Publish Message
+        message.publish(routing_key='test.basic.resend')
+
+        # Sleep for 0.5s to make sure RabbitMQ has time to catch up.
+        time.sleep(0.5)
+
+        # New way
+        payload = self.channel.basic.get('test.basic.resend',
+                                         to_dict=False, no_ack=True)
+        self.assertEqual(payload.app_id, app_id.decode('utf-8'))
+        self.assertEqual(payload.correlation_id, correlation_id)
+        self.assertIsInstance(payload.properties['app_id'], str)
+        self.assertIsInstance(payload.properties['correlation_id'], str)
+
+        # Old way
+        result = payload.to_dict()
+        self.assertIsInstance(result['properties']['app_id'], bytes)
+        self.assertIsInstance(result['properties']['correlation_id'], bytes)
+        self.assertEqual(result['properties']['app_id'], app_id)
+        self.assertEqual(result['properties']['correlation_id'],
+                         correlation_id.encode('utf-8'))
+
+    def tearDown(self):
+        self.channel.queue.delete('test.basic.resend')
         self.channel.close()
         self.connection.close()
 

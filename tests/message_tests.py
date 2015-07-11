@@ -41,7 +41,6 @@ class MessageTests(unittest.TestCase):
         message = Message.create(None, body)
 
         self.assertIsNone(message.app_id)
-        self.assertIsNone(message.user_id)
         self.assertIsNone(message.reply_to)
         self.assertIsNone(message.content_encoding)
         self.assertIsNone(message.content_type)
@@ -59,21 +58,14 @@ class MessageTests(unittest.TestCase):
 
         self.assertEqual(app_id, message.app_id)
 
-    def test_message_user_id_custom_value(self):
-        user_id = 'eandersson'
-
-        message = Message.create(None, '')
-        message.user_id = user_id
-
-        self.assertEqual(user_id, message.user_id)
-
     def test_message_id_custom_value(self):
         message_id = 'my-message-1'
 
         message = Message.create(None, '')
         message.message_id = message_id
 
-        self.assertEqual(message_id, message.message_id)
+        self.assertEqual(message_id, message.properties['message_id'])
+        self.assertEqual(message_id, message._properties['message_id'])
 
     def test_message_timestamp_custom_value(self):
         dt = datetime.now()

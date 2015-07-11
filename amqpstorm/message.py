@@ -150,6 +150,150 @@ class Message(object):
                                            mandatory=mandatory,
                                            immediate=immediate)
 
+    @property
+    def app_id(self):
+        """Get AMQP Message attribute: app_id.
+
+        :return:
+        """
+        return self.properties.get('app_id')
+
+    @app_id.setter
+    def app_id(self, value):
+        """Set AMQP Message attribute: app_id.
+
+        :return:
+        """
+        self._update_properties('app_id', value)
+
+    @property
+    def message_id(self):
+        """Get AMQP Message attribute: message_id.
+
+        :return:
+        """
+        return self.properties.get('message_id')
+
+    @message_id.setter
+    def message_id(self, value):
+        """Set AMQP Message attribute: message_id.
+
+        :return:
+        """
+        self._update_properties('message_id', value)
+
+    @property
+    def content_encoding(self):
+        """Get AMQP Message attribute: content_encoding.
+
+        :return:
+        """
+        return self.properties.get('content_encoding')
+
+    @content_encoding.setter
+    def content_encoding(self, value):
+        """Set AMQP Message attribute: content_encoding.
+
+        :return:
+        """
+        self._update_properties('content_encoding', value)
+
+    @property
+    def content_type(self):
+        """Get AMQP Message attribute: content_type.
+
+        :return:
+        """
+        return self.properties.get('content_type')
+
+    @content_type.setter
+    def content_type(self, value):
+        """Set AMQP Message attribute: content_type.
+
+        :return:
+        """
+        self._update_properties('content_type', value)
+
+    @property
+    def correlation_id(self):
+        """Get AMQP Message attribute: correlation_id.
+
+        :return:
+        """
+        return self.properties.get('correlation_id')
+
+    @correlation_id.setter
+    def correlation_id(self, value):
+        """Set AMQP Message attribute: correlation_id.
+
+        :return:
+        """
+        self._update_properties('correlation_id', value)
+
+    @property
+    def delivery_mode(self):
+        """Get AMQP Message attribute: delivery_mode.
+
+        :return:
+        """
+        return self.properties.get('delivery_mode')
+
+    @delivery_mode.setter
+    def delivery_mode(self, value):
+        """Set AMQP Message attribute: delivery_mode.
+
+        :return:
+        """
+        self._update_properties('delivery_mode', value)
+
+    @property
+    def timestamp(self):
+        """Get AMQP Message attribute: timestamp.
+
+        :return:
+        """
+        return self.properties.get('timestamp')
+
+    @timestamp.setter
+    def timestamp(self, value):
+        """Set AMQP Message attribute: timestamp.
+
+        :return:
+        """
+        self._update_properties('timestamp', value)
+
+    @property
+    def priority(self):
+        """Get AMQP Message attribute: priority.
+
+        :return:
+        """
+        return self.properties.get('priority')
+
+    @priority.setter
+    def priority(self, value):
+        """Set AMQP Message attribute: priority.
+
+        :return:
+        """
+        self._update_properties('priority', value)
+
+    @property
+    def reply_to(self):
+        """Get AMQP Message attribute: reply_to.
+
+        :return:
+        """
+        return self.properties.get('reply_to')
+
+    @reply_to.setter
+    def reply_to(self, value):
+        """Set AMQP Message attribute: reply_to.
+
+        :return:
+        """
+        self._update_properties('reply_to', value)
+
     def json(self):
         """Deserialize the message body, if it is JSON.
 
@@ -176,165 +320,17 @@ class Message(object):
         """
         return self._body, self._channel, self._method, self._properties
 
-    @property
-    def app_id(self):
-        """AMQP attribute app_id.
+    def _update_properties(self, name, value):
+        """Update properties, and keep cache up-to-date if auto decode is
+        enabled.
 
+        :param str name: Key
+        :param obj value: Value
         :return:
         """
-        return self.properties.get('app_id')
-
-    @property
-    def user_id(self):
-        """AMQP attribute user_id.
-
-        :return:
-        """
-        return self.properties.get('user_id')
-
-    @property
-    def message_id(self):
-        """AMQP attribute message_id.
-
-        :return:
-        """
-        return self.properties.get('message_id')
-
-    @property
-    def content_encoding(self):
-        """AMQP attribute content_encoding.
-
-        :return:
-        """
-        return self.properties.get('content_encoding')
-
-    @property
-    def content_type(self):
-        """AMQP attribute content_type.
-
-        :return:
-        """
-        return self.properties.get('content_type')
-
-    @property
-    def correlation_id(self):
-        """AMQP attribute correlation_id.
-
-        :return:
-        """
-        return self.properties.get('correlation_id')
-
-    @property
-    def reply_to(self):
-        """AMQP attribute reply_to.
-
-        :return:
-        """
-        return self.properties.get('reply_to')
-
-    @property
-    def delivery_mode(self):
-        """AMQP attribute delivery_mode.
-
-        :return:
-        """
-        return self.properties.get('delivery_mode')
-
-    @property
-    def timestamp(self):
-        """AMQP attribute timestamp.
-
-        :return:
-        """
-        return self.properties.get('timestamp')
-
-    @property
-    def priority(self):
-        """AMQP attribute priority.
-
-        :return:
-        """
-        return self.properties.get('priority')
-
-    @app_id.setter
-    def app_id(self, value):
-        """AMQP attribute app_id.
-
-        :return:
-        """
-        self.properties['app_id'] = value
-
-    @user_id.setter
-    def user_id(self, value):
-        """AMQP attribute user_id.
-
-        :return:
-        """
-        self.properties['user_id'] = value
-
-    @message_id.setter
-    def message_id(self, value):
-        """AMQP attribute message_id.
-
-        :return:
-        """
-        self.properties['message_id'] = value
-
-    @content_encoding.setter
-    def content_encoding(self, value):
-        """AMQP attribute content_encoding.
-
-        :return:
-        """
-        self.properties['content_encoding'] = value
-
-    @content_type.setter
-    def content_type(self, value):
-        """AMQP attribute content_type.
-
-        :return:
-        """
-        self.properties['content_type'] = value
-
-    @correlation_id.setter
-    def correlation_id(self, value):
-        """AMQP attribute correlation_id.
-
-        :return:
-        """
-        self.properties['correlation_id'] = value
-
-    @reply_to.setter
-    def reply_to(self, value):
-        """AMQP attribute reply_to.
-
-        :return:
-        """
-        self.properties['reply_to'] = value
-
-    @delivery_mode.setter
-    def delivery_mode(self, value):
-        """AMQP attribute delivery_mode.
-
-        :return:
-        """
-        self.properties['delivery_mode'] = value
-
-    @timestamp.setter
-    def timestamp(self, value):
-        """AMQP attribute timestamp.
-
-        :return:
-        """
-        self.properties['timestamp'] = value
-
-    @priority.setter
-    def priority(self, value):
-        """AMQP attribute priority.
-
-        :return:
-        """
-        self.properties['priority'] = value
+        if self._auto_decode and 'properties' in self._decode_cache:
+            self._decode_cache['properties'][name] = value
+        self._properties[name] = value
 
     def _try_decode_utf8_content(self, content, content_type):
         """Generic function to decode content.
@@ -347,9 +343,8 @@ class Message(object):
         if content_type in self._decode_cache:
             return self._decode_cache[content_type]
         if isinstance(content, dict):
-            return self._try_decode_dict_content(content)
-        content = try_utf8_decode(content)
-        self._decode_cache[content_type] = content
+            content = self._try_decode_dict_content(content)
+        self._decode_cache[content_type] = try_utf8_decode(content)
         return content
 
     def _try_decode_dict_content(self, content):
