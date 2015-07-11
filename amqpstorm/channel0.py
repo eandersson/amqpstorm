@@ -76,8 +76,7 @@ class Channel0(object):
         if frame_in.reply_code != 200:
             message = 'Connection was closed by remote server: %s' \
                       % frame_in.reply_text.decode('utf-8')
-            why = AMQPConnectionError(message)
-            self._connection.exceptions.append(why)
+            self._connection.exceptions.append(AMQPConnectionError(message))
 
     def _set_connection_state(self, state):
         """Set Connection state.

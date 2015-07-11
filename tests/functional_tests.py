@@ -74,7 +74,7 @@ class Publish50kTest(unittest.TestCase):
         self.assertEqual(result['message_count'], 50000)
 
     def tearDown(self):
-        self.channel.queue.delete('test.basic.10k')
+        self.channel.queue.delete('test.basic.50k')
         self.channel.close()
         self.connection.close()
 

@@ -223,8 +223,7 @@ class Channel(BaseChannel):
                 why = AMQPConnectionError('connection was closed')
                 self.exceptions.append(why)
         if self.is_closed:
-            why = AMQPChannelError('channel was closed')
-            self.exceptions.append(why)
+            self.exceptions.append(AMQPChannelError('channel was closed'))
         super(Channel, self).check_for_errors()
 
     def rpc_request(self, frame_out):
@@ -248,7 +247,7 @@ class Channel(BaseChannel):
         if frame_in.reply_code != 200:
             message = 'Channel %d was closed by remote server: %s' % \
                       (self._channel_id, frame_in.reply_text.decode('utf-8'))
-            self._exceptions.append(AMQPChannelError(message))
+            self.exceptions.append(AMQPChannelError(message))
         del self._inbound[:]
         self.set_state(self.CLOSED)
 

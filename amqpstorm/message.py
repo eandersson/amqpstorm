@@ -6,14 +6,14 @@ import uuid
 
 from datetime import datetime
 
+from amqpstorm.base import BaseMessage
 from amqpstorm.exception import AMQPMessageError
 from amqpstorm.compatibility import try_utf8_decode
 
 
-class Message(object):
+class Message(BaseMessage):
     """RabbitMQ Message Class."""
-    __slots__ = ['_auto_decode', '_decode_cache', '_body', '_channel',
-                 '_method', '_properties']
+    __slots__ = ['_auto_decode', '_decode_cache']
 
     def __init__(self, channel, auto_decode=True, **message):
         """
@@ -24,16 +24,9 @@ class Message(object):
         :param dict method: Message method
         :param dict properties: Message properties
         """
+        super(Message, self).__init__(channel, **message)
         self._decode_cache = dict()
         self._auto_decode = auto_decode
-        self._channel = channel
-        self._body = message.get('body', None)
-        self._method = message.get('method', None)
-        self._properties = message.get('properties', {'headers': {}})
-
-    def __iter__(self):
-        for attribute in ['_body', '_channel', '_method', '_properties']:
-            yield (attribute[1::], getattr(self, attribute))
 
     @staticmethod
     def create(channel, body, properties=None):
@@ -301,25 +294,6 @@ class Message(object):
         """
         return json.loads(self.body)
 
-    def to_dict(self):
-        """Message to Dictionary.
-
-        :rtype: dict
-        """
-        return {
-            'body': self._body,
-            'method': self._method,
-            'properties': self._properties,
-            'channel': self._channel
-        }
-
-    def to_tuple(self):
-        """Message to Tuple.
-
-        :rtype: tuple
-        """
-        return self._body, self._channel, self._method, self._properties
-
     def _update_properties(self, name, value):
         """Update properties, and keep cache up-to-date if auto decode is
         enabled.
@@ -343,11 +317,13 @@ class Message(object):
         if content_type in self._decode_cache:
             return self._decode_cache[content_type]
         if isinstance(content, dict):
-            content = self._try_decode_dict_content(content)
-        self._decode_cache[content_type] = try_utf8_decode(content)
+            content = self._try_decode_dict(content)
+        else:
+            content = try_utf8_decode(content)
+        self._decode_cache[content_type] = content
         return content
 
-    def _try_decode_dict_content(self, content):
+    def _try_decode_dict(self, content):
         """Decode content of a dictionary.
 
         :param dict content:
@@ -357,15 +333,17 @@ class Message(object):
         for key, value in content.items():
             key = try_utf8_decode(key)
             if isinstance(value, dict):
-                result[key] = self._try_decode_dict_content(value)
+                result[key] = self._try_decode_dict(value)
             elif isinstance(value, list):
-                result[key] = self._try_decode_list_content(value)
+                result[key] = self._try_decode_list(value)
+            elif isinstance(value, tuple):
+                result[key] = self._try_decode_tuple(value)
             else:
                 result[key] = try_utf8_decode(value)
         return result
 
     @staticmethod
-    def _try_decode_list_content(content):
+    def _try_decode_list(content):
         """Decode content of a list.
 
         :param list content:
@@ -375,3 +353,12 @@ class Message(object):
         for value in content:
             result.append(try_utf8_decode(value))
         return result
+
+    @staticmethod
+    def _try_decode_tuple(content):
+        """Decode content of a tuple.
+
+        :param tuple content:
+        :return:
+        """
+        return tuple(Message._try_decode_list(content))

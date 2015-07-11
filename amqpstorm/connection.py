@@ -38,6 +38,7 @@ class Connection(Stateful):
         :param int|float timeout: Socket timeout
         :param bool ssl: Enable SSL
         :param dict ssl_options: SSL Kwargs
+        :param bool lazy: Lazy initialize the connection
         :return:
         """
         super(Connection, self).__init__()
@@ -48,7 +49,7 @@ class Connection(Stateful):
             'port': port,
             'virtual_host': kwargs.get('virtual_host', '/'),
             'heartbeat': kwargs.get('heartbeat', 60),
-            'timeout': kwargs.get('timeout', 0),
+            'timeout': kwargs.get('timeout', 30),
             'ssl': kwargs.get('ssl', False),
             'ssl_options': kwargs.get('ssl_options', {})
         }
@@ -58,7 +59,8 @@ class Connection(Stateful):
         self._channel0 = Channel0(self)
         self._channels = {}
         self._validate_parameters()
-        self.open()
+        if not kwargs.get('lazy', False):
+            self.open()
 
     def __enter__(self):
         return self
@@ -256,4 +258,4 @@ class Connection(Stateful):
         if previous_state != self.CLOSED:
             LOGGER.error(why, exc_info=False)
         self.io.close()
-        self._exceptions.append(AMQPConnectionError(why))
+        self.exceptions.append(AMQPConnectionError(why))

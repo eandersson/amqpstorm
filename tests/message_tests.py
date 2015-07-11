@@ -144,7 +144,6 @@ class MessageTests(unittest.TestCase):
         message = Message(body='Hello World',
                           properties={'key': 'value',
                                       'headers': {b'name': b'eandersson'}},
-                          method={'key': 'value'},
                           channel=None)
 
         self.assertIn('name', message.properties['headers'])
@@ -153,7 +152,6 @@ class MessageTests(unittest.TestCase):
 
     def test_auto_decode_when_method_is_none(self):
         message = Message(body='Hello World',
-                          properties={'key': 'value'},
                           method=None,
                           channel=None)
 
@@ -163,30 +161,16 @@ class MessageTests(unittest.TestCase):
         method_data = {'key': [b'a', b'b']}
 
         message = Message(body='Hello World',
-                          properties={'key': 'value'},
                           method=method_data,
                           channel=None)
 
         self.assertEqual(method_data['key'][0].decode('utf-8'),
                          message.method['key'][0])
 
-    def test_auto_decode_when_properties_contains_list(self):
-        prop_data = [1, 2, 3, 4, 5]
-
-        message = Message(body='Hello World',
-                          properties={'key': [1, 2, 3, 4, 5]},
-                          method=prop_data,
-                          channel=None)
-
-        self.assertEqual(prop_data, message.properties['key'])
-        self.assertEqual(prop_data[0], message.properties['key'][0])
-        self.assertEqual(prop_data[4], message.properties['key'][4])
-
     def test_auto_decode_when_method_is_tuple(self):
         method_data = (1, 2, 3, 4, 5)
 
         message = Message(body='Hello World',
-                          properties={'key': 'value'},
                           method=method_data,
                           channel=None)
 
@@ -194,11 +178,47 @@ class MessageTests(unittest.TestCase):
         self.assertEqual(method_data[0], message.method[0])
         self.assertEqual(method_data[4], message.method[4])
 
+    def test_auto_decode_when_properties_contains_list(self):
+        prop_data = [b'travis', 2, 3, 4, 5]
+
+        message = Message(body='Hello World',
+                          properties={'key': prop_data},
+                          channel=None)
+
+        self.assertIsInstance(message.properties['key'], list)
+        self.assertEqual(prop_data[0].decode('utf-8'),
+                         message.properties['key'][0])
+        self.assertEqual(prop_data[4], message.properties['key'][4])
+
+    def test_auto_decode_when_properties_contains_tuple(self):
+        prop_data = (b'travis', 2, 3, 4, 5)
+
+        message = Message(body='Hello World',
+                          properties={'key': prop_data},
+                          channel=None)
+
+        self.assertIsInstance(message.properties['key'], tuple)
+        self.assertEqual(prop_data[0].decode('utf-8'),
+                         message.properties['key'][0])
+        self.assertEqual(prop_data[4], message.properties['key'][4])
+
+    def test_auto_decode_when_properties_contains_dict(self):
+        prop_data = {
+            'hello': b'travis'
+        }
+
+        message = Message(body='Hello World',
+                          properties={'key': prop_data},
+                          channel=None)
+
+        self.assertIsInstance(message.properties['key'], dict)
+        self.assertEqual(prop_data['hello'].decode('utf-8'),
+                         message.properties['key']['hello'])
+
     def test_auto_decode_disabled(self):
         message = Message(body='Hello World',
                           properties={'key': 'value',
                                       'headers': {b'name': b'eandersson'}},
-                          method={'key': 'value'},
                           channel=None,
                           auto_decode=False)
 

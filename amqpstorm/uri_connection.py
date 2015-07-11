@@ -64,7 +64,8 @@ class UriConnection(Connection):
         virtual_host = urlparse.unquote(parsed.path[1:]) or '/'
         kwargs = urlparse.parse_qs(parsed.query)
         heartbeat = kwargs.get('heartbeat', [60])[0]
-        timeout = kwargs.get('timeout', [0])[0]
+        timeout = kwargs.get('timeout', [30])[0]
+        lazy = parsed.query.startswith('lazy')
 
         ssl_options = {}
         if ssl and use_ssl:
@@ -75,7 +76,8 @@ class UriConnection(Connection):
                                             heartbeat=int(heartbeat),
                                             timeout=int(timeout),
                                             ssl=use_ssl,
-                                            ssl_options=ssl_options)
+                                            ssl_options=ssl_options,
+                                            lazy=lazy)
 
     def _parse_ssl_options(self, options, ssl_options):
         """Parse SSL Options.

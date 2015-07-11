@@ -260,3 +260,42 @@ class BaseChannel(Stateful):
                 self._consumer_tags.remove(tag)
         else:
             self._consumer_tags = []
+
+
+class BaseMessage(object):
+    __slots__ = ['_body', '_channel', '_method', '_properties']
+
+    def __init__(self, channel, **message):
+        """
+        :param Channel channel: amqp-storm Channel
+        :param str|unicode body: Message body
+        :param dict method: Message method
+        :param dict properties: Message properties
+        """
+        self._channel = channel
+        self._body = message.get('body', None)
+        self._method = message.get('method', None)
+        self._properties = message.get('properties', {'headers': {}})
+
+    def __iter__(self):
+        for attribute in ['_body', '_channel', '_method', '_properties']:
+            yield (attribute[1::], getattr(self, attribute))
+
+    def to_dict(self):
+        """Message to Dictionary.
+
+        :rtype: dict
+        """
+        return {
+            'body': self._body,
+            'method': self._method,
+            'properties': self._properties,
+            'channel': self._channel
+        }
+
+    def to_tuple(self):
+        """Message to Tuple.
+
+        :rtype: tuple
+        """
+        return self._body, self._channel, self._method, self._properties
