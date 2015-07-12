@@ -1,6 +1,7 @@
 """AMQP-Storm Uri wrapper for Connection."""
 __author__ = 'eandersson'
 
+import sys
 import logging
 
 try:
@@ -16,6 +17,9 @@ except ImportError:
 from amqpstorm.connection import Connection
 
 LOGGER = logging.getLogger(__name__)
+
+if sys.version_info < (2, 7):
+    LOGGER.critical('UriConnection not supported on Python 2.6')
 
 if ssl:
     SSL_VERSIONS = {}

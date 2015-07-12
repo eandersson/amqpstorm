@@ -25,8 +25,8 @@ def send_messages(connection):
             time.sleep(1)
             continue
 
-        # Publish a message to the queue.
-        channel.basic.publish('Hey World!', 'simple_queue')
+        # Increment message counter.
+        messages_sent += 1
 
         # After 10,000 messages has been sent, stop publishing on
         # this thread.
@@ -35,8 +35,8 @@ def send_messages(connection):
                          .format(int(channel), time.time() - start_time))
             break
 
-        # Increment message counter.
-        messages_sent += 1
+        # Publish a message to the queue.
+        channel.basic.publish('Hey World!', 'simple_queue')
 
 
 if __name__ == '__main__':

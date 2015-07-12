@@ -106,7 +106,7 @@ class Connection(Stateful):
 
     def open(self):
         """Open Connection."""
-        LOGGER.debug('Connection Opening.')
+        LOGGER.debug('Connection Opening')
         self._exceptions = []
         self.set_state(self.OPENING)
         self.io.open(self.parameters['hostname'],
@@ -115,22 +115,22 @@ class Connection(Stateful):
         while not self.is_open:
             self.check_for_errors()
             sleep(IDLE_WAIT)
-        LOGGER.debug('Connection Opened.')
+        LOGGER.debug('Connection Opened')
 
     def close(self):
         """Close connection."""
-        LOGGER.debug('Connection Closing.')
+        LOGGER.debug('Connection Closing')
         if not self.is_closed and self.io.socket:
             self._close_channels()
             self.set_state(self.CLOSING)
             self._channel0.send_close_connection_frame()
         self.io.close()
         self.set_state(self.CLOSED)
-        LOGGER.debug('Connection Closed.')
+        LOGGER.debug('Connection Closed')
 
     def channel(self, rpc_timeout=360):
         """Open Channel."""
-        LOGGER.debug('Opening new Channel.')
+        LOGGER.debug('Opening new Channel')
         if not compatibility.is_integer(rpc_timeout):
             raise AMQPInvalidArgument('rpc_timeout should be an integer')
         with self.io.lock:
@@ -138,7 +138,7 @@ class Connection(Stateful):
             channel = Channel(channel_id, self, rpc_timeout)
             self._channels[channel_id] = channel
             channel.open()
-        LOGGER.debug('Channel #%d Opened.', channel_id)
+        LOGGER.debug('Channel #%d Opened', channel_id)
         return self._channels[channel_id]
 
     def check_for_errors(self):

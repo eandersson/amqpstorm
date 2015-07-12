@@ -54,7 +54,7 @@ class Channel0(object):
                            frame_in.reason.decode('utf-8'))
         elif frame_in.name == 'Connection.Unblocked':
             self.is_blocked = False
-            LOGGER.info('Connection is no longer blocked by remote server.')
+            LOGGER.info('Connection is no longer blocked by remote server')
         else:
             LOGGER.error('Unhandled Frame: %s -- %s',
                          frame_in.name, dict(frame_in))

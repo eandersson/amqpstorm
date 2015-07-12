@@ -71,7 +71,7 @@ class Channel(BaseChannel):
         :param str reply_text:
         :return:
         """
-        LOGGER.debug('Channel #%d Closing.', self.channel_id)
+        LOGGER.debug('Channel #%d Closing', self.channel_id)
         if not compatibility.is_integer(reply_code):
             raise AMQPInvalidArgument('reply_code should be an integer')
         elif not compatibility.is_string(reply_text):
@@ -88,7 +88,7 @@ class Channel(BaseChannel):
             reply_text=reply_text))
         del self._inbound[:]
         self.set_state(self.CLOSED)
-        LOGGER.debug('Channel #%d Closed.', self.channel_id)
+        LOGGER.debug('Channel #%d Closed', self.channel_id)
 
     def confirm_deliveries(self):
         """Set the channel to confirm that each message has been
@@ -276,13 +276,13 @@ class Channel(BaseChannel):
             basic_deliver = self._inbound.pop(0)
             if not isinstance(basic_deliver, pamqp_spec.Basic.Deliver):
                 LOGGER.warning('Received an out-of-order frame: %s was '
-                               'expecting a Basic.Deliver frame.',
+                               'expecting a Basic.Deliver frame',
                                basic_deliver)
                 return None
             content_header = self._inbound.pop(0)
             if not isinstance(content_header, ContentHeader):
                 LOGGER.warning('Received an out-of-order frame: %s was '
-                               'expecting a ContentHeader frame.',
+                               'expecting a ContentHeader frame',
                                content_header)
                 return None
             body = self._build_message_body(content_header.body_size)

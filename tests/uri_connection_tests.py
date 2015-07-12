@@ -1,5 +1,6 @@
 __author__ = 'eandersson'
 
+import sys
 import ssl
 import logging
 
@@ -14,6 +15,8 @@ from amqpstorm import UriConnection
 logging.basicConfig(level=logging.DEBUG)
 
 
+@unittest.skipIf(sys.version_info < (2, 7),
+                 'UriConnection not supported in Python 2.6')
 class UriConnectionTests(unittest.TestCase):
     def test_default_uri(self):
         connection = \

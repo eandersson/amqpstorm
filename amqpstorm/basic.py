@@ -58,7 +58,7 @@ class Basic(object):
         elif not isinstance(no_ack, bool):
             raise AMQPInvalidArgument('no_ack should be a boolean')
         elif self._channel.consumer_tags:
-            raise AMQPChannelError('Cannot call \'get\' when set to consume.')
+            raise AMQPChannelError('Cannot call \'get\' when set to consume')
         get_frame = pamqp_spec.Basic.Get(queue=queue,
                                          no_ack=no_ack)
         with self._channel.lock and self._channel.rpc.lock:
