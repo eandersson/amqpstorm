@@ -19,7 +19,7 @@ from amqpstorm.connection import Connection
 LOGGER = logging.getLogger(__name__)
 
 if sys.version_info < (2, 7):
-    LOGGER.critical('UriConnection not supported on Python 2.6')
+    LOGGER.critical('UriConnection not supported in Python 2.6')
 
 if ssl:
     SSL_VERSIONS = {}
