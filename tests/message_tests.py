@@ -11,7 +11,7 @@ except ImportError:
     import unittest
 
 from amqpstorm import Message
-
+from amqpstorm.exception import *
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -140,15 +140,53 @@ class MessageTests(unittest.TestCase):
         self.assertEqual(correlation_id, message.correlation_id)
         self.assertEqual(timestamp, message.timestamp)
 
+    def test_get_channel(self):
+        class FakeClass(object):
+            pass
+
+        message = Message(body='',
+                          channel=FakeClass())
+
+        self.assertIsInstance(message.channel, FakeClass)
+
+    def test_ack_raises_on_outbound(self):
+        message = Message.create(body='',
+                                 channel=None)
+
+        self.assertRaises(AMQPMessageError, message.ack)
+
+    def test_nack_raises_on_outbound(self):
+        message = Message.create(body='',
+                                 channel=None)
+
+        self.assertRaises(AMQPMessageError, message.nack)
+
+    def test_reject_raises_on_outbound(self):
+        message = Message.create(body='',
+                                 channel=None)
+
+        self.assertRaises(AMQPMessageError, message.reject)
+
     def test_auto_decode_enabled(self):
-        message = Message(body='Hello World',
+        body = 'Hello World',
+        message = Message(body=body,
                           properties={'key': 'value',
                                       'headers': {b'name': b'eandersson'}},
                           channel=None)
 
+        self.assertEqual(body, message.body)
         self.assertIn('name', message.properties['headers'])
         self.assertIn(b'name', message._properties['headers'])
         self.assertIsInstance(message.properties['headers']['name'], str)
+
+    def test_auto_decode_cache(self):
+        body = 'Hello World',
+        message = Message(body=body,
+                          channel=None)
+
+        self.assertEqual(body, message.body)
+        message._body = 'invalidate'
+        self.assertEqual(body, message.body)
 
     def test_auto_decode_when_method_is_none(self):
         message = Message(body='Hello World',
@@ -216,14 +254,29 @@ class MessageTests(unittest.TestCase):
                          message.properties['key']['hello'])
 
     def test_auto_decode_disabled(self):
-        message = Message(body='Hello World',
+        body = 'Hello World'
+        message = Message(body=body,
                           properties={'key': 'value',
                                       'headers': {b'name': b'eandersson'}},
                           channel=None,
                           auto_decode=False)
 
+        self.assertEqual(body, message.body)
         self.assertIn(b'name', message.properties['headers'])
         self.assertIsInstance(message.properties['headers'][b'name'], bytes)
+
+    def test_update_property_with_decode(self):
+        message = Message(None, auto_decode=True)
+        message._update_properties('app_id', '123')
+        self.assertEqual(message.properties['app_id'], '123')
+        self.assertEqual(message._properties['app_id'], '123')
+
+    def test_update_property_without_decode(self):
+        message = Message.create(None, '', None)
+        message._auto_decode = False
+        message._update_properties('app_id', '123')
+        self.assertEqual(message.properties['app_id'], '123')
+        self.assertEqual(message._properties['app_id'], '123')
 
     def test_json(self):
         body = '{"key": "value"}'

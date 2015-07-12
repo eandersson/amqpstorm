@@ -14,6 +14,7 @@ from pamqp.header import ContentHeader
 from amqpstorm import exception
 from amqpstorm import Message
 from amqpstorm import Channel
+from amqpstorm.exception import *
 
 from tests.utility import FakeConnection
 
@@ -109,7 +110,7 @@ class BasicChannelTests(unittest.TestCase):
 
         self.assertEqual(index, 4)
 
-    def test_basic_return(self):
+    def test_basic_return_raises_when_500(self):
         channel = Channel(0, None, 360)
 
         basic_return = specification.Basic.Return(reply_code=500,
@@ -118,6 +119,7 @@ class BasicChannelTests(unittest.TestCase):
 
         self.assertEqual(len(channel.exceptions), 1)
         why = channel.exceptions.pop(0)
+        self.assertIsInstance(why, AMQPMessageError)
         self.assertEqual(str(why), "Message not delivered: Error (500) "
                                    "to queue '' from exchange ''")
 
@@ -138,10 +140,10 @@ class BasicChannelTests(unittest.TestCase):
         self.assertEqual(channel._consumer_tags, [])
         self.assertEqual(channel._state, channel.CLOSED)
 
-    def test_check_error_throw_exception(self):
+    def test_throw_exception_check_for_error(self):
         channel = Channel(0, FakeConnection(), 360)
-        channel.exceptions.append(Exception('Test'))
-        self.assertRaises(Exception, channel.check_for_errors)
+        channel.exceptions.append(AMQPConnectionError('Test'))
+        self.assertRaises(AMQPConnectionError, channel.check_for_errors)
 
     def test_check_error_no_exception(self):
         channel = Channel(0, FakeConnection(), 360)

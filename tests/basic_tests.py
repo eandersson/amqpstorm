@@ -110,4 +110,3 @@ class BasicBasicTests(unittest.TestCase):
         uuid = channel.rpc.register_request([body.name])
         self.assertRaises(exception.AMQPChannelError, basic._get_content_body,
                           uuid, len(message))
-

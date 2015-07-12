@@ -6,7 +6,9 @@ from amqpstorm.base import Stateful
 class FakeConnection(Stateful):
     frames_out = []
     parameters = {
-        'heartbeat': 60
+        'heartbeat': 60,
+        'timeout': 30,
+        'ssl': False
     }
 
     def __init__(self, state=3):

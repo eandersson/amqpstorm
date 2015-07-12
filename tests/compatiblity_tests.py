@@ -71,3 +71,31 @@ class CompatibilityTests(unittest.TestCase):
     def test_try_utf8_decode_on_dict(self):
         x = dict(hello='world')
         self.assertEqual(x, compatibility.try_utf8_decode(x))
+
+    @unittest.skipIf(sys.version_info[0] == 3, 'Python 2.x test')
+    def test_python_2_x(self):
+        self.assertFalse(compatibility.PYTHON3)
+
+    @unittest.skipIf(sys.version_info[0] == 2, 'Python 3.x test')
+    def test_python_3_x(self):
+        self.assertTrue(compatibility.PYTHON3)
+
+    @unittest.skipIf(sys.version_info[0] == 3, 'Python 2.x test')
+    def test_python_2_x_range(self):
+        self.assertEqual(compatibility.RANGE, xrange)
+
+    @unittest.skipIf(sys.version_info[0] == 2, 'Python 3.x test')
+    def test_python_3_x_range(self):
+        self.assertEqual(compatibility.RANGE, range)
+
+    def test_python_pypy(self):
+        try:
+            import __pypy__
+            PYPY = True
+        except ImportError:
+            PYPY = False
+
+        if PYPY:
+            self.assertTrue(compatibility.PYPY)
+        else:
+            self.assertFalse(compatibility.PYPY)

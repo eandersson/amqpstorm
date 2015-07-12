@@ -73,7 +73,7 @@ class UriConnection(Connection):
 
         ssl_options = {}
         if ssl and use_ssl:
-            self._parse_ssl_options(kwargs, ssl_options)
+            ssl_options = self._parse_ssl_options(kwargs)
         super(UriConnection, self).__init__(hostname, username,
                                             password, port,
                                             virtual_host=virtual_host,
@@ -83,23 +83,25 @@ class UriConnection(Connection):
                                             ssl_options=ssl_options,
                                             lazy=lazy)
 
-    def _parse_ssl_options(self, options, ssl_options):
+    def _parse_ssl_options(self, ssl_kwargs):
         """Parse SSL Options.
 
-        :param options:
+        :param ssl_kwargs:
         :param ssl_options:
         :return:
         """
-        for key in options:
+        ssl_options = {}
+        for key in ssl_kwargs:
             if key not in SSL_OPTIONS:
                 continue
             if 'ssl_version' in key:
-                value = self._get_ssl_version(options[key][0])
+                value = self._get_ssl_version(ssl_kwargs[key][0])
             elif 'cert_reqs' in key:
-                value = self._get_ssl_validation(options[key][0])
+                value = self._get_ssl_validation(ssl_kwargs[key][0])
             else:
-                value = options[key][0]
+                value = ssl_kwargs[key][0]
             ssl_options[key] = value
+        return ssl_options
 
     @staticmethod
     def _get_ssl_version(value):

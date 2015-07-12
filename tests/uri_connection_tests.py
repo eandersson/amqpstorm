@@ -11,7 +11,6 @@ except ImportError:
 
 from amqpstorm import UriConnection
 
-
 logging.basicConfig(level=logging.DEBUG)
 
 
@@ -89,3 +88,42 @@ class UriConnectionTests(unittest.TestCase):
                          'file.crt')
         self.assertEqual(connection.parameters['ssl_options']['ca_certs'],
                          'test')
+
+    def test_get_ssl_version(self):
+        connection = \
+            UriConnection('amqp://guest:guest@localhost:5672/%2F?lazy')
+        self.assertEqual(ssl.PROTOCOL_SSLv3,
+                         connection._get_ssl_version('protocol_sslv3'))
+
+    def test_get_invalid_ssl_version(self):
+        connection = \
+            UriConnection('amqp://guest:guest@localhost:5672/%2F?lazy')
+        self.assertEqual(connection._get_ssl_version('protocol_test'),
+                         ssl.PROTOCOL_TLSv1)
+
+    def test_get_ssl_validation(self):
+        connection = \
+            UriConnection('amqp://guest:guest@localhost:5672/%2F?lazy')
+        self.assertEqual(ssl.CERT_REQUIRED,
+                         connection._get_ssl_validation('cert_required'))
+
+    def test_get_invalid_ssl_validation(self):
+        connection = \
+            UriConnection('amqp://guest:guest@localhost:5672/%2F?lazy')
+        self.assertEqual(ssl.CERT_NONE,
+                         connection._get_ssl_validation('cert_test'))
+
+    def test_get_ssl_options(self):
+        connection = \
+            UriConnection('amqp://guest:guest@localhost:5672/%2F?lazy')
+        ssl_kwargs = {
+            'cert_reqs': ['cert_required'],
+            'ssl_version': ['protocol_sslv3'],
+            'keyfile': ['file.key'],
+            'certfile': ['file.crt']
+        }
+        ssl_options = connection._parse_ssl_options(ssl_kwargs)
+        self.assertEqual(ssl_options['cert_reqs'], ssl.CERT_REQUIRED)
+        self.assertEqual(ssl_options['ssl_version'], ssl.PROTOCOL_SSLv3)
+        self.assertEqual(ssl_options['keyfile'], 'file.key')
+        self.assertEqual(ssl_options['certfile'], 'file.crt')

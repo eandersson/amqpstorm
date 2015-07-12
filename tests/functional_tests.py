@@ -210,9 +210,6 @@ class PublishAndConsumeMessagesTest(unittest.TestCase):
             self.channel.basic.publish(body=str(uuid.uuid4()),
                                        routing_key='test.basic.consume')
 
-        # Sleep for 0.5s to make sure RabbitMQ has time to catch up.
-        time.sleep(0.5)
-
         # Store and inbound messages.
         inbound_messages = []
 
@@ -226,6 +223,10 @@ class PublishAndConsumeMessagesTest(unittest.TestCase):
         self.channel.basic.consume(callback=on_message,
                                    queue='test.basic.consume',
                                    no_ack=True)
+
+        # Sleep for 0.5s to make sure RabbitMQ has time to catch up.
+        time.sleep(0.5)
+
         self.channel.process_data_events()
 
         # Make sure all five messages were downloaded.

@@ -128,6 +128,18 @@ class RpcTests(unittest.TestCase):
         rpc.remove_response(uuid)
         self.assertEqual(len(rpc.response), 0)
 
+    def test_remove_request_none(self):
+        rpc = Rpc(FakeConnection())
+        self.assertIsNone(rpc.remove_request(None))
+
+    def test_remove_response_none(self):
+        rpc = Rpc(FakeConnection())
+        self.assertIsNone(rpc.remove_response(None))
+
+    def test_get_request_not_found(self):
+        rpc = Rpc(FakeConnection())
+        self.assertIsNone(rpc.get_request(None))
+
     def test_on_frame(self):
         rpc = Rpc(FakeConnection())
         uuid = rpc.register_request(['Test'])
