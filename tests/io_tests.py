@@ -47,8 +47,8 @@ class IOTests(unittest.TestCase):
         io = IO(connection.parameters)
         sock_address_tuple = io._get_socket_address('127.0.0.1', 5672)
 
-        self.assertEqual(sock_address_tuple,
-                         (2, 0, 0, '', ('127.0.0.1', 5672)))
+        self.assertEqual(sock_address_tuple[4],
+                         ('127.0.0.1', 5672))
 
     def test_simple_receive(self):
         connection = FakeConnection()
