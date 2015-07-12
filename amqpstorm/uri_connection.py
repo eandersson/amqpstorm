@@ -16,6 +16,7 @@ except ImportError:
 
 from amqpstorm.connection import Connection
 
+
 LOGGER = logging.getLogger(__name__)
 
 if sys.version_info < (2, 7):
@@ -87,7 +88,6 @@ class UriConnection(Connection):
         """Parse SSL Options.
 
         :param ssl_kwargs:
-        :param ssl_options:
         :return:
         """
         ssl_options = {}

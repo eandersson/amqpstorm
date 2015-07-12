@@ -1,5 +1,11 @@
 # Changelog
 
+### Version 1.2.2
+- Added shortcuts for common properties in the Message class, e.g. message.app_id.
+- Added lazy initialize parameters for Connections.
+- Fixed minor bug in caching mechanism.
+- Changed default socket timeout to 30.
+
 ### Version 1.2.1
 - Changed default SSL version to TLSv1_2.
 - Added simple caching mechanism to Message auto decode functionality.
