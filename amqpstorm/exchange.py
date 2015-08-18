@@ -8,7 +8,6 @@ from pamqp.specification import Exchange as pamqp_exchange
 from amqpstorm import compatibility
 from amqpstorm.exception import AMQPInvalidArgument
 
-
 LOGGER = logging.getLogger(__name__)
 
 

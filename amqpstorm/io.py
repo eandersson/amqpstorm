@@ -19,7 +19,6 @@ try:
 except ImportError:
     ssl = None
 
-
 EMPTY_BUFFER = bytes()
 LOGGER = logging.getLogger(__name__)
 

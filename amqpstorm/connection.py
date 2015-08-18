@@ -16,9 +16,9 @@ from amqpstorm.base import Stateful
 from amqpstorm.base import IDLE_WAIT
 from amqpstorm.channel import Channel
 from amqpstorm.channel0 import Channel0
+from amqpstorm.heartbeat import Heartbeat
 from amqpstorm.exception import AMQPConnectionError
 from amqpstorm.exception import AMQPInvalidArgument
-
 
 LOGGER = logging.getLogger(__name__)
 
@@ -57,6 +57,7 @@ class Connection(Stateful):
                      on_read=self._read_buffer,
                      on_error=self._handle_socket_error)
         self._channel0 = Channel0(self)
+        self.heartbeat = None
         self._channels = {}
         self._validate_parameters()
         if not kwargs.get('lazy', False):
@@ -109,17 +110,24 @@ class Connection(Stateful):
         LOGGER.debug('Connection Opening')
         self._exceptions = []
         self.set_state(self.OPENING)
+        if self.heartbeat:
+            self.heartbeat.close()
+        self.heartbeat = Heartbeat(self._exceptions,
+                                   self.parameters['heartbeat'])
         self.io.open(self.parameters['hostname'],
                      self.parameters['port'])
         self._send_handshake()
         while not self.is_open:
             self.check_for_errors()
             sleep(IDLE_WAIT)
+        self.heartbeat.start()
         LOGGER.debug('Connection Opened')
 
     def close(self):
         """Close connection."""
         LOGGER.debug('Connection Closing')
+        if self.heartbeat:
+            self.heartbeat.stop()
         if not self.is_closed and self.io.socket:
             self._close_channels()
             self.set_state(self.CLOSING)
@@ -212,6 +220,7 @@ class Connection(Stateful):
             if frame_in is None:
                 break
 
+            self.heartbeat.register_beat()
             if channel_id == 0:
                 self._channel0.on_frame(frame_in)
             else:
@@ -257,5 +266,7 @@ class Connection(Stateful):
         self.set_state(self.CLOSED)
         if previous_state != self.CLOSED:
             LOGGER.error(why, exc_info=False)
+        if self.heartbeat:
+            self.heartbeat.stop()
         self.io.close()
         self.exceptions.append(AMQPConnectionError(why))

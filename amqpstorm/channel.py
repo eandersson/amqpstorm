@@ -20,7 +20,6 @@ from amqpstorm.exception import AMQPMessageError
 from amqpstorm.exception import AMQPConnectionError
 from amqpstorm.exception import AMQPInvalidArgument
 
-
 LOGGER = logging.getLogger(__name__)
 CONTENT_FRAME = ['Basic.Deliver', 'ContentHeader', 'ContentBody']
 

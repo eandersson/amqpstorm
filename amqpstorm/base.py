@@ -7,7 +7,6 @@ from uuid import uuid4
 
 from amqpstorm.exception import AMQPChannelError
 
-
 IDLE_WAIT = 0.01
 FRAME_MAX = 131072
 

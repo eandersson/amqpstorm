@@ -14,7 +14,6 @@ from amqpstorm.base import Stateful
 from amqpstorm.base import FRAME_MAX
 from amqpstorm.exception import AMQPConnectionError
 
-
 LOGGER = logging.getLogger(__name__)
 
 
@@ -37,6 +36,7 @@ class Channel0(object):
         """
         LOGGER.debug('Frame Received: %s', frame_in.name)
         if frame_in.name == 'Heartbeat':
+            self._connection.heartbeat.register_heartbeat()
             self._write_frame(Heartbeat())
         elif frame_in.name == 'Connection.Start':
             self.server_properties = frame_in.server_properties

@@ -15,7 +15,6 @@ from amqpstorm.exception import AMQPMessageError
 from amqpstorm.exception import AMQPChannelError
 from amqpstorm.exception import AMQPInvalidArgument
 
-
 LOGGER = logging.getLogger(__name__)
 
 

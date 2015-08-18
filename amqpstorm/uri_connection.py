@@ -16,7 +16,6 @@ except ImportError:
 
 from amqpstorm.connection import Connection
 
-
 LOGGER = logging.getLogger(__name__)
 
 if sys.version_info < (2, 7):

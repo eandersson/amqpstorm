@@ -1,5 +1,8 @@
 # Changelog
 
+### Version 1.2.3-dev
+- Added Client-side Heartbeat monitor.
+
 ### Version 1.2.2
 - Added shortcuts for common properties in the Message class, e.g. message.app_id.
 - Added lazy initialize parameters for Connections.
