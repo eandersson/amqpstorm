@@ -3,6 +3,7 @@ __author__ = 'eandersson'
 import time
 import uuid
 import logging
+import threading
 
 try:
     import unittest2 as unittest
@@ -21,8 +22,51 @@ from tests import USERNAME
 from tests import PASSWORD
 from tests import URI
 
-
 logging.basicConfig(level=logging.DEBUG)
+
+
+class OpenCloseOpenCloseTest(unittest.TestCase):
+    def setUp(self):
+        self.connection = Connection(HOST, USERNAME, PASSWORD, lazy=True)
+
+    def test_open_close_loop(self):
+
+        for _ in range(10):
+            self.connection.open()
+            self.channel = self.connection.channel()
+
+            # Verify that the Connection/Channel has been opened properly.
+            self.assertIsNotNone(self.connection.io.socket)
+            self.assertIsNotNone(self.connection.io.poller)
+            self.assertTrue(self.channel.is_open)
+            self.assertTrue(self.connection.is_open)
+            self.assertTrue(self.connection.io.is_open)
+
+            self.channel.queue.declare('test.open.close')
+            self.channel.basic.publish(body=str(uuid.uuid4()),
+                                       routing_key='test.open.close')
+            self.channel.close()
+            self.connection.close()
+
+            # Verify that the Connection/Channel has been closed properly.
+            self.assertTrue(self.channel.is_closed)
+            self.assertTrue(self.connection.is_closed)
+            self.assertIsNone(self.connection.io.socket)
+            self.assertIsNone(self.connection.io.poller)
+
+            time.sleep(0.1)
+
+        time.sleep(1)
+
+        # Make sure all threads are closed.
+        self.assertEqual(threading.activeCount(), 1)
+
+    def tearDown(self):
+        self.connection = Connection(HOST, USERNAME, PASSWORD)
+        self.channel = self.connection.channel()
+        self.channel.queue.delete('test.open.close')
+        self.channel.close()
+        self.connection.close()
 
 
 class PublishAndGetMessagesTest(unittest.TestCase):

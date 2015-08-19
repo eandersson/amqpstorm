@@ -1,6 +1,7 @@
 """AMQP-Storm Connection."""
 __author__ = 'eandersson'
 
+import time
 import logging
 from time import sleep
 
@@ -56,8 +57,8 @@ class Connection(Stateful):
         self.io = IO(self.parameters,
                      on_read=self._read_buffer,
                      on_error=self._handle_socket_error)
+        self.heartbeat = Heartbeat(self.parameters['heartbeat'])
         self._channel0 = Channel0(self)
-        self.heartbeat = None
         self._channels = {}
         self._validate_parameters()
         if not kwargs.get('lazy', False):
@@ -103,31 +104,30 @@ class Connection(Stateful):
 
         :return:
         """
-        return self.io.socket.fileno
+        if not self.io.socket:
+            return None
+        return self.io.socket.fileno()
 
     def open(self):
-        """Open Connection."""
+        """Open Connection.
+
+        :raises AMQPConnectionError: Raises if a Connection cannot be
+                                     established.
+        """
         LOGGER.debug('Connection Opening')
         self._exceptions = []
         self.set_state(self.OPENING)
-        if self.heartbeat:
-            self.heartbeat.close()
-        self.heartbeat = Heartbeat(self._exceptions,
-                                   self.parameters['heartbeat'])
         self.io.open(self.parameters['hostname'],
                      self.parameters['port'])
         self._send_handshake()
-        while not self.is_open:
-            self.check_for_errors()
-            sleep(IDLE_WAIT)
-        self.heartbeat.start()
+        self.heartbeat.start(self._exceptions)
+        self._wait_for_connection_to_open()
         LOGGER.debug('Connection Opened')
 
     def close(self):
         """Close connection."""
         LOGGER.debug('Connection Closing')
-        if self.heartbeat:
-            self.heartbeat.stop()
+        self.heartbeat.stop()
         if not self.is_closed and self.io.socket:
             self._close_channels()
             self.set_state(self.CLOSING)
@@ -137,10 +137,19 @@ class Connection(Stateful):
         LOGGER.debug('Connection Closed')
 
     def channel(self, rpc_timeout=360):
-        """Open Channel."""
-        LOGGER.debug('Opening new Channel')
+        """Open Channel.
+
+        :raises AMQPInvalidArgument: Raises on invalid arguments.
+        :raises AMQPChannelError: Raises if the channel cannot be opened
+                                  before the rpc_timeout is reached.
+        :raises AMQPConnectionError: Raises if the Connection is closed.
+        """
+        LOGGER.debug('Opening a new Channel')
         if not compatibility.is_integer(rpc_timeout):
             raise AMQPInvalidArgument('rpc_timeout should be an integer')
+        elif self.is_closed:
+            raise AMQPConnectionError('socket/connection closed')
+
         with self.io.lock:
             channel_id = len(self._channels) + 1
             channel = Channel(channel_id, self, rpc_timeout)
@@ -207,6 +216,19 @@ class Connection(Stateful):
         """
         self.io.write_to_socket(pamqp_header.ProtocolHeader().marshal())
 
+    def _wait_for_connection_to_open(self):
+        """Wait for the connection to fully open.
+
+        :return:
+        """
+        start_time = time.time()
+        timeout = self.parameters['timeout']
+        while not self.is_open:
+            if time.time() - start_time > timeout:
+                raise AMQPConnectionError('Connection timed out')
+            self.check_for_errors()
+            sleep(IDLE_WAIT)
+
     def _read_buffer(self, buffer):
         """Process the socket buffer, and direct the data to the correct
         channel.
@@ -266,7 +288,6 @@ class Connection(Stateful):
         self.set_state(self.CLOSED)
         if previous_state != self.CLOSED:
             LOGGER.error(why, exc_info=False)
-        if self.heartbeat:
-            self.heartbeat.stop()
+        self.heartbeat.stop()
         self.io.close()
         self.exceptions.append(AMQPConnectionError(why))

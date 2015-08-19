@@ -36,9 +36,10 @@ if ssl:
 class Poller(object):
     """Socket Read/Write Poller."""
 
-    def __init__(self, fileno, timeout=10):
+    def __init__(self, fileno, timeout=30, on_error=None):
         self._fileno = fileno
         self.timeout = timeout
+        self.on_error = on_error
 
     @property
     def fileno(self):
@@ -59,18 +60,20 @@ class Poller(object):
                                             self.timeout)
             return bool(ready), bool(write)
         except select.error as why:
-            if why.args[0] != EINTR:
-                raise
+            if why.args[0] == EINTR:
+                return False, False
+            self.on_error(why)
 
 
 class IO(Stateful):
     lock = threading.Lock()
-    socket = None
-    poller = None
-    buffer = EMPTY_BUFFER
 
     def __init__(self, parameters, on_read=None, on_error=None):
         super(IO, self).__init__()
+        self.socket = None
+        self.poller = None
+        self.inbound_thread = None
+        self.buffer = EMPTY_BUFFER
         self.parameters = parameters
         self.on_read = on_read
         self.on_error = on_error
@@ -96,8 +99,9 @@ class IO(Stateful):
         except (socket.error, ssl.SSLError) as why:
             raise AMQPConnectionError(why)
         self.socket = sock
-        self.poller = Poller(self.socket.fileno())
-        self._create_inbound_thread()
+        self.poller = Poller(self.socket.fileno(), on_error=self.on_error,
+                             timeout=self.parameters['timeout'])
+        self.inbound_thread = self._create_inbound_thread()
         self.set_state(self.OPEN)
 
     def close(self):
@@ -112,6 +116,8 @@ class IO(Stateful):
             self.socket.shutdown(socket.SHUT_RDWR)
         except socket.error:
             pass
+        self.inbound_thread = None
+        self.poller = None
         self.socket.close()
         self.socket = None
         self.set_state(self.CLOSED)
@@ -204,7 +210,7 @@ class IO(Stateful):
         while not self.is_closed:
             if self.is_closing:
                 break
-            if self.poller.is_ready[0]:
+            if self.poller and self.poller.is_ready[0]:
                 self.buffer += self._receive()
                 self.buffer = self.on_read(self.buffer)
             sleep(IDLE_WAIT)

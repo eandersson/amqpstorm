@@ -13,14 +13,13 @@ LOGGER = logging.getLogger(__name__)
 class Heartbeat(object):
     """Internal Heartbeat Checker."""
 
-    def __init__(self, exceptions, interval):
+    def __init__(self, interval):
         self._timer = None
-        self._exceptions = exceptions
-        self._interval = int(interval)
+        self._exceptions = None
+        self._last_heartbeat = None
+        self._beats_since_check = None
+        self._interval = int(interval) + 1
         self._threshold = self._interval * 2
-        self._last_check = time.time()
-        self._last_heartbeat = time.time()
-        self._beats_since_check = 0
 
     def register_beat(self):
         """Register that a frame has been received.
@@ -36,11 +35,16 @@ class Heartbeat(object):
         """
         self._last_heartbeat = time.time()
 
-    def start(self):
+    def start(self, exceptions):
         """Start the Heartbeat Checker.
 
+        :param list exceptions:
         :return:
         """
+        LOGGER.debug('Heartbeat Checker Started')
+        self._beats_since_check = 0
+        self._last_heartbeat = time.time()
+        self._exceptions = exceptions
         self._start_timer()
 
     def stop(self):
@@ -48,12 +52,12 @@ class Heartbeat(object):
 
         :return:
         """
-        self._beats_since_check = 0
         if self._timer:
             self._timer.cancel()
             self._timer = None
+        LOGGER.debug('Heartbeat Checker Stopped')
 
-    def _check_beats(self):
+    def _check_for_life_signs(self):
         """Check if we have any sign of life.
 
             If we have not received a heartbeat, or any data what so ever
@@ -70,10 +74,12 @@ class Heartbeat(object):
         if self._beats_since_check == 0 and elapsed > self._threshold:
             message = ('Connection dead, no heartbeat or data received in %ss'
                        % round(elapsed, 3))
-            self._exceptions.append(AMQPConnectionError(message))
+            why = AMQPConnectionError(message)
+            if self._exceptions is None:
+                raise why
+            self._exceptions.append(why)
 
         self._beats_since_check = 0
-        self._last_check = current_time
         self._start_timer()
 
     def _start_timer(self):
@@ -81,6 +87,7 @@ class Heartbeat(object):
 
         :return:
         """
-        self._timer = threading.Timer(self._interval, self._check_beats)
+        self._timer = threading.Timer(interval=self._interval,
+                                      function=self._check_for_life_signs)
         self._timer.daemon = True
         self._timer.start()
