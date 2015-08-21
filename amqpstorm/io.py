@@ -60,9 +60,9 @@ class Poller(object):
                                             self.timeout)
             return bool(ready), bool(write)
         except select.error as why:
-            if why.args[0] == EINTR:
-                return False, False
-            self.on_error(why)
+            if why.args[0] != EINTR:
+                self.on_error(why)
+        return False, False
 
 
 class IO(Stateful):

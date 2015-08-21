@@ -2,6 +2,8 @@
 
 ### Version 1.2.3-dev
 - Added Client-side Heartbeat monitor.
+- Added a Connection Timeout to Connection.open.
+- Fixed potential bug in the Socket Poller Error handling.
 
 ### Version 1.2.2
 - Added shortcuts for common properties in the Message class, e.g. message.app_id.

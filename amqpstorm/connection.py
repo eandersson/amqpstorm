@@ -222,7 +222,7 @@ class Connection(Stateful):
         :return:
         """
         start_time = time.time()
-        timeout = self.parameters['timeout']
+        timeout = self.parameters['timeout'] or 5
         while not self.is_open:
             if time.time() - start_time > timeout:
                 raise AMQPConnectionError('Connection timed out')

@@ -1,7 +1,6 @@
 __author__ = 'eandersson'
 
 import ssl
-import mock
 import socket
 import logging
 

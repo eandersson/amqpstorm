@@ -1,13 +1,18 @@
 __author__ = 'eandersson'
 
 import ssl
+import socket
 import logging
+import threading
+
+from mock import MagicMock
 
 try:
     import unittest2 as unittest
 except ImportError:
     import unittest
 
+from amqpstorm.io import IO
 from amqpstorm import Connection
 from amqpstorm.exception import *
 
@@ -78,3 +83,27 @@ class ConnectionTests(unittest.TestCase):
     def test_open_channel_on_closed_connection(self):
         connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
         self.assertRaises(AMQPConnectionError, connection.channel)
+
+    def test_wait_for_connection(self):
+        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=5,
+                                lazy=True)
+        connection.set_state(connection.OPENING)
+        io = IO(connection.parameters)
+        io.socket = MagicMock(name='socket', spec=socket.socket)
+        connection.io = io
+
+        def func(conn):
+            conn.set_state(conn.OPEN)
+
+        threading.Timer(function=func, interval=1, args=(connection, )).start()
+        connection._wait_for_connection_to_open()
+
+    def test_wait_for_connection_raises_on_timeout(self):
+        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=1,
+                                lazy=True)
+        connection.set_state(connection.OPENING)
+        io = IO(connection.parameters)
+        io.socket = MagicMock(name='socket', spec=socket.socket)
+        connection.io = io
+        self.assertRaises(AMQPConnectionError,
+                          connection._wait_for_connection_to_open)
