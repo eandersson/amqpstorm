@@ -54,13 +54,13 @@ class Connection(Stateful):
             'ssl': kwargs.get('ssl', False),
             'ssl_options': kwargs.get('ssl_options', {})
         }
+        self._validate_parameters()
         self.io = IO(self.parameters,
                      on_read=self._read_buffer,
                      on_error=self._handle_socket_error)
         self.heartbeat = Heartbeat(self.parameters['heartbeat'])
         self._channel0 = Channel0(self)
         self._channels = {}
-        self._validate_parameters()
         if not kwargs.get('lazy', False):
             self.open()
 

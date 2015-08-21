@@ -9,7 +9,6 @@ from examples import HOST
 from examples import USERNAME
 from examples import PASSWORD
 
-
 CONNECTION = amqpstorm.Connection(HOST, USERNAME, PASSWORD)
 CHANNEL = CONNECTION.channel()
 CHANNEL.queue.declare(queue='rpc_queue')
@@ -37,6 +36,7 @@ def on_request(body, channel, header, properties):
                           },
                           body=str(response))
     channel.basic.ack(delivery_tag=header['delivery_tag'])
+
 
 if __name__ == '__main__':
     CHANNEL.basic.qos(prefetch_count=1)

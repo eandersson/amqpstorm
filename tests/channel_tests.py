@@ -18,7 +18,6 @@ from amqpstorm.exception import *
 
 from tests.utility import FakeConnection
 
-
 logging.basicConfig(level=logging.DEBUG)
 
 

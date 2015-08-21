@@ -10,7 +10,6 @@ from examples import HOST
 from examples import USERNAME
 from examples import PASSWORD
 
-
 logging.basicConfig(level=logging.DEBUG)
 
 
@@ -54,4 +53,3 @@ if __name__ == '__main__':
         time.sleep(1)
 
     CONNECTION.close()
-

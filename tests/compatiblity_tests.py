@@ -10,7 +10,6 @@ except ImportError:
 
 from amqpstorm import compatibility
 
-
 logging.basicConfig(level=logging.DEBUG)
 
 

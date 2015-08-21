@@ -66,10 +66,9 @@ class Poller(object):
 
 
 class IO(Stateful):
-    lock = threading.Lock()
-
     def __init__(self, parameters, on_read=None, on_error=None):
         super(IO, self).__init__()
+        self.lock = threading.Lock()
         self.socket = None
         self.poller = None
         self.inbound_thread = None

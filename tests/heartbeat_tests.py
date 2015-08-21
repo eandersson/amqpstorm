@@ -9,12 +9,12 @@ except ImportError:
     import unittest
 
 from amqpstorm.heartbeat import Heartbeat
+from amqpstorm.exception import AMQPConnectionError
 
 logging.basicConfig(level=logging.DEBUG)
 
 
 class HeartbeatTests(unittest.TestCase):
-
     def test_heartbeat_start(self):
         heartbeat = Heartbeat(1)
         heartbeat.start([])
@@ -48,3 +48,13 @@ class HeartbeatTests(unittest.TestCase):
         heartbeat.start(exceptions)
         time.sleep(3)
         self.assertGreater(len(exceptions), 0)
+
+    def test_basic_raise_when_check_for_life_when_exceptions_not_set(self):
+        heartbeat = Heartbeat(0.5)
+        heartbeat._beats_since_check = 0
+        heartbeat._last_heartbeat = time.time() - 100
+
+        # Normally the exception should be passed down to the list of
+        # exceptions in the connection, but if that list for some obscure
+        # reason is None, we should raise directly in _check_for_life_signs.
+        self.assertRaises(AMQPConnectionError, heartbeat._check_for_life_signs)

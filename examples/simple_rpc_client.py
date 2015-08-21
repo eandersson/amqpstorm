@@ -64,6 +64,7 @@ class FibonacciRpcClient(object):
             return
         self.response = message.body
 
+
 if __name__ == '__main__':
     fibonacci_rpc = FibonacciRpcClient(HOST, USERNAME, PASSWORD)
 

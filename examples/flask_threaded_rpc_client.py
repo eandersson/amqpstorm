@@ -13,7 +13,6 @@ from examples import HOST
 from examples import USERNAME
 from examples import PASSWORD
 
-
 app = Flask(__name__)
 
 

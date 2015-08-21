@@ -30,7 +30,6 @@ class OpenCloseOpenCloseTest(unittest.TestCase):
         self.connection = Connection(HOST, USERNAME, PASSWORD, lazy=True)
 
     def test_open_close_loop(self):
-
         for _ in range(10):
             self.connection.open()
             self.channel = self.connection.channel()

@@ -14,7 +14,6 @@ from amqpstorm.base import BaseChannel
 from tests.utility import FakeConnection
 from tests.utility import TestPayload
 
-
 logging.basicConfig(level=logging.DEBUG)
 
 

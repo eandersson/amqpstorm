@@ -18,7 +18,6 @@ from amqpstorm.channel import Channel
 
 from tests.utility import FakeConnection
 
-
 logging.basicConfig(level=logging.DEBUG)
 
 
