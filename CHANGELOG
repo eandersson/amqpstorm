@@ -1,5 +1,8 @@
 # Changelog
 
+### Version 1.2.4
+- Fixed compatibility issues with Python 2.6 and UriConnection.
+
 ### Version 1.2.3
 - Added a Client-side Heartbeat monitor.
 - Added Timeout to Connection.open.

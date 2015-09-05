@@ -1,7 +1,6 @@
 """AMQP-Storm Uri wrapper for Connection."""
 __author__ = 'eandersson'
 
-import sys
 import logging
 
 try:
@@ -17,9 +16,6 @@ except ImportError:
 from amqpstorm.connection import Connection
 
 LOGGER = logging.getLogger(__name__)
-
-if sys.version_info < (2, 7):
-    LOGGER.critical('UriConnection not supported in Python 2.6')
 
 if ssl:
     SSL_VERSIONS = {}
@@ -50,7 +46,7 @@ if ssl:
 class UriConnection(Connection):
     """Wrapper of the Connection class that takes the AMQP uri schema."""
 
-    def __init__(self, uri):
+    def __init__(self, uri, lazy=False):
         """Create a new Connection instance using an AMQP Uri string.
 
             e.g.
@@ -59,35 +55,60 @@ class UriConnection(Connection):
 
         :param str uri: AMQP Connection string
         """
-        parsed = urlparse.urlparse(uri)
-        use_ssl = parsed.scheme == 'amqps'
-        hostname = parsed.hostname or 'localhost'
-        port = parsed.port or 5672
-        username = parsed.username or 'guest'
-        password = parsed.password or 'guest'
-        virtual_host = urlparse.unquote(parsed.path[1:]) or '/'
-        kwargs = urlparse.parse_qs(parsed.query)
-        heartbeat = kwargs.get('heartbeat', [60])[0]
-        timeout = kwargs.get('timeout', [30])[0]
-        lazy = parsed.query.startswith('lazy')
-
-        ssl_options = {}
-        if ssl and use_ssl:
-            ssl_options = self._parse_ssl_options(kwargs)
+        uri = self._patch_uri(uri)
+        parsed_uri = urlparse.urlparse(uri)
+        use_ssl = parsed_uri.scheme == 'https'
+        hostname = parsed_uri.hostname or 'localhost'
+        port = parsed_uri.port or 5672
+        username = parsed_uri.username or 'guest'
+        password = parsed_uri.password or 'guest'
+        kwargs = self._parse_uri_options(parsed_uri, use_ssl, lazy)
         super(UriConnection, self).__init__(hostname, username,
                                             password, port,
-                                            virtual_host=virtual_host,
-                                            heartbeat=int(heartbeat),
-                                            timeout=int(timeout),
-                                            ssl=use_ssl,
-                                            ssl_options=ssl_options,
-                                            lazy=lazy)
+                                            **kwargs)
+
+    @staticmethod
+    def _patch_uri(uri):
+        """If a custom uri schema is used with python 2.6 (e.g. amqps),
+        it will ignore some of the parsing logic.
+
+            As a work-around for this we change the amqp/amqps schema
+            internally to use http/https.
+
+        :param str uri: AMQP Connection string
+        :rtype: str
+        """
+        index = uri.find(':')
+        if uri[:index] == 'amqps':
+            uri = uri.replace('amqps', 'https', 1)
+        elif uri[:index] == 'amqp':
+            uri = uri.replace('amqp', 'http', 1)
+        return uri
+
+    def _parse_uri_options(self, parsed_uri, use_ssl, lazy):
+        """Parse the uri options.
+
+        :param parsed_uri:
+        :param bool use_ssl:
+        :return:
+        """
+        kwargs = urlparse.parse_qs(parsed_uri.query)
+        options = {
+            'ssl': use_ssl,
+            'virtual_host': urlparse.unquote(parsed_uri.path[1:]) or '/',
+            'heartbeat': int(kwargs.get('heartbeat', [60])[0]),
+            'timeout': int(kwargs.get('timeout', [30])[0]),
+            'lazy': lazy
+        }
+        if ssl and use_ssl:
+            options['ssl_options'] = self._parse_ssl_options(kwargs)
+        return options
 
     def _parse_ssl_options(self, ssl_kwargs):
         """Parse SSL Options.
 
         :param ssl_kwargs:
-        :return:
+        :rtype: dict
         """
         ssl_options = {}
         for key in ssl_kwargs:

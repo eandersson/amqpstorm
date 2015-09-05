@@ -16,8 +16,8 @@ class Heartbeat(object):
     def __init__(self, interval):
         self._timer = None
         self._exceptions = None
-        self._last_heartbeat = None
-        self._beats_since_check = None
+        self._last_heartbeat = 0.0
+        self._beats_since_check = 0
         self._interval = int(interval) + 1
         self._threshold = self._interval * 2
 

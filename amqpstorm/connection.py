@@ -119,8 +119,8 @@ class Connection(Stateful):
         self.set_state(self.OPENING)
         self.io.open(self.parameters['hostname'],
                      self.parameters['port'])
-        self._send_handshake()
         self.heartbeat.start(self._exceptions)
+        self._send_handshake()
         self._wait_for_connection_to_open()
         LOGGER.debug('Connection Opened')
 
