@@ -130,13 +130,27 @@ class IOTests(unittest.TestCase):
             self.assertEqual(amqpstorm.io.DEFAULT_SSL_VERSION,
                              ssl.PROTOCOL_TLSv1)
 
-    def test_not_ssl(self):
+    def test_ssl_connection_without_ssl_library(self):
         amqpstorm.io.ssl = None
         try:
             connection = FakeConnection()
             parameters = connection.parameters
             parameters['ssl'] = True
             io = IO(parameters)
-            self.assertRaises(AMQPConnectionError, io.open, '', 1234)
+            self.assertRaisesRegexp(AMQPConnectionError,
+                                    'Python not compiled with SSL support',
+                                    io.open, 'localhost', 1234)
+        finally:
+            amqpstorm.io.ssl = ssl
+
+    def test_normal_connection_without_ssl_library(self):
+        amqpstorm.io.ssl = None
+        try:
+            connection = FakeConnection()
+            parameters = connection.parameters
+            io = IO(parameters)
+            self.assertRaisesRegexp(AMQPConnectionError,
+                                    'Could not connect to localhost:1234',
+                                    io.open, 'localhost', 1234)
         finally:
             amqpstorm.io.ssl = ssl

@@ -6,6 +6,8 @@ from amqpstorm.base import Stateful
 class FakeConnection(Stateful):
     frames_out = []
     parameters = {
+        'hostname': 'localhost',
+        'port': 1234,
         'heartbeat': 60,
         'timeout': 30,
         'ssl': False

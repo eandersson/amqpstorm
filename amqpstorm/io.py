@@ -170,7 +170,7 @@ class IO(Stateful):
             sock = self._create_socket(socket_family=address[0])
             try:
                 sock.connect(address[4])
-            except (socket.error, ssl.SSLError):
+            except (socket.error, OSError):
                 continue
             return sock
         raise AMQPConnectionError('Could not connect to %s:%d'
