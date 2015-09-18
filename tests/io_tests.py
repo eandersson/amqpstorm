@@ -33,18 +33,20 @@ class IOTests(unittest.TestCase):
     def test_create_socket(self):
         connection = FakeConnection()
         io = IO(connection.parameters)
-        sock_address_tuple = io._get_socket_address('127.0.0.1', 5672)
-        result = io._create_socket(socket_family=sock_address_tuple[0])
+        addresses = io._get_socket_addresses('localhost', 5672)
+        sock_address_tuple = addresses[0]
+        sock = io._create_socket(socket_family=sock_address_tuple[0])
 
         if hasattr(socket, 'socket'):
-            self.assertIsInstance(result, socket.socket)
+            self.assertIsInstance(sock, socket.socket)
         elif hasattr(socket, '_socketobject'):
-            self.assertIsInstance(result, socket._socketobject)
+            self.assertIsInstance(sock, socket._socketobject)
 
     def test_get_socket_address(self):
         connection = FakeConnection()
         io = IO(connection.parameters)
-        sock_address_tuple = io._get_socket_address('127.0.0.1', 5672)
+        addresses = io._get_socket_addresses('127.0.0.1', 5672)
+        sock_address_tuple = addresses[0]
 
         self.assertEqual(sock_address_tuple[4],
                          ('127.0.0.1', 5672))

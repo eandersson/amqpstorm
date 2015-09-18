@@ -82,22 +82,14 @@ class IO(Stateful):
 
         :param str hostname:
         :param int port:
+        :raises AMQPConnectionError: If a connection cannot be established on
+                                     the specified address, raise an exception.
         :return:
         """
         self.buffer = EMPTY_BUFFER
         self.set_state(self.OPENING)
-        sock_address_tuple = self._get_socket_address(hostname, port)
-        sock = self._create_socket(socket_family=sock_address_tuple[0])
-        if self.parameters['ssl']:
-            if not ssl:
-                raise AMQPConnectionError('Python not compiled '
-                                          'with SSL support')
-            sock = self._ssl_wrap_socket(sock)
-        try:
-            sock.connect(sock_address_tuple[4])
-        except (socket.error, ssl.SSLError) as why:
-            raise AMQPConnectionError(why)
-        self.socket = sock
+        sock_addresses = self._get_socket_addresses(hostname, port)
+        self.socket = self._find_address_and_connect(sock_addresses)
         self.poller = Poller(self.socket.fileno(), on_error=self.on_error,
                              timeout=self.parameters['timeout'])
         self.inbound_thread = self._create_inbound_thread()
@@ -148,7 +140,7 @@ class IO(Stateful):
         return total_bytes_written
 
     @staticmethod
-    def _get_socket_address(hostname, port):
+    def _get_socket_addresses(hostname, port):
         """Get Socket address information.
 
         :param str hostname:
@@ -162,13 +154,28 @@ class IO(Stateful):
             addresses = socket.getaddrinfo(hostname, port, family)
         except socket.gaierror as why:
             raise AMQPConnectionError(why)
-        result = None
+        return addresses
+
+    def _find_address_and_connect(self, addresses):
+        """Find and connect to the appropriate address.
+
+
+
+        :param addresses:
+        :raises AMQPConnectionError: If no appropriate address can be found,
+                                     raise an exception.
+        :return:
+        """
         for address in addresses:
-            if not address:
+            sock = self._create_socket(socket_family=address[0])
+            try:
+                sock.connect(address[4])
+            except (socket.error, ssl.SSLError):
                 continue
-            result = address
-            break
-        return result
+            return sock
+        raise AMQPConnectionError('Could not connect to %s:%d'
+                                  % (self.parameters['hostname'],
+                                     self.parameters['port']))
 
     def _create_socket(self, socket_family):
         """Create Socket.
@@ -180,6 +187,11 @@ class IO(Stateful):
         sock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 1)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
         sock.settimeout(self.parameters['timeout'] or None)
+        if self.parameters['ssl']:
+            if not ssl:
+                raise AMQPConnectionError('Python not compiled '
+                                          'with SSL support')
+            sock = self._ssl_wrap_socket(sock)
         return sock
 
     def _ssl_wrap_socket(self, sock):
