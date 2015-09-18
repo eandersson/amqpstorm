@@ -31,40 +31,47 @@ class UriConnectionTests(unittest.TestCase):
         connection = \
             UriConnection('amqp://guest:guest@my-server:5672/%2F?'
                           'heartbeat=1337', True)
+        self.assertIsInstance(connection.parameters['hostname'], str)
         self.assertEqual(connection.parameters['hostname'], 'my-server')
 
     def test_uri_set_username(self):
         connection = \
             UriConnection('amqp://username:guest@localhost:5672/%2F?'
                           'heartbeat=1337', True)
+        self.assertIsInstance(connection.parameters['username'], str)
         self.assertEqual(connection.parameters['username'], 'username')
 
     def test_uri_set_password(self):
         connection = \
             UriConnection('amqp://guest:password@localhost:5672/%2F?'
                           'heartbeat=1337', True)
+        self.assertIsInstance(connection.parameters['password'], str)
         self.assertEqual(connection.parameters['password'], 'password')
 
     def test_uri_set_port(self):
         connection = \
             UriConnection('amqp://guest:guest@localhost:1337/%2F', True)
+        self.assertIsInstance(connection.parameters['port'], int)
         self.assertEqual(connection.parameters['port'], 1337)
 
     def test_uri_set_heartbeat(self):
         connection = \
             UriConnection('amqp://guest:guest@localhost:5672/%2F?'
                           'heartbeat=1337', True)
+        self.assertIsInstance(connection.parameters['heartbeat'], int)
         self.assertEqual(connection.parameters['heartbeat'], 1337)
 
     def test_uri_set_timeout(self):
         connection = \
             UriConnection('amqp://guest:guest@localhost:5672/%2F?'
                           'timeout=1337', True)
+        self.assertIsInstance(connection.parameters['timeout'], int)
         self.assertEqual(connection.parameters['timeout'], 1337)
 
     def test_uri_set_virtual_host(self):
         connection = \
             UriConnection('amqp://guest:guest@localhost:5672/travis', True)
+        self.assertIsInstance(connection.parameters['virtual_host'], str)
         self.assertEqual(connection.parameters['virtual_host'], 'travis')
 
     def test_uri_set_ssl(self):

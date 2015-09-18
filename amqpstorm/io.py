@@ -155,8 +155,11 @@ class IO(Stateful):
         :param int port:
         :rtype: tuple
         """
+        family = socket.AF_UNSPEC
+        if not socket.has_ipv6:
+            family = socket.AF_INET
         try:
-            addresses = socket.getaddrinfo(hostname, port)
+            addresses = socket.getaddrinfo(hostname, port, family)
         except socket.gaierror as why:
             raise AMQPConnectionError(why)
         result = None
