@@ -1,8 +1,8 @@
 # Changelog
 
 ### Version 1.2.5
-- Fixed Connection.Open bug triggered by the RabbitMQ Server not listening to the IPv6 local address.
-- Fixed Minor Connection.Open bug caused by Python not being compiled with SSL support.
+- Fixed Connection.Open bug triggered by the RabbitMQ Server not listening to the IPv6 loop-back.
+- Fixed Minor Connection.Open bug triggered by Python not being compiled with SSL support.
 
 ### Version 1.2.4
 - Fixed compatibility issues with Python 2.6 and UriConnection.

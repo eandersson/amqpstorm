@@ -13,6 +13,7 @@ try:
 except ImportError:
     ssl = None
 
+from amqpstorm import compatibility
 from amqpstorm.connection import Connection
 
 LOGGER = logging.getLogger(__name__)
@@ -55,7 +56,7 @@ class UriConnection(Connection):
 
         :param str uri: AMQP Connection string
         """
-        uri = self._patch_uri(uri)
+        uri = compatibility.patch_uri(uri)
         parsed_uri = urlparse.urlparse(uri)
         use_ssl = parsed_uri.scheme == 'https'
         hostname = parsed_uri.hostname or 'localhost'
@@ -66,24 +67,6 @@ class UriConnection(Connection):
         super(UriConnection, self).__init__(hostname, username,
                                             password, port,
                                             **kwargs)
-
-    @staticmethod
-    def _patch_uri(uri):
-        """If a custom uri schema is used with python 2.6 (e.g. amqps),
-        it will ignore some of the parsing logic.
-
-            As a work-around for this we change the amqp/amqps schema
-            internally to use http/https.
-
-        :param str uri: AMQP Connection string
-        :rtype: str
-        """
-        index = uri.find(':')
-        if uri[:index] == 'amqps':
-            uri = uri.replace('amqps', 'https', 1)
-        elif uri[:index] == 'amqp':
-            uri = uri.replace('amqp', 'http', 1)
-        return uri
 
     def _parse_uri_options(self, parsed_uri, use_ssl, lazy):
         """Parse the uri options.
@@ -123,32 +106,42 @@ class UriConnection(Connection):
             ssl_options[key] = value
         return ssl_options
 
-    @staticmethod
-    def _get_ssl_version(value):
+    def _get_ssl_version(self, value):
         """Get the SSL Version.
 
-        :param value:
-        :return:
+        :param str value:
+        :return: SSL Version
         """
-        for version in SSL_VERSIONS:
-            if not version.endswith(value.lower()):
-                continue
-            return SSL_VERSIONS[version]
-        LOGGER.warning('ssl_options: ssl_version \'%s\' not found '
-                       'falling back to PROTOCOL_TLSv1.', value)
-        return ssl.PROTOCOL_TLSv1
+        return self._get_ssl_attribute(value, SSL_VERSIONS, ssl.PROTOCOL_TLSv1,
+                                       'ssl_options: ssl_version \'%s\' not '
+                                       'found falling back to PROTOCOL_TLSv1.')
 
-    @staticmethod
-    def _get_ssl_validation(value):
+    def _get_ssl_validation(self, value):
         """Get the SSL Validation option.
 
-        :param value:
+        :param str value:
+        :return: SSL Certificate Options
+        """
+        return self._get_ssl_attribute(value, SSL_CERT_MAP, ssl.CERT_NONE,
+                                       'ssl_options: cert_reqs \'%s\' not '
+                                       'found falling back to CERT_NONE.')
+
+    @staticmethod
+    def _get_ssl_attribute(value, mapping, default_value, warning_message):
+        """Get the SSL attribute based on the mapping.
+
+            If no valid attribute can be found, fall-back on default and
+            display a warning.
+
+        :param str value:
+        :param dict mapping: Dictionary based mapping
+        :param default_value: Default fall-back value
+        :param str warning_message: Warning message
         :return:
         """
-        for cert in SSL_CERT_MAP:
-            if not cert.endswith(value.lower()):
+        for key in mapping:
+            if not key.endswith(value.lower()):
                 continue
-            return SSL_CERT_MAP[cert]
-        LOGGER.warning('ssl_options: cert_reqs \'%s\' not found '
-                       'falling back to CERT_NONE.', value)
-        return ssl.CERT_NONE
+            return mapping[key]
+        LOGGER.warning(warning_message, value)
+        return default_value

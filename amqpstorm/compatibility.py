@@ -68,3 +68,21 @@ def try_utf8_decode(value):
         pass
 
     return value
+
+
+def patch_uri(uri):
+    """If a custom uri schema is used with python 2.6 (e.g. amqps),
+    it will ignore some of the parsing logic.
+
+        As a work-around for this we change the amqp/amqps schema
+        internally to use http/https.
+
+    :param str uri: AMQP Connection string
+    :rtype: str
+    """
+    index = uri.find(':')
+    if uri[:index] == 'amqps':
+        uri = uri.replace('amqps', 'https', 1)
+    elif uri[:index] == 'amqp':
+        uri = uri.replace('amqp', 'http', 1)
+    return uri
