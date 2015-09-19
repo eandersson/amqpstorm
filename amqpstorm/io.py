@@ -157,8 +157,6 @@ class IO(Stateful):
     def _find_address_and_connect(self, addresses):
         """Find and connect to the appropriate address.
 
-
-
         :param addresses:
         :raises AMQPConnectionError: If no appropriate address can be found,
                                      raise an exception.
@@ -196,7 +194,7 @@ class IO(Stateful):
         """Wrap SSLSocket around the socket.
 
         :param socket sock:
-        :return:
+        :rtype: SSLSocket
         """
         if 'ssl_version' not in self.parameters['ssl_options']:
             self.parameters['ssl_options']['ssl_version'] = DEFAULT_SSL_VERSION
