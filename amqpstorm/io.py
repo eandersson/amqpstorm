@@ -77,7 +77,7 @@ class IO(Stateful):
         self.on_read = on_read
         self.on_error = on_error
 
-    def open(self, hostname, port):
+    def open(self):
         """Open Socket and establish a connection.
 
         :param str hostname:
@@ -88,7 +88,7 @@ class IO(Stateful):
         """
         self.buffer = EMPTY_BUFFER
         self.set_state(self.OPENING)
-        sock_addresses = self._get_socket_addresses(hostname, port)
+        sock_addresses = self._get_socket_addresses()
         self.socket = self._find_address_and_connect(sock_addresses)
         self.poller = Poller(self.socket.fileno(), on_error=self.on_error,
                              timeout=self.parameters['timeout'])
@@ -139,19 +139,17 @@ class IO(Stateful):
                 break
         return total_bytes_written
 
-    @staticmethod
-    def _get_socket_addresses(hostname, port):
+    def _get_socket_addresses(self):
         """Get Socket address information.
 
-        :param str hostname:
-        :param int port:
-        :rtype: tuple
+        :rtype: list
         """
         family = socket.AF_UNSPEC
         if not socket.has_ipv6:
             family = socket.AF_INET
         try:
-            addresses = socket.getaddrinfo(hostname, port, family)
+            addresses = socket.getaddrinfo(self.parameters['hostname'],
+                                           self.parameters['port'], family)
         except socket.gaierror as why:
             raise AMQPConnectionError(why)
         return addresses

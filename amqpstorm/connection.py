@@ -117,8 +117,7 @@ class Connection(Stateful):
         LOGGER.debug('Connection Opening')
         self._exceptions = []
         self.set_state(self.OPENING)
-        self.io.open(self.parameters['hostname'],
-                     self.parameters['port'])
+        self.io.open()
         self.heartbeat.start(self._exceptions)
         self._send_handshake()
         self._wait_for_connection_to_open()

@@ -33,7 +33,7 @@ class IOTests(unittest.TestCase):
     def test_create_socket(self):
         connection = FakeConnection()
         io = IO(connection.parameters)
-        addresses = io._get_socket_addresses('localhost', 5672)
+        addresses = io._get_socket_addresses()
         sock_address_tuple = addresses[0]
         sock = io._create_socket(socket_family=sock_address_tuple[0])
 
@@ -44,8 +44,10 @@ class IOTests(unittest.TestCase):
 
     def test_get_socket_address(self):
         connection = FakeConnection()
+        connection.parameters['hostname'] = '127.0.0.1'
+        connection.parameters['port'] = 5672
         io = IO(connection.parameters)
-        addresses = io._get_socket_addresses('127.0.0.1', 5672)
+        addresses = io._get_socket_addresses()
         sock_address_tuple = addresses[0]
 
         self.assertEqual(sock_address_tuple[4],
@@ -134,12 +136,14 @@ class IOTests(unittest.TestCase):
         amqpstorm.io.ssl = None
         try:
             connection = FakeConnection()
+            connection.parameters['hostname'] = 'localhost'
+            connection.parameters['port'] = 1234
             parameters = connection.parameters
             parameters['ssl'] = True
             io = IO(parameters)
             self.assertRaisesRegexp(AMQPConnectionError,
                                     'Python not compiled with SSL support',
-                                    io.open, 'localhost', 1234)
+                                    io.open)
         finally:
             amqpstorm.io.ssl = ssl
 
@@ -147,10 +151,12 @@ class IOTests(unittest.TestCase):
         amqpstorm.io.ssl = None
         try:
             connection = FakeConnection()
+            connection.parameters['hostname'] = 'localhost'
+            connection.parameters['port'] = 1234
             parameters = connection.parameters
             io = IO(parameters)
             self.assertRaisesRegexp(AMQPConnectionError,
                                     'Could not connect to localhost:1234',
-                                    io.open, 'localhost', 1234)
+                                    io.open)
         finally:
             amqpstorm.io.ssl = ssl
