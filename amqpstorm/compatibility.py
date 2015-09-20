@@ -3,6 +3,11 @@ __author__ = 'eandersson'
 
 import sys
 
+try:
+    import ssl
+except ImportError:
+    ssl = None
+
 PYPY = '__pypy__' in sys.builtin_module_names
 PYTHON3 = sys.version_info >= (3, 0, 0)
 
@@ -10,6 +15,41 @@ if PYTHON3:
     RANGE = range
 else:
     RANGE = xrange
+
+SSL_CERT_MAP = {}
+SSL_VERSIONS = {}
+DEFAULT_SSL_VERSION = None
+SSL_SUPPORTED = True if ssl else False
+SSL_OPTIONS = [
+    'keyfile',
+    'certfile',
+    'cert_reqs',
+    'ssl_version',
+    'ca_certs'
+]
+
+if SSL_SUPPORTED:
+    if hasattr(ssl, 'PROTOCOL_TLSv1_2'):
+        DEFAULT_SSL_VERSION = ssl.PROTOCOL_TLSv1_2
+    elif hasattr(ssl, 'PROTOCOL_TLSv1_1'):
+        DEFAULT_SSL_VERSION = ssl.PROTOCOL_TLSv1_1
+    elif hasattr(ssl, 'PROTOCOL_TLSv1'):
+        DEFAULT_SSL_VERSION = ssl.PROTOCOL_TLSv1
+    else:
+        SSL_SUPPORTED = False
+
+    if hasattr(ssl, 'PROTOCOL_TLSv1_2'):
+        SSL_VERSIONS['protocol_tlsv1_2'] = ssl.PROTOCOL_TLSv1_2
+    if hasattr(ssl, 'PROTOCOL_TLSv1_1'):
+        SSL_VERSIONS['protocol_tlsv1_1'] = ssl.PROTOCOL_TLSv1_1
+    if hasattr(ssl, 'PROTOCOL_TLSv1'):
+        SSL_VERSIONS['protocol_tlsv1'] = ssl.PROTOCOL_TLSv1
+
+    SSL_CERT_MAP = {
+        'cert_none': ssl.CERT_NONE,
+        'cert_optional': ssl.CERT_OPTIONAL,
+        'cert_required': ssl.CERT_REQUIRED
+    }
 
 
 def is_string(obj):

@@ -1,5 +1,8 @@
 # Changelog
 
+### Version 1.2.x
+- TLSv1 or higher is now required for SSL connections.
+
 ### Version 1.2.5
 - Fixed Connection.Open bug triggered by the RabbitMQ Server not listening to the IPv6 loop-back.
 - Fixed Minor Connection.Open bug triggered by Python not being compiled with SSL support.

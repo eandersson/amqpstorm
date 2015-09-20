@@ -18,31 +18,6 @@ from amqpstorm.connection import Connection
 
 LOGGER = logging.getLogger(__name__)
 
-if ssl:
-    SSL_VERSIONS = {}
-    if hasattr(ssl, 'PROTOCOL_TLSv1_2'):
-        SSL_VERSIONS['protocol_tlsv1_2'] = ssl.PROTOCOL_TLSv1_2
-    if hasattr(ssl, 'PROTOCOL_TLSv1_1'):
-        SSL_VERSIONS['protocol_tlsv1_1'] = ssl.PROTOCOL_TLSv1_1
-    if hasattr(ssl, 'PROTOCOL_TLSv1'):
-        SSL_VERSIONS['protocol_tlsv1'] = ssl.PROTOCOL_TLSv1
-    if hasattr(ssl, 'PROTOCOL_SSLv3'):
-        SSL_VERSIONS['protocol_sslv3'] = ssl.PROTOCOL_SSLv3
-
-    SSL_CERT_MAP = {
-        'cert_none': ssl.CERT_NONE,
-        'cert_optional': ssl.CERT_OPTIONAL,
-        'cert_required': ssl.CERT_REQUIRED
-    }
-
-    SSL_OPTIONS = [
-        'keyfile',
-        'certfile',
-        'cert_reqs',
-        'ssl_version',
-        'ca_certs'
-    ]
-
 
 class UriConnection(Connection):
     """Wrapper of the Connection class that takes the AMQP uri schema."""
@@ -83,7 +58,7 @@ class UriConnection(Connection):
             'timeout': int(kwargs.get('timeout', [30])[0]),
             'lazy': lazy
         }
-        if ssl and use_ssl:
+        if compatibility.SSL_SUPPORTED and use_ssl:
             options['ssl_options'] = self._parse_ssl_options(kwargs)
         return options
 
@@ -95,7 +70,7 @@ class UriConnection(Connection):
         """
         ssl_options = {}
         for key in ssl_kwargs:
-            if key not in SSL_OPTIONS:
+            if key not in compatibility.SSL_OPTIONS:
                 continue
             if 'ssl_version' in key:
                 value = self._get_ssl_version(ssl_kwargs[key][0])
@@ -112,7 +87,8 @@ class UriConnection(Connection):
         :param str value:
         :return: SSL Version
         """
-        return self._get_ssl_attribute(value, SSL_VERSIONS, ssl.PROTOCOL_TLSv1,
+        return self._get_ssl_attribute(value, compatibility.SSL_VERSIONS,
+                                       ssl.PROTOCOL_TLSv1,
                                        'ssl_options: ssl_version \'%s\' not '
                                        'found falling back to PROTOCOL_TLSv1.')
 
@@ -122,7 +98,8 @@ class UriConnection(Connection):
         :param str value:
         :return: SSL Certificate Options
         """
-        return self._get_ssl_attribute(value, SSL_CERT_MAP, ssl.CERT_NONE,
+        return self._get_ssl_attribute(value, compatibility.SSL_CERT_MAP,
+                                       ssl.CERT_NONE,
                                        'ssl_options: cert_reqs \'%s\' not '
                                        'found falling back to CERT_NONE.')
 

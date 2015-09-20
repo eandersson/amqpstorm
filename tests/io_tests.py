@@ -12,9 +12,10 @@ except ImportError:
     import unittest
 
 import amqpstorm.io
-from tests.utility import FakeConnection
 from amqpstorm.io import IO
 from amqpstorm.exception import *
+from amqpstorm import compatibility
+from tests.utility import FakeConnection
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -126,14 +127,14 @@ class IOTests(unittest.TestCase):
 
     def test_default_ssl_version(self):
         if hasattr(ssl, 'PROTOCOL_TLSv1_2'):
-            self.assertEqual(amqpstorm.io.DEFAULT_SSL_VERSION,
+            self.assertEqual(compatibility.DEFAULT_SSL_VERSION,
                              ssl.PROTOCOL_TLSv1_2)
         else:
-            self.assertEqual(amqpstorm.io.DEFAULT_SSL_VERSION,
+            self.assertEqual(compatibility.DEFAULT_SSL_VERSION,
                              ssl.PROTOCOL_TLSv1)
 
     def test_ssl_connection_without_ssl_library(self):
-        amqpstorm.io.ssl = None
+        compatibility.SSL_SUPPORTED = False
         try:
             connection = FakeConnection()
             connection.parameters['hostname'] = 'localhost'
@@ -145,10 +146,10 @@ class IOTests(unittest.TestCase):
                                     'Python not compiled with SSL support',
                                     io.open)
         finally:
-            amqpstorm.io.ssl = ssl
+            compatibility.SSL_SUPPORTED = True
 
     def test_normal_connection_without_ssl_library(self):
-        amqpstorm.io.ssl = None
+        compatibility.SSL_SUPPORTED = False
         try:
             connection = FakeConnection()
             connection.parameters['hostname'] = 'localhost'
@@ -159,4 +160,4 @@ class IOTests(unittest.TestCase):
                                     'Could not connect to localhost:1234',
                                     io.open)
         finally:
-            amqpstorm.io.ssl = ssl
+            compatibility.SSL_SUPPORTED = True

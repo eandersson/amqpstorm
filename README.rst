@@ -9,6 +9,7 @@ Introduction
 AMQP-Storm is a library designed to be easy to use, stable and thread-safe.
 
 - Supports Python 2.6, 2.7 and Python 3+.
+- When using a SSL connection, TLSv1 or higher is required.
 
 |Bitdeli|
 

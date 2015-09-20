@@ -9,6 +9,7 @@ from time import sleep
 from errno import EINTR
 from errno import EWOULDBLOCK
 
+from amqpstorm import compatibility
 from amqpstorm.base import Stateful
 from amqpstorm.base import IDLE_WAIT
 from amqpstorm.base import FRAME_MAX
@@ -21,16 +22,6 @@ except ImportError:
 
 EMPTY_BUFFER = bytes()
 LOGGER = logging.getLogger(__name__)
-
-if ssl:
-    if hasattr(ssl, 'PROTOCOL_TLSv1_2'):
-        DEFAULT_SSL_VERSION = ssl.PROTOCOL_TLSv1_2
-    elif hasattr(ssl, 'PROTOCOL_TLSv1_1'):
-        DEFAULT_SSL_VERSION = ssl.PROTOCOL_TLSv1_1
-    elif hasattr(ssl, 'PROTOCOL_TLSv1'):
-        DEFAULT_SSL_VERSION = ssl.PROTOCOL_TLSv1
-    elif hasattr(ssl, 'PROTOCOL_SSLv3'):
-        DEFAULT_SSL_VERSION = ssl.PROTOCOL_SSLv3
 
 
 class Poller(object):
@@ -184,9 +175,9 @@ class IO(Stateful):
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
         sock.settimeout(self.parameters['timeout'] or None)
         if self.parameters['ssl']:
-            if not ssl:
-                raise AMQPConnectionError('Python not compiled '
-                                          'with SSL support')
+            if not compatibility.SSL_SUPPORTED:
+                raise AMQPConnectionError('Python not compiled with support '
+                                          'for TLSv1 or higher')
             sock = self._ssl_wrap_socket(sock)
         return sock
 
@@ -197,7 +188,8 @@ class IO(Stateful):
         :rtype: SSLSocket
         """
         if 'ssl_version' not in self.parameters['ssl_options']:
-            self.parameters['ssl_options']['ssl_version'] = DEFAULT_SSL_VERSION
+            self.parameters['ssl_options']['ssl_version'] = \
+                compatibility.DEFAULT_SSL_VERSION
         return ssl.wrap_socket(sock, do_handshake_on_connect=True,
                                **self.parameters['ssl_options'])
 
