@@ -143,7 +143,8 @@ class IOTests(unittest.TestCase):
             parameters['ssl'] = True
             io = IO(parameters)
             self.assertRaisesRegexp(AMQPConnectionError,
-                                    'Python not compiled with SSL support',
+                                    'Python not compiled with '
+                                    'support for TLSv1 or higher',
                                     io.open)
         finally:
             compatibility.SSL_SUPPORTED = True

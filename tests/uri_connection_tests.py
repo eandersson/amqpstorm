@@ -76,14 +76,14 @@ class UriConnectionTests(unittest.TestCase):
 
     def test_uri_set_ssl(self):
         connection = UriConnection('amqps://guest:guest@localhost:5671/%2F?'
-                                   'ssl_version=protocol_sslv3&'
+                                   'ssl_version=protocol_tlsv1&'
                                    'cert_reqs=cert_required&'
                                    'keyfile=file.key&'
                                    'certfile=file.crt&'
                                    'ca_certs=test', True)
         self.assertTrue(connection.parameters['ssl'])
         self.assertEqual(connection.parameters['ssl_options']['ssl_version'],
-                         ssl.PROTOCOL_SSLv3)
+                         ssl.PROTOCOL_TLSv1)
         self.assertEqual(connection.parameters['ssl_options']['cert_reqs'],
                          ssl.CERT_REQUIRED)
         self.assertEqual(connection.parameters['ssl_options']['keyfile'],
@@ -96,8 +96,8 @@ class UriConnectionTests(unittest.TestCase):
     def test_get_ssl_version(self):
         connection = \
             UriConnection('amqp://guest:guest@localhost:5672/%2F', True)
-        self.assertEqual(ssl.PROTOCOL_SSLv3,
-                         connection._get_ssl_version('protocol_sslv3'))
+        self.assertEqual(ssl.PROTOCOL_TLSv1,
+                         connection._get_ssl_version('protocol_tlsv1'))
 
     def test_get_invalid_ssl_version(self):
         connection = \
@@ -122,12 +122,12 @@ class UriConnectionTests(unittest.TestCase):
             UriConnection('amqp://guest:guest@localhost:5672/%2F', True)
         ssl_kwargs = {
             'cert_reqs': ['cert_required'],
-            'ssl_version': ['protocol_sslv3'],
+            'ssl_version': ['protocol_tlsv1'],
             'keyfile': ['file.key'],
             'certfile': ['file.crt']
         }
         ssl_options = connection._parse_ssl_options(ssl_kwargs)
         self.assertEqual(ssl_options['cert_reqs'], ssl.CERT_REQUIRED)
-        self.assertEqual(ssl_options['ssl_version'], ssl.PROTOCOL_SSLv3)
+        self.assertEqual(ssl_options['ssl_version'], ssl.PROTOCOL_TLSv1)
         self.assertEqual(ssl_options['keyfile'], 'file.key')
         self.assertEqual(ssl_options['certfile'], 'file.crt')
