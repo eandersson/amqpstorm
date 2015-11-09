@@ -37,7 +37,7 @@ class Basic(object):
         elif not compatibility.is_integer(prefetch_size):
             raise AMQPInvalidArgument('prefetch_size should be an integer')
         elif not isinstance(global_, bool):
-            raise AMQPInvalidArgument('global_ should be an boolean')
+            raise AMQPInvalidArgument('global_ should be a boolean')
         qos_frame = pamqp_spec.Basic.Qos(prefetch_count=prefetch_count,
                                          prefetch_size=prefetch_size,
                                          global_=global_)

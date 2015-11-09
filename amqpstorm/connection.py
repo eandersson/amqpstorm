@@ -118,9 +118,9 @@ class Connection(Stateful):
         self._exceptions = []
         self.set_state(self.OPENING)
         self.io.open()
-        self.heartbeat.start(self._exceptions)
         self._send_handshake()
         self._wait_for_connection_to_open()
+        self.heartbeat.start(self._exceptions)
         LOGGER.debug('Connection Opened')
 
     def close(self):

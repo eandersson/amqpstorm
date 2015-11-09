@@ -139,9 +139,6 @@ class Rpc(object):
         :param str uuid: Rpc Identifier.
         :return:
         """
-        if not uuid:
-            return
-
         for key in list(self.request):
             if self.request[key] == uuid:
                 del self.request[key]
@@ -152,9 +149,6 @@ class Rpc(object):
         :param str uuid: Rpc Identifier.
         :return:
         """
-        if not uuid:
-            return
-
         if uuid in self.response:
             del self.response[uuid]
 
