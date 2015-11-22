@@ -221,11 +221,11 @@ class Connection(Stateful):
         :return:
         """
         start_time = time.time()
-        timeout = self.parameters['timeout'] or 5
+        timeout = (self.parameters['timeout'] or 10) + 0.25
         while not self.is_open:
+            self.check_for_errors()
             if time.time() - start_time > timeout:
                 raise AMQPConnectionError('Connection timed out')
-            self.check_for_errors()
             sleep(IDLE_WAIT)
 
     def _read_buffer(self, buffer):

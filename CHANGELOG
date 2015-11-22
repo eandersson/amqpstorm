@@ -1,7 +1,8 @@
 # Changelog
 
-### Version 1.2.x
+### Version 1.2.6
 - TLSv1 or higher is now required for SSL connections.
+- Heartbeat Checker is no longer started before the Connection has been established.
 
 ### Version 1.2.5
 - Fixed Connection.Open bug triggered by the RabbitMQ Server not listening to the IPv6 loop-back.
@@ -11,7 +12,7 @@
 - Fixed compatibility issues with Python 2.6 and UriConnection.
 
 ### Version 1.2.3
-- Added a Client-side Heartbeat monitor.
+- Added a Client-side Heartbeat Checker.
 - Added Timeout to Connection.open.
 - Fixed potential bug in the Socket Poller error handling.
 
