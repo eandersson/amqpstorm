@@ -77,32 +77,38 @@ class IO(Stateful):
                                      the specified address, raise an exception.
         :return:
         """
-        self.buffer = EMPTY_BUFFER
-        self.set_state(self.OPENING)
-        sock_addresses = self._get_socket_addresses()
-        self.socket = self._find_address_and_connect(sock_addresses)
-        self.poller = Poller(self.socket.fileno(), on_error=self.on_error,
-                             timeout=self.parameters['timeout'])
-        self.inbound_thread = self._create_inbound_thread()
-        self.set_state(self.OPEN)
+        self.lock.acquire()
+        try:
+            self.buffer = EMPTY_BUFFER
+            self.set_state(self.OPENING)
+            sock_addresses = self._get_socket_addresses()
+            self.socket = self._find_address_and_connect(sock_addresses)
+            self.poller = Poller(self.socket.fileno(), on_error=self.on_error,
+                                 timeout=self.parameters['timeout'])
+            self.inbound_thread = self._create_inbound_thread()
+            self.set_state(self.OPEN)
+        finally:
+            self.lock.release()
 
     def close(self):
         """Close Socket.
 
         :return:
         """
-        self.set_state(self.CLOSING)
-        if not self.socket:
-            return
+        self.lock.acquire()
         try:
-            self.socket.shutdown(socket.SHUT_RDWR)
-        except socket.error:
-            pass
-        self.inbound_thread = None
-        self.poller = None
-        self.socket.close()
-        self.socket = None
-        self.set_state(self.CLOSED)
+            if not self.socket:
+                return
+            self.set_state(self.CLOSING)
+            self.socket.close()
+            if self.inbound_thread:
+                self.inbound_thread.join(timeout=1)
+            self.inbound_thread = None
+            self.poller = None
+            self.socket = None
+            self.set_state(self.CLOSED)
+        finally:
+            self.lock.release()
 
     def write_to_socket(self, frame_data):
         """Write data to the socket.

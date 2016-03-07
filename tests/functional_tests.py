@@ -55,8 +55,6 @@ class OpenCloseOpenCloseTest(unittest.TestCase):
 
             time.sleep(0.1)
 
-        time.sleep(1)
-
         # Make sure all threads are closed.
         self.assertEqual(threading.activeCount(), 1)
 
@@ -109,8 +107,8 @@ class Publish50kTest(unittest.TestCase):
             self.channel.basic.publish(body=body,
                                        routing_key='test.basic.50k')
 
-        # Sleep for 0.5s to make sure RabbitMQ has time to catch up.
-        time.sleep(0.5)
+        # Sleep for 2.5s to make sure RabbitMQ has time to catch up.
+        time.sleep(2.5)
 
         result = self.channel.queue.declare(queue='test.basic.50k',
                                             passive=True)

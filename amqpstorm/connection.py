@@ -149,7 +149,7 @@ class Connection(Stateful):
         elif self.is_closed:
             raise AMQPConnectionError('socket/connection closed')
 
-        with self.io.lock:
+        with self.lock:
             channel_id = len(self._channels) + 1
             channel = Channel(channel_id, self, rpc_timeout)
             self._channels[channel_id] = channel
@@ -283,10 +283,8 @@ class Connection(Stateful):
         :param exception why:
         :return:
         """
-        previous_state = self._state
-        self.set_state(self.CLOSED)
-        if previous_state != self.CLOSED:
+        if self._state != self.CLOSED:
             LOGGER.error(why, exc_info=False)
-        self.heartbeat.stop()
-        self.io.close()
+        self.set_state(self.CLOSED)
+        self.close()
         self.exceptions.append(AMQPConnectionError(why))

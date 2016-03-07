@@ -14,11 +14,14 @@ class Heartbeat(object):
     """Internal Heartbeat Checker."""
 
     def __init__(self, interval):
+        if interval < 1:
+            interval = 1
+        self.lock = threading.Lock()
         self._timer = None
         self._exceptions = None
         self._last_heartbeat = 0.0
         self._beats_since_check = 0
-        self._interval = int(interval) + 1
+        self._interval = int(interval)
         self._threshold = self._interval * 2
 
     def register_beat(self):
@@ -42,17 +45,20 @@ class Heartbeat(object):
         :return:
         """
         LOGGER.debug('Heartbeat Checker Started')
-        self._beats_since_check = 0
-        self._last_heartbeat = time.time()
-        self._exceptions = exceptions
-        self._start_timer()
+        with self.lock:
+            self._beats_since_check = 0
+            self._last_heartbeat = time.time()
+            self._exceptions = exceptions
+            self._start_timer()
 
     def stop(self):
         """Stop the Heartbeat Checker.
 
         :return:
         """
-        if self._timer:
+        with self.lock:
+            if not self._timer:
+                return
             self._timer.cancel()
             self._timer = None
         LOGGER.debug('Heartbeat Checker Stopped')

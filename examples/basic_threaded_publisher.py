@@ -29,9 +29,10 @@ def send_messages(connection):
 
         # After 10,000 messages has been sent, stop publishing on
         # this thread.
-        if messages_sent >= 10000:
-            logging.info("[Channel #{0}] Messages Sent in: {1}s"
-                         .format(int(channel), time.time() - start_time))
+        if connection.is_closed or messages_sent >= 10000:
+            logging.info("[Channel #{0}] {1} Messages Sent in: {2}s"
+                         .format(int(channel), messages_sent,
+                                 time.time() - start_time))
             break
 
         # Publish a message to the queue.

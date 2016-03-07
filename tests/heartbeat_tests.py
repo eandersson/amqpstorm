@@ -44,13 +44,13 @@ class HeartbeatTests(unittest.TestCase):
 
     def test_basic_raise_on_missed_heartbeats(self):
         exceptions = []
-        heartbeat = Heartbeat(0.5)
+        heartbeat = Heartbeat(1)
         heartbeat.start(exceptions)
-        time.sleep(3)
-        self.assertGreater(len(exceptions), 0)
+        time.sleep(5)
+        self.assertGreater(len(heartbeat._exceptions), 0)
 
     def test_basic_raise_when_check_for_life_when_exceptions_not_set(self):
-        heartbeat = Heartbeat(0.5)
+        heartbeat = Heartbeat(1)
         heartbeat._beats_since_check = 0
         heartbeat._last_heartbeat = time.time() - 100
 

@@ -19,6 +19,7 @@ class Stateful(object):
     OPEN = 3
 
     def __init__(self):
+        self.lock = threading.Lock()
         self._state = self.CLOSED
         self._exceptions = []
 
@@ -211,7 +212,6 @@ class BaseChannel(Stateful):
 
     def __init__(self, channel_id):
         super(BaseChannel, self).__init__()
-        self.lock = threading.Lock()
         self._consumer_tags = []
         self._channel_id = channel_id
 
