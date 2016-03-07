@@ -47,9 +47,9 @@ class Poller(object):
         :rtype: tuple
         """
         try:
-            ready, write, _ = select.select([self.fileno], [self.fileno], [],
+            ready, _, _ = select.select([self.fileno], [], [],
                                             self.timeout)
-            return bool(ready), bool(write)
+            return bool(ready)
         except select.error as why:
             if why.args[0] != EINTR:
                 self.on_error(why)
@@ -110,8 +110,6 @@ class IO(Stateful):
         :param str frame_data:
         :return:
         """
-        while not self.poller.is_ready[1]:
-            sleep(0.001)
         total_bytes_written = 0
         bytes_to_send = len(frame_data)
         while total_bytes_written < bytes_to_send:
@@ -212,7 +210,7 @@ class IO(Stateful):
         while not self.is_closed:
             if self.is_closing:
                 break
-            if self.poller and self.poller.is_ready[0]:
+            if self.poller and self.poller.is_ready:
                 self.buffer += self._receive()
                 self.buffer = self.on_read(self.buffer)
             sleep(IDLE_WAIT)

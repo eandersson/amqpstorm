@@ -1,5 +1,8 @@
 # Changelog
 
+### Version 1.2.7-dev
+- [Experimental] Removed Poller from write_to_socket.
+
 ### Version 1.2.6
 - TLSv1 or higher is now required for SSL connections.
 - Heartbeat Checker is no longer started before the Connection has been established.
