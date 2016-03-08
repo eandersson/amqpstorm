@@ -1,7 +1,8 @@
 # Changelog
 
-### Version 1.2.7-dev
-- [Experimental] Removed Poller from write_to_socket.
+### Version 1.2.7
+- Fixed incompatibility with eventlet.
+- Fixed potential race-condition in the Heartbeat code that could prolong the termination process of the Heartbeat Timer indefinitely.
 
 ### Version 1.2.6
 - TLSv1 or higher is now required for SSL connections.
