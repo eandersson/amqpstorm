@@ -48,7 +48,7 @@ class Poller(object):
         """
         try:
             ready, _, _ = select.select([self.fileno], [], [],
-                                            self.timeout)
+                                        self.timeout)
             return bool(ready)
         except select.error as why:
             if why.args[0] != EINTR:
@@ -100,11 +100,11 @@ class IO(Stateful):
             if not self.socket:
                 return
             self.set_state(self.CLOSING)
-            self.socket.close()
             if self.inbound_thread:
                 self.inbound_thread.join(timeout=1)
             self.inbound_thread = None
             self.poller = None
+            self.socket.close()
             self.socket = None
             self.set_state(self.CLOSED)
         finally:

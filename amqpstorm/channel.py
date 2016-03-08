@@ -123,8 +123,8 @@ class Channel(BaseChannel):
         elif frame_in.name == 'Basic.Return':
             self._basic_return(frame_in)
         else:
-            LOGGER.error('Unhandled Frame: %s -- %s',
-                         frame_in.name, dict(frame_in))
+            LOGGER.error('[Channel%d] Unhandled Frame: %s -- %s',
+                         self.channel_id, frame_in.name, dict(frame_in))
 
     def start_consuming(self, to_tuple=True):
         """Start consuming events.

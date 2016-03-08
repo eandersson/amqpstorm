@@ -40,6 +40,7 @@ class OpenCloseOpenCloseTest(unittest.TestCase):
             self.assertTrue(self.channel.is_open)
             self.assertTrue(self.connection.is_open)
             self.assertTrue(self.connection.io.is_open)
+            self.assertTrue(self.connection.heartbeat.is_open)
 
             self.channel.queue.declare('test.open.close')
             self.channel.basic.publish(body=str(uuid.uuid4()),
@@ -52,11 +53,14 @@ class OpenCloseOpenCloseTest(unittest.TestCase):
             self.assertTrue(self.connection.is_closed)
             self.assertIsNone(self.connection.io.socket)
             self.assertIsNone(self.connection.io.poller)
-
-            time.sleep(0.1)
+            self.assertTrue(self.connection.heartbeat.is_closed)
 
         # Make sure all threads are closed.
-        self.assertEqual(threading.activeCount(), 1)
+        time.sleep(0.1)
+
+        self.assertEqual(threading.activeCount(), 1,
+                         msg='Current Active threads: %s'
+                             % threading._active)
 
     def tearDown(self):
         self.connection = Connection(HOST, USERNAME, PASSWORD)

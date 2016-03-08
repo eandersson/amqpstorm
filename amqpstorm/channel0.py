@@ -48,6 +48,8 @@ class Channel0(object):
             self._set_connection_state(Stateful.OPEN)
         elif frame_in.name == 'Connection.Close':
             self._close_connection(frame_in)
+        elif frame_in.name == 'Connection.CloseOk':
+            self._close_connection_ok()
         elif frame_in.name == 'Connection.Blocked':
             self.is_blocked = True
             LOGGER.warning('Connection was blocked by remote server: %s',
@@ -56,7 +58,7 @@ class Channel0(object):
             self.is_blocked = False
             LOGGER.info('Connection is no longer blocked by remote server')
         else:
-            LOGGER.error('Unhandled Frame: %s -- %s',
+            LOGGER.error('[Channel0] Unhandled Frame: %s -- %s',
                          frame_in.name, dict(frame_in))
 
     def send_close_connection_frame(self):
@@ -67,7 +69,7 @@ class Channel0(object):
         self._write_frame(pamqp_spec.Connection.Close())
 
     def _close_connection(self, frame_in):
-        """Close Connection.
+        """Connection Close.
 
         :param pamqp_spec.Connection.Close frame_in: Amqp frame.
         :return:
@@ -77,6 +79,13 @@ class Channel0(object):
             message = 'Connection was closed by remote server: %s' \
                       % frame_in.reply_text.decode('utf-8')
             self._connection.exceptions.append(AMQPConnectionError(message))
+
+    def _close_connection_ok(self):
+        """Connection CloseOk.
+
+        :return:
+        """
+        self._set_connection_state(Stateful.CLOSED)
 
     def _set_connection_state(self, state):
         """Set Connection state.

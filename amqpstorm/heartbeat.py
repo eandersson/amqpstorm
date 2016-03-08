@@ -5,15 +5,17 @@ import time
 import logging
 import threading
 
+from amqpstorm.base import Stateful
 from amqpstorm.exception import AMQPConnectionError
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Heartbeat(object):
+class Heartbeat(Stateful):
     """Internal Heartbeat Checker."""
 
     def __init__(self, interval):
+        super(Heartbeat, self).__init__()
         if interval < 1:
             interval = 1
         self.lock = threading.Lock()
@@ -46,10 +48,12 @@ class Heartbeat(object):
         """
         LOGGER.debug('Heartbeat Checker Started')
         with self.lock:
+            self.set_state(self.OPENING)
             self._beats_since_check = 0
             self._last_heartbeat = time.time()
             self._exceptions = exceptions
             self._start_timer()
+            self.set_state(self.OPEN)
 
     def stop(self):
         """Stop the Heartbeat Checker.
@@ -58,9 +62,11 @@ class Heartbeat(object):
         """
         with self.lock:
             if not self._timer:
+                self.set_state(self.CLOSED)
                 return
             self._timer.cancel()
             self._timer = None
+            self.set_state(self.CLOSED)
         LOGGER.debug('Heartbeat Checker Stopped')
 
     def _check_for_life_signs(self):
@@ -86,7 +92,8 @@ class Heartbeat(object):
             self._exceptions.append(why)
 
         self._beats_since_check = 0
-        self._start_timer()
+        if not self.is_closed:
+            self._start_timer()
 
     def _start_timer(self):
         """Create a timer that will check for life signs on our connection.
