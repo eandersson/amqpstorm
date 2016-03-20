@@ -5,8 +5,8 @@ long_description = """
 See https://github.com/eandersson/amqp-storm for more information.
 """
 
-setup(name='AMQP-Storm',
-      version='1.2.7',
+setup(name='AMQPStorm',
+      version='1.2.8',
       description='Thread-safe Python AMQP Client Library based on pamqp.',
       long_description=long_description,
       author='Erik Olof Gunnar Andersson',

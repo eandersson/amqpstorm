@@ -40,7 +40,6 @@ class OpenCloseOpenCloseTest(unittest.TestCase):
             self.assertTrue(self.channel.is_open)
             self.assertTrue(self.connection.is_open)
             self.assertTrue(self.connection.io.is_open)
-            self.assertTrue(self.connection.heartbeat.is_open)
 
             self.channel.queue.declare('test.open.close')
             self.channel.basic.publish(body=str(uuid.uuid4()),
@@ -53,7 +52,6 @@ class OpenCloseOpenCloseTest(unittest.TestCase):
             self.assertTrue(self.connection.is_closed)
             self.assertIsNone(self.connection.io.socket)
             self.assertIsNone(self.connection.io.poller)
-            self.assertTrue(self.connection.heartbeat.is_closed)
 
         # Make sure all threads are closed.
         time.sleep(0.1)

@@ -1,5 +1,11 @@
 # Changelog
 
+### Version 1.2.8
+- Added Thread locking in Heartbeat variables.
+
+#### Renamed AMQP-Storm to AMQPStorm.
+- Both names will be maintained for the 1.2.X branch in Pypi.
+
 ### Version 1.2.7
 - Fixed incompatibility with eventlet.
 - Fixed potential race-condition in the Heartbeat code that could prolong the termination process of the Heartbeat Timer indefinitely.

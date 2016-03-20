@@ -5,40 +5,41 @@ import time
 import logging
 import threading
 
-from amqpstorm.base import Stateful
 from amqpstorm.exception import AMQPConnectionError
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Heartbeat(Stateful):
+class Heartbeat(object):
     """Internal Heartbeat Checker."""
 
     def __init__(self, interval):
-        super(Heartbeat, self).__init__()
         if interval < 1:
             interval = 1
         self.lock = threading.Lock()
+        self._stopped = threading.Event()
         self._timer = None
         self._exceptions = None
         self._last_heartbeat = 0.0
         self._beats_since_check = 0
-        self._interval = int(interval)
-        self._threshold = self._interval * 2
+        self._interval = interval + 1
+        self._threshold = interval * 2
 
     def register_beat(self):
         """Register that a frame has been received.
 
         :return:
         """
-        self._beats_since_check += 1
+        with self.lock:
+            self._beats_since_check += 1
 
     def register_heartbeat(self):
         """Register a Heartbeat.
 
         :return:
         """
-        self._last_heartbeat = time.time()
+        with self.lock:
+            self._last_heartbeat = time.time()
 
     def start(self, exceptions):
         """Start the Heartbeat Checker.
@@ -48,25 +49,20 @@ class Heartbeat(Stateful):
         """
         LOGGER.debug('Heartbeat Checker Started')
         with self.lock:
-            self.set_state(self.OPENING)
             self._beats_since_check = 0
             self._last_heartbeat = time.time()
-            self._exceptions = exceptions
-            self._start_timer()
-            self.set_state(self.OPEN)
+        self._exceptions = exceptions
+        self._start_timer()
 
     def stop(self):
         """Stop the Heartbeat Checker.
 
         :return:
         """
-        with self.lock:
-            if not self._timer:
-                self.set_state(self.CLOSED)
-                return
+        self._stopped.set()
+        if self._timer:
             self._timer.cancel()
-            self._timer = None
-            self.set_state(self.CLOSED)
+        self._timer = None
         LOGGER.debug('Heartbeat Checker Stopped')
 
     def _check_for_life_signs(self):
@@ -81,18 +77,20 @@ class Heartbeat(Stateful):
         :return:
         """
         LOGGER.debug('Checking for a heartbeat')
-        current_time = time.time()
-        elapsed = current_time - self._last_heartbeat
-        if self._beats_since_check == 0 and elapsed > self._threshold:
-            message = ('Connection dead, no heartbeat or data received in %ss'
+        with self.lock:
+            current_time = time.time()
+            elapsed = current_time - self._last_heartbeat
+            beats_since_check = self._beats_since_check
+            self._beats_since_check = 0
+        if beats_since_check == 0 and elapsed > self._threshold:
+            self._stopped.set()
+            message = ('Connection dead, no heartbeat or data received in %ds'
                        % round(elapsed, 3))
             why = AMQPConnectionError(message)
             if self._exceptions is None:
                 raise why
             self._exceptions.append(why)
-
-        self._beats_since_check = 0
-        if not self.is_closed:
+        else:
             self._start_timer()
 
     def _start_timer(self):
@@ -100,6 +98,8 @@ class Heartbeat(Stateful):
 
         :return:
         """
+        if self._stopped.is_set():
+            return
         self._timer = threading.Timer(interval=self._interval,
                                       function=self._check_for_life_signs)
         self._timer.daemon = True
