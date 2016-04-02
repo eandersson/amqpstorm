@@ -1,17 +1,12 @@
 __author__ = 'eandersson'
 
 import threading
-
 from time import sleep
 
-import amqpstorm
-
-from amqpstorm import Message
 from flask import Flask
 
-from examples import HOST
-from examples import USERNAME
-from examples import PASSWORD
+import amqpstorm
+from amqpstorm import Message
 
 app = Flask(__name__)
 
@@ -92,5 +87,5 @@ def rpc_call(payload):
 
 
 if __name__ == '__main__':
-    RPC_CLIENT = RpcClient(HOST, USERNAME, PASSWORD, 'rpc_queue')
+    RPC_CLIENT = RpcClient('127.0.0.1', 'guest', 'guest', 'rpc_queue')
     app.run()

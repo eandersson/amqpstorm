@@ -1,7 +1,7 @@
 __author__ = 'eandersson'
 
-import time
 import logging
+import time
 
 try:
     import unittest2 as unittest

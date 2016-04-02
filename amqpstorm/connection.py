@@ -1,25 +1,25 @@
 """AMQP-Storm Connection."""
 __author__ = 'eandersson'
 
-import time
 import logging
+import time
 from time import sleep
 
+from pamqp import exceptions as pamqp_exception
 from pamqp import frame as pamqp_frame
 from pamqp import header as pamqp_header
 from pamqp import specification as pamqp_spec
-from pamqp import exceptions as pamqp_exception
 
-from amqpstorm.io import IO
-from amqpstorm.io import EMPTY_BUFFER
 from amqpstorm import compatibility
-from amqpstorm.base import Stateful
 from amqpstorm.base import IDLE_WAIT
+from amqpstorm.base import Stateful
 from amqpstorm.channel import Channel
 from amqpstorm.channel0 import Channel0
-from amqpstorm.heartbeat import Heartbeat
 from amqpstorm.exception import AMQPConnectionError
 from amqpstorm.exception import AMQPInvalidArgument
+from amqpstorm.heartbeat import Heartbeat
+from amqpstorm.io import EMPTY_BUFFER
+from amqpstorm.io import IO
 
 LOGGER = logging.getLogger(__name__)
 
@@ -55,10 +55,8 @@ class Connection(Stateful):
             'ssl_options': kwargs.get('ssl_options', {})
         }
         self._validate_parameters()
-        self.io = IO(self.parameters,
-                     on_read=self._read_buffer,
-                     on_error=self._handle_socket_error)
         self.heartbeat = Heartbeat(self.parameters['heartbeat'])
+        self._io = IO(self.parameters, on_read=self._read_buffer)
         self._channel0 = Channel0(self)
         self._channels = {}
         if not kwargs.get('lazy', False):
@@ -96,7 +94,7 @@ class Connection(Stateful):
 
         :return:
         """
-        return self.io.socket
+        return self._io.socket
 
     @property
     def fileno(self):
@@ -104,9 +102,9 @@ class Connection(Stateful):
 
         :return:
         """
-        if not self.io.socket:
+        if not self._io.socket:
             return None
-        return self.io.socket.fileno()
+        return self._io.socket.fileno()
 
     def open(self):
         """Open Connection.
@@ -115,9 +113,9 @@ class Connection(Stateful):
                                      established.
         """
         LOGGER.debug('Connection Opening')
-        self._exceptions = []
         self.set_state(self.OPENING)
-        self.io.open()
+        self._exceptions = []
+        self._io.open(self._exceptions)
         self._send_handshake()
         self._wait_for_connection_to_open()
         self.heartbeat.start(self._exceptions)
@@ -127,11 +125,11 @@ class Connection(Stateful):
         """Close connection."""
         LOGGER.debug('Connection Closing')
         self.heartbeat.stop()
-        if not self.is_closed and self.io.socket:
+        if not self.is_closed and self._io.socket:
             self._close_channels()
             self.set_state(self.CLOSING)
             self._channel0.send_close_connection_frame()
-        self.io.close()
+        self._io.close()
         self.set_state(self.CLOSED)
         LOGGER.debug('Connection Closed')
 
@@ -162,8 +160,9 @@ class Connection(Stateful):
 
         :return:
         """
-        if not self.io.socket:
-            self._handle_socket_error('socket/connection closed')
+        if self.exceptions:
+            self.set_state(self.CLOSED)
+            self.close()
         super(Connection, self).check_for_errors()
 
     def write_frame(self, channel_id, frame_out):
@@ -174,7 +173,7 @@ class Connection(Stateful):
         :return:
         """
         frame_data = pamqp_frame.marshal(frame_out, channel_id)
-        self.io.write_to_socket(frame_data)
+        self._io.write_to_socket(frame_data)
 
     def write_frames(self, channel_id, multiple_frames):
         """Marshal and write multiple outgoing pamqp frames to the socket.
@@ -186,7 +185,7 @@ class Connection(Stateful):
         frame_data = EMPTY_BUFFER
         for single_frame in multiple_frames:
             frame_data += pamqp_frame.marshal(single_frame, channel_id)
-        self.io.write_to_socket(frame_data)
+        self._io.write_to_socket(frame_data)
 
     def _validate_parameters(self):
         """Validate Connection Parameters.
@@ -213,7 +212,7 @@ class Connection(Stateful):
 
         :return:
         """
-        self.io.write_to_socket(pamqp_header.ProtocolHeader().marshal())
+        self._io.write_to_socket(pamqp_header.ProtocolHeader().marshal())
 
     def _wait_for_connection_to_open(self):
         """Wait for the connection to fully open.
@@ -276,15 +275,3 @@ class Connection(Stateful):
             if not self._channels[channel_id].is_open:
                 continue
             self._channels[channel_id].close()
-
-    def _handle_socket_error(self, why):
-        """Handle any critical errors.
-
-        :param exception why:
-        :return:
-        """
-        if self._state != self.CLOSED:
-            LOGGER.error(why, exc_info=False)
-        self.set_state(self.CLOSED)
-        self.close()
-        self.exceptions.append(AMQPConnectionError(why))

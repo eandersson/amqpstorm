@@ -1,8 +1,7 @@
 __author__ = 'eandersson'
 
-import sys
-import ssl
 import logging
+import ssl
 
 try:
     import unittest2 as unittest

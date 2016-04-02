@@ -1,8 +1,8 @@
 __author__ = 'eandersson'
 
-import ssl
-import socket
 import logging
+import socket
+import ssl
 import threading
 
 from mock import MagicMock
@@ -16,7 +16,6 @@ from amqpstorm.io import IO
 from amqpstorm import Connection
 from amqpstorm.exception import *
 
-from pamqp.body import ContentBody
 from pamqp.specification import Basic as spec_basic
 
 logging.basicConfig(level=logging.DEBUG)
@@ -103,9 +102,9 @@ class ConnectionTests(unittest.TestCase):
     def test_fileno_property(self):
         connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
         connection.set_state(connection.OPENING)
-        io = IO(connection.parameters)
+        io = IO(connection.parameters, [])
         io.socket = MagicMock(name='socket', spec=socket.socket)
-        connection.io = io
+        connection._io = io
         io.socket.fileno.return_value = 5
         self.assertEqual(connection.fileno, 5)
 
@@ -151,9 +150,9 @@ class ConnectionTests(unittest.TestCase):
         connection = Connection('127.0.0.1', 'guest', 'guest', timeout=5,
                                 lazy=True)
         connection.set_state(connection.OPENING)
-        io = IO(connection.parameters)
+        io = IO(connection.parameters, [])
         io.socket = MagicMock(name='socket', spec=socket.socket)
-        connection.io = io
+        connection._io = io
 
         def func(conn):
             conn.set_state(conn.OPEN)
@@ -165,8 +164,8 @@ class ConnectionTests(unittest.TestCase):
         connection = Connection('127.0.0.1', 'guest', 'guest', timeout=1,
                                 lazy=True)
         connection.set_state(connection.OPENING)
-        io = IO(connection.parameters)
+        io = IO(connection.parameters, [])
         io.socket = MagicMock(name='socket', spec=socket.socket)
-        connection.io = io
+        connection._io = io
         self.assertRaises(AMQPConnectionError,
                           connection._wait_for_connection_to_open)

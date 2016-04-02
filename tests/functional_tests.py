@@ -1,9 +1,9 @@
 __author__ = 'eandersson'
 
-import time
-import uuid
 import logging
 import threading
+import time
+import uuid
 
 try:
     import unittest2 as unittest
@@ -30,16 +30,15 @@ class OpenCloseOpenCloseTest(unittest.TestCase):
         self.connection = Connection(HOST, USERNAME, PASSWORD, lazy=True)
 
     def test_open_close_loop(self):
-        for _ in range(10):
+        for _ in range(100):
             self.connection.open()
             self.channel = self.connection.channel()
 
             # Verify that the Connection/Channel has been opened properly.
-            self.assertIsNotNone(self.connection.io.socket)
-            self.assertIsNotNone(self.connection.io.poller)
+            self.assertIsNotNone(self.connection._io.socket)
+            self.assertIsNotNone(self.connection._io.poller)
             self.assertTrue(self.channel.is_open)
             self.assertTrue(self.connection.is_open)
-            self.assertTrue(self.connection.io.is_open)
 
             self.channel.queue.declare('test.open.close')
             self.channel.basic.publish(body=str(uuid.uuid4()),
@@ -50,11 +49,10 @@ class OpenCloseOpenCloseTest(unittest.TestCase):
             # Verify that the Connection/Channel has been closed properly.
             self.assertTrue(self.channel.is_closed)
             self.assertTrue(self.connection.is_closed)
-            self.assertIsNone(self.connection.io.socket)
-            self.assertIsNone(self.connection.io.poller)
+            self.assertIsNone(self.connection._io.socket)
+            self.assertIsNone(self.connection._io.poller)
 
-        # Make sure all threads are closed.
-        time.sleep(0.1)
+        time.sleep(0.01)
 
         self.assertEqual(threading.activeCount(), 1,
                          msg='Current Active threads: %s'

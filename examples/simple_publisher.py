@@ -2,22 +2,21 @@ __author__ = 'eandersson'
 
 import logging
 
-from amqpstorm import Message
 from amqpstorm import Connection
-from examples import HOST
-from examples import USERNAME
-from examples import PASSWORD
+from amqpstorm import Message
 
 logging.basicConfig(level=logging.DEBUG)
 
 
 def publisher():
-    with Connection(HOST, USERNAME, PASSWORD) as connection:
+    with Connection('127.0.0.1', 'guest', 'guest') as connection:
         with connection.channel() as channel:
             channel.queue.declare('simple_queue')
-            message = Message.create(channel, 'Hello World!',
-                                     {'content_type': 'text/plain',
-                                      'headers': {'key': 'value'}})
+            properties = {
+                'content_type': 'text/plain',
+                'headers': {'key': 'value'}
+            }
+            message = Message.create(channel, 'Hello World!', properties)
             message.publish('simple_queue')
 
 

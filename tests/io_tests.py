@@ -1,8 +1,8 @@
 __author__ = 'eandersson'
 
-import ssl
-import socket
 import logging
+import socket
+import ssl
 
 from mock import MagicMock
 
@@ -24,12 +24,10 @@ class IOTests(unittest.TestCase):
     def test_socket_close(self):
         connection = FakeConnection()
         io = IO(connection.parameters)
-        io.set_state(IO.OPEN)
         io.socket = MagicMock(name='socket', spec=socket.socket)
         io.close()
 
         self.assertIsNone(io.socket)
-        self.assertTrue(io.is_closed)
 
     def test_create_socket(self):
         connection = FakeConnection()
@@ -65,19 +63,13 @@ class IOTests(unittest.TestCase):
     def test_receive_raises_socket_error(self):
         connection = FakeConnection()
 
-        global result
-        result = None
-
-        def on_error(why):
-            global result
-            result = why
-
-        io = IO(connection.parameters, on_error=on_error)
+        io = IO(connection.parameters)
+        io._exceptions = []
         io.socket = MagicMock(name='socket', spec=socket.socket)
         io.socket.recv.side_effect = socket.error('error')
         io._receive()
 
-        self.assertIsInstance(result, socket.error)
+        self.assertIsInstance(io._exceptions[0], AMQPConnectionError)
 
     def test_receive_raises_socket_timeout(self):
         connection = FakeConnection()
@@ -89,38 +81,26 @@ class IOTests(unittest.TestCase):
     def test_simple_send_with_error(self):
         connection = FakeConnection()
 
-        global result
-        result = None
-
-        def on_error(why):
-            global result
-            result = why
-
-        io = IO(connection.parameters, on_error=on_error)
+        io = IO(connection.parameters)
+        io._exceptions = []
         io.socket = MagicMock(name='socket', spec=socket.socket)
         io.poller = MagicMock(name='poller', spec=amqpstorm.io.Poller)
         io.socket.send.side_effect = socket.error('error')
         io.write_to_socket('12345')
 
-        self.assertIsInstance(result, socket.error)
+        self.assertIsInstance(io._exceptions[0], AMQPConnectionError)
 
     def test_simple_send_zero_bytes_sent(self):
         connection = FakeConnection()
 
-        global result
-        result = None
-
-        def on_error(why):
-            global result
-            result = why
-
-        io = IO(connection.parameters, on_error=on_error)
+        io = IO(connection.parameters)
+        io._exceptions = []
         io.socket = MagicMock(name='socket', spec=socket.socket)
         io.poller = MagicMock(name='poller', spec=amqpstorm.io.Poller)
         io.socket.send.return_value = 0
         io.write_to_socket('afasffa')
 
-        self.assertIsInstance(result, socket.error)
+        self.assertIsInstance(io._exceptions[0], AMQPConnectionError)
 
     def test_ssl_is_set(self):
         self.assertIsNotNone(amqpstorm.io.ssl)
@@ -145,7 +125,7 @@ class IOTests(unittest.TestCase):
             self.assertRaisesRegexp(AMQPConnectionError,
                                     'Python not compiled with '
                                     'support for TLSv1 or higher',
-                                    io.open)
+                                    io.open, [])
         finally:
             compatibility.SSL_SUPPORTED = True
 
@@ -159,6 +139,6 @@ class IOTests(unittest.TestCase):
             io = IO(parameters)
             self.assertRaisesRegexp(AMQPConnectionError,
                                     'Could not connect to localhost:1234',
-                                    io.open)
+                                    io.open, [])
         finally:
             compatibility.SSL_SUPPORTED = True

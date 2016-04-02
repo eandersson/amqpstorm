@@ -5,13 +5,13 @@ import locale
 import logging
 import platform
 
-from pamqp.heartbeat import Heartbeat
 from pamqp import specification as pamqp_spec
+from pamqp.heartbeat import Heartbeat
 from pamqp.specification import Connection as pamqp_connection
 
 from amqpstorm import __version__
-from amqpstorm.base import Stateful
 from amqpstorm.base import FRAME_MAX
+from amqpstorm.base import Stateful
 from amqpstorm.exception import AMQPConnectionError
 
 LOGGER = logging.getLogger(__name__)

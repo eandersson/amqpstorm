@@ -1,7 +1,7 @@
 __author__ = 'eandersson'
 
-import sys
 import logging
+import sys
 
 try:
     import unittest2 as unittest

@@ -3,12 +3,11 @@ __author__ = 'eandersson'
 
 import json
 import uuid
-
 from datetime import datetime
 
 from amqpstorm.base import BaseMessage
-from amqpstorm.exception import AMQPMessageError
 from amqpstorm.compatibility import try_utf8_decode
+from amqpstorm.exception import AMQPMessageError
 
 
 class Message(BaseMessage):

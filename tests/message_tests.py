@@ -1,8 +1,7 @@
 __author__ = 'eandersson'
 
-import uuid
 import logging
-
+import uuid
 from datetime import datetime
 
 try:

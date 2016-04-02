@@ -1,8 +1,8 @@
 """AMQP-Storm Channel.Basic."""
 __author__ = 'eandersson'
 
-import math
 import logging
+import math
 
 from pamqp import body as pamqp_body
 from pamqp import header as pamqp_header
@@ -10,10 +10,10 @@ from pamqp import specification as pamqp_spec
 
 from amqpstorm import compatibility
 from amqpstorm.base import FRAME_MAX
-from amqpstorm.message import Message
-from amqpstorm.exception import AMQPMessageError
 from amqpstorm.exception import AMQPChannelError
 from amqpstorm.exception import AMQPInvalidArgument
+from amqpstorm.exception import AMQPMessageError
+from amqpstorm.message import Message
 
 LOGGER = logging.getLogger(__name__)
 

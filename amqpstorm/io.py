@@ -1,18 +1,17 @@
 """AMQP-Storm IO."""
 __author__ = 'eandersson'
 
+import logging
 import select
 import socket
-import logging
 import threading
-from time import sleep
 from errno import EINTR
 from errno import EWOULDBLOCK
+from time import sleep
 
 from amqpstorm import compatibility
-from amqpstorm.base import Stateful
-from amqpstorm.base import IDLE_WAIT
 from amqpstorm.base import FRAME_MAX
+from amqpstorm.base import IDLE_WAIT
 from amqpstorm.exception import AMQPConnectionError
 
 try:
@@ -27,10 +26,10 @@ LOGGER = logging.getLogger(__name__)
 class Poller(object):
     """Socket Read/Write Poller."""
 
-    def __init__(self, fileno, timeout=30, on_error=None):
+    def __init__(self, fileno, exceptions, timeout=30):
         self._fileno = fileno
+        self._exceptions = exceptions
         self.timeout = timeout
-        self.on_error = on_error
 
     @property
     def fileno(self):
@@ -52,63 +51,60 @@ class Poller(object):
             return bool(ready)
         except select.error as why:
             if why.args[0] != EINTR:
-                self.on_error(why)
-        return False, False
+                self._exceptions(AMQPConnectionError(why))
+        return False
 
 
-class IO(Stateful):
-    def __init__(self, parameters, on_read=None, on_error=None):
-        super(IO, self).__init__()
-        self.lock = threading.Lock()
+class IO(object):
+    def __init__(self, parameters, on_read=None):
+        self._inbound_thread = None
+        self._lock = threading.Lock()
+        self._stopped = threading.Event()
+        self._parameters = parameters
+        self._on_read = on_read
+        self._exceptions = None
         self.socket = None
         self.poller = None
-        self.inbound_thread = None
         self.buffer = EMPTY_BUFFER
-        self.parameters = parameters
-        self.on_read = on_read
-        self.on_error = on_error
 
-    def open(self):
+    def open(self, exceptions):
         """Open Socket and establish a connection.
 
-        :param str hostname:
-        :param int port:
+        :param list exceptions:
         :raises AMQPConnectionError: If a connection cannot be established on
                                      the specified address, raise an exception.
         :return:
         """
-        self.lock.acquire()
+        self._lock.acquire()
         try:
             self.buffer = EMPTY_BUFFER
-            self.set_state(self.OPENING)
+            self._stopped = threading.Event()
+            self._exceptions = exceptions
             sock_addresses = self._get_socket_addresses()
             self.socket = self._find_address_and_connect(sock_addresses)
-            self.poller = Poller(self.socket.fileno(), on_error=self.on_error,
-                                 timeout=self.parameters['timeout'])
-            self.inbound_thread = self._create_inbound_thread()
-            self.set_state(self.OPEN)
+            self.poller = Poller(self.socket.fileno(), self._exceptions,
+                                 timeout=self._parameters['timeout'])
+            self._inbound_thread = self._create_inbound_thread()
         finally:
-            self.lock.release()
+            self._lock.release()
 
     def close(self):
         """Close Socket.
 
         :return:
         """
-        self.lock.acquire()
+        self._lock.acquire()
         try:
-            if not self.socket:
-                return
-            self.set_state(self.CLOSING)
-            if self.inbound_thread:
-                self.inbound_thread.join(timeout=1)
-            self.inbound_thread = None
+            self._stopped.set()
+            if self._inbound_thread:
+                self._inbound_thread.join()
+            self._inbound_thread = None
             self.poller = None
-            self.socket.close()
+            if self.socket:
+                self.socket.close()
             self.socket = None
-            self.set_state(self.CLOSED)
         finally:
-            self.lock.release()
+            self._lock.release()
 
     def write_to_socket(self, frame_data):
         """Write data to the socket.
@@ -130,7 +126,7 @@ class IO(Stateful):
             except socket.error as why:
                 if why.args[0] == EWOULDBLOCK:
                     continue
-                self.on_error(why)
+                self._exceptions.append(AMQPConnectionError(why))
                 break
         return total_bytes_written
 
@@ -143,8 +139,8 @@ class IO(Stateful):
         if not socket.has_ipv6:
             family = socket.AF_INET
         try:
-            addresses = socket.getaddrinfo(self.parameters['hostname'],
-                                           self.parameters['port'], family)
+            addresses = socket.getaddrinfo(self._parameters['hostname'],
+                                           self._parameters['port'], family)
         except socket.gaierror as why:
             raise AMQPConnectionError(why)
         return addresses
@@ -165,8 +161,8 @@ class IO(Stateful):
                 continue
             return sock
         raise AMQPConnectionError('Could not connect to %s:%d'
-                                  % (self.parameters['hostname'],
-                                     self.parameters['port']))
+                                  % (self._parameters['hostname'],
+                                     self._parameters['port']))
 
     def _create_socket(self, socket_family):
         """Create Socket.
@@ -177,8 +173,8 @@ class IO(Stateful):
         sock = socket.socket(socket_family, socket.SOCK_STREAM, 0)
         sock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 1)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
-        sock.settimeout(self.parameters['timeout'] or None)
-        if self.parameters['ssl']:
+        sock.settimeout(self._parameters['timeout'] or None)
+        if self._parameters['ssl']:
             if not compatibility.SSL_SUPPORTED:
                 raise AMQPConnectionError('Python not compiled with support '
                                           'for TLSv1 or higher')
@@ -191,11 +187,11 @@ class IO(Stateful):
         :param socket sock:
         :rtype: SSLSocket
         """
-        if 'ssl_version' not in self.parameters['ssl_options']:
-            self.parameters['ssl_options']['ssl_version'] = \
+        if 'ssl_version' not in self._parameters['ssl_options']:
+            self._parameters['ssl_options']['ssl_version'] = \
                 compatibility.DEFAULT_SSL_VERSION
         return ssl.wrap_socket(sock, do_handshake_on_connect=True,
-                               **self.parameters['ssl_options'])
+                               **self._parameters['ssl_options'])
 
     def _create_inbound_thread(self):
         """Internal Thread that handles all incoming traffic.
@@ -204,7 +200,7 @@ class IO(Stateful):
         """
         inbound_thread = threading.Thread(target=self._process_incoming_data,
                                           name=__name__)
-        inbound_thread.setDaemon(True)
+        inbound_thread.daemon = True
         inbound_thread.start()
         return inbound_thread
 
@@ -213,12 +209,10 @@ class IO(Stateful):
 
         :return:
         """
-        while not self.is_closed:
-            if self.is_closing:
-                break
-            if self.poller and self.poller.is_ready:
+        while not self._stopped.is_set():
+            if self.poller.is_ready:
                 self.buffer += self._receive()
-                self.buffer = self.on_read(self.buffer)
+                self.buffer = self._on_read(self.buffer)
             sleep(IDLE_WAIT)
 
     def _receive(self):
@@ -234,6 +228,7 @@ class IO(Stateful):
             result = self.socket.recv(FRAME_MAX)
         except socket.timeout:
             pass
-        except (socket.error, AttributeError) as why:
-            self.on_error(why)
+        except socket.error as why:
+            self._exceptions.append(AMQPConnectionError(why))
+            self._stopped.set()
         return result

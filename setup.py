@@ -1,12 +1,11 @@
 from setuptools import setup
 
-
 long_description = """
 See https://github.com/eandersson/amqp-storm for more information.
 """
 
 setup(name='AMQPStorm',
-      version='1.2.8',
+      version='1.3.0a1',
       description='Thread-safe Python AMQP Client Library based on pamqp.',
       long_description=long_description,
       author='Erik Olof Gunnar Andersson',

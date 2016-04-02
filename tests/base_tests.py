@@ -92,9 +92,9 @@ class RpcTests(unittest.TestCase):
     def test_register_request(self):
         rpc = Rpc(FakeConnection())
         uuid = rpc.register_request(['Test'])
-        self.assertEqual(len(rpc.request), 1)
-        for key in rpc.request:
-            self.assertEqual(uuid, rpc.request[key])
+        self.assertEqual(len(rpc._request), 1)
+        for key in rpc._request:
+            self.assertEqual(uuid, rpc._request[key])
 
     def test_get_request(self):
         rpc = Rpc(FakeConnection())
@@ -106,26 +106,26 @@ class RpcTests(unittest.TestCase):
     def test_remove(self):
         rpc = Rpc(FakeConnection())
         uuid = rpc.register_request(['Test'])
-        self.assertEqual(len(rpc.request), 1)
-        self.assertEqual(len(rpc.response), 1)
+        self.assertEqual(len(rpc._request), 1)
+        self.assertEqual(len(rpc._response), 1)
         rpc.on_frame(TestPayload(name='Test'))
         rpc.remove(uuid)
-        self.assertEqual(len(rpc.request), 0)
-        self.assertEqual(len(rpc.response), 0)
+        self.assertEqual(len(rpc._request), 0)
+        self.assertEqual(len(rpc._response), 0)
 
     def test_remove_request(self):
         rpc = Rpc(FakeConnection())
         uuid = rpc.register_request(['Test'])
-        self.assertEqual(len(rpc.request), 1)
+        self.assertEqual(len(rpc._request), 1)
         rpc.remove_request(uuid)
-        self.assertEqual(len(rpc.request), 0)
+        self.assertEqual(len(rpc._request), 0)
 
     def test_remove_response(self):
         rpc = Rpc(FakeConnection())
         uuid = rpc.register_request(['Test'])
-        self.assertEqual(len(rpc.response), 1)
+        self.assertEqual(len(rpc._response), 1)
         rpc.remove_response(uuid)
-        self.assertEqual(len(rpc.response), 0)
+        self.assertEqual(len(rpc._response), 0)
 
     def test_remove_request_none(self):
         rpc = Rpc(FakeConnection())
@@ -142,6 +142,6 @@ class RpcTests(unittest.TestCase):
     def test_on_frame(self):
         rpc = Rpc(FakeConnection())
         uuid = rpc.register_request(['Test'])
-        self.assertEqual(rpc.response[uuid], None)
+        self.assertEqual(rpc._response[uuid], None)
         rpc.on_frame(TestPayload(name='Test'))
-        self.assertIsInstance(rpc.response[uuid], TestPayload)
+        self.assertIsInstance(rpc._response[uuid], TestPayload)

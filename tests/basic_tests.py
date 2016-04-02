@@ -1,7 +1,7 @@
 __author__ = 'eandersson'
 
-import uuid
 import logging
+import uuid
 
 try:
     import unittest2 as unittest

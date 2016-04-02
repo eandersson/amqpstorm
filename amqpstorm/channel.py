@@ -4,21 +4,21 @@ __author__ = 'eandersson'
 import logging
 from time import sleep
 
-from pamqp.header import ContentHeader
 from pamqp import specification as pamqp_spec
+from pamqp.header import ContentHeader
 
-from amqpstorm.base import Rpc
-from amqpstorm.base import IDLE_WAIT
-from amqpstorm.base import BaseChannel
-from amqpstorm.queue import Queue
-from amqpstorm.basic import Basic
 from amqpstorm import compatibility
-from amqpstorm.message import Message
-from amqpstorm.exchange import Exchange
+from amqpstorm.base import BaseChannel
+from amqpstorm.base import IDLE_WAIT
+from amqpstorm.base import Rpc
+from amqpstorm.basic import Basic
 from amqpstorm.exception import AMQPChannelError
-from amqpstorm.exception import AMQPMessageError
 from amqpstorm.exception import AMQPConnectionError
 from amqpstorm.exception import AMQPInvalidArgument
+from amqpstorm.exception import AMQPMessageError
+from amqpstorm.exchange import Exchange
+from amqpstorm.message import Message
+from amqpstorm.queue import Queue
 
 LOGGER = logging.getLogger(__name__)
 CONTENT_FRAME = ['Basic.Deliver', 'ContentHeader', 'ContentBody']
@@ -126,7 +126,7 @@ class Channel(BaseChannel):
             LOGGER.error('[Channel%d] Unhandled Frame: %s -- %s',
                          self.channel_id, frame_in.name, dict(frame_in))
 
-    def start_consuming(self, to_tuple=True):
+    def start_consuming(self, to_tuple=False):
         """Start consuming events.
 
         :param bool to_tuple: Should incoming messages be converted to
@@ -147,7 +147,7 @@ class Channel(BaseChannel):
             self.basic.cancel(tag)
         self.remove_consumer_tag()
 
-    def process_data_events(self, to_tuple=True):
+    def process_data_events(self, to_tuple=False):
         """Consume inbound messages.
 
             This is only required when consuming messages. All other
@@ -207,8 +207,7 @@ class Channel(BaseChannel):
         :return:
         """
         self.check_for_errors()
-        self._connection.write_frames(self.channel_id,
-                                      multiple_frames)
+        self._connection.write_frames(self.channel_id, multiple_frames)
 
     def check_for_errors(self):
         """Check for errors.

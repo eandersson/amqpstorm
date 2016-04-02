@@ -1,8 +1,8 @@
 """AMQP-Storm Base."""
 __author__ = 'eandersson'
 
-import time
 import threading
+import time
 from uuid import uuid4
 
 from amqpstorm.exception import AMQPChannelError
@@ -19,9 +19,13 @@ class Stateful(object):
     OPEN = 3
 
     def __init__(self):
-        self.lock = threading.Lock()
+        self._lock = threading.Lock()
         self._state = self.CLOSED
         self._exceptions = []
+
+    @property
+    def lock(self):
+        return self._lock
 
     def set_state(self, state):
         """Set State.
@@ -91,11 +95,15 @@ class Rpc(object):
         :param Stateful adapter: Connection or Channel.
         :param int timeout: Rpc timeout.
         """
-        self.lock = threading.Lock()
-        self.timeout = timeout
-        self.response = {}
-        self.request = {}
+        self._lock = threading.Lock()
         self._adapter = adapter
+        self._timeout = timeout
+        self._response = {}
+        self._request = {}
+
+    @property
+    def lock(self):
+        return self._lock
 
     def on_frame(self, frame_in):
         """On RPC Frame.
@@ -103,11 +111,11 @@ class Rpc(object):
         :param pamqp_spec.Frame frame_in: Amqp frame.
         :return:
         """
-        if frame_in.name not in self.request:
+        if frame_in.name not in self._request:
             return False
 
-        uuid = self.request[frame_in.name]
-        self.response[uuid] = frame_in
+        uuid = self._request[frame_in.name]
+        self._response[uuid] = frame_in
 
         return True
 
@@ -119,9 +127,9 @@ class Rpc(object):
         :return:
         """
         uuid = str(uuid4())
-        self.response[uuid] = None
+        self._response[uuid] = None
         for action in valid_responses:
-            self.request[action] = uuid
+            self._request[action] = uuid
 
         return uuid
 
@@ -140,9 +148,9 @@ class Rpc(object):
         :param str uuid: Rpc Identifier.
         :return:
         """
-        for key in list(self.request):
-            if self.request[key] == uuid:
-                del self.request[key]
+        for key in list(self._request):
+            if self._request[key] == uuid:
+                del self._request[key]
 
     def remove_response(self, uuid):
         """Remove a RPC Response using this uuid.
@@ -150,8 +158,8 @@ class Rpc(object):
         :param str uuid: Rpc Identifier.
         :return:
         """
-        if uuid in self.response:
-            del self.response[uuid]
+        if uuid in self._response:
+            del self._response[uuid]
 
     def get_request(self, uuid, raw=False, auto_remove=True):
         """Get a RPC request.
@@ -162,13 +170,13 @@ class Rpc(object):
         :param bool auto_remove: Automatically remove Rpc response.
         :return:
         """
-        if uuid not in self.response:
+        if uuid not in self._response:
             return
 
         self._wait_for_request(uuid)
-        frame = self.response.get(uuid, None)
+        frame = self._response.get(uuid, None)
 
-        self.response[uuid] = None
+        self._response[uuid] = None
         if auto_remove:
             self.remove(uuid)
 
@@ -186,9 +194,9 @@ class Rpc(object):
         :return:
         """
         start_time = time.time()
-        while self.response[uuid] is None:
+        while self._response[uuid] is None:
             self._adapter.check_for_errors()
-            if time.time() - start_time > self.timeout:
+            if time.time() - start_time > self._timeout:
                 self._raise_rpc_timeout_error(uuid)
             time.sleep(IDLE_WAIT)
 
@@ -199,7 +207,7 @@ class Rpc(object):
         :return:
         """
         requests = []
-        for key, value in self.request.items():
+        for key, value in self._request.items():
             if value == uuid:
                 requests.append(key)
         self.remove(uuid)

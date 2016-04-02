@@ -1,9 +1,9 @@
 """AMQP-Storm Connection.Heartbeat."""
 __author__ = 'eandersson'
 
-import time
 import logging
 import threading
+import time
 
 from amqpstorm.exception import AMQPConnectionError
 
@@ -16,7 +16,7 @@ class Heartbeat(object):
     def __init__(self, interval):
         if interval < 1:
             interval = 1
-        self.lock = threading.Lock()
+        self._lock = threading.Lock()
         self._stopped = threading.Event()
         self._timer = None
         self._exceptions = None
@@ -30,7 +30,7 @@ class Heartbeat(object):
 
         :return:
         """
-        with self.lock:
+        with self._lock:
             self._beats_since_check += 1
 
     def register_heartbeat(self):
@@ -38,7 +38,7 @@ class Heartbeat(object):
 
         :return:
         """
-        with self.lock:
+        with self._lock:
             self._last_heartbeat = time.time()
 
     def start(self, exceptions):
@@ -48,11 +48,12 @@ class Heartbeat(object):
         :return:
         """
         LOGGER.debug('Heartbeat Checker Started')
-        with self.lock:
+        with self._lock:
+            self._stopped = threading.Event()
             self._beats_since_check = 0
             self._last_heartbeat = time.time()
         self._exceptions = exceptions
-        self._start_timer()
+        self._start_new_timer()
 
     def stop(self):
         """Stop the Heartbeat Checker.
@@ -63,7 +64,6 @@ class Heartbeat(object):
         if self._timer:
             self._timer.cancel()
         self._timer = None
-        LOGGER.debug('Heartbeat Checker Stopped')
 
     def _check_for_life_signs(self):
         """Check if we have any sign of life.
@@ -76,24 +76,25 @@ class Heartbeat(object):
 
         :return:
         """
-        LOGGER.debug('Checking for a heartbeat')
-        with self.lock:
-            current_time = time.time()
-            elapsed = current_time - self._last_heartbeat
-            beats_since_check = self._beats_since_check
+        if self._stopped.is_set():
+            return
+        self._lock.acquire()
+        try:
+            elapsed = time.time() - self._last_heartbeat
+            if self._beats_since_check == 0 and elapsed > self._threshold:
+                self._stopped.set()
+                message = ('Connection dead, no heartbeat or data received '
+                           'in %ds' % round(elapsed, 3))
+                why = AMQPConnectionError(message)
+                if self._exceptions is None:
+                    raise why
+                self._exceptions.append(why)
             self._beats_since_check = 0
-        if beats_since_check == 0 and elapsed > self._threshold:
-            self._stopped.set()
-            message = ('Connection dead, no heartbeat or data received in %ds'
-                       % round(elapsed, 3))
-            why = AMQPConnectionError(message)
-            if self._exceptions is None:
-                raise why
-            self._exceptions.append(why)
-        else:
-            self._start_timer()
+        finally:
+            self._lock.release()
+        self._start_new_timer()
 
-    def _start_timer(self):
+    def _start_new_timer(self):
         """Create a timer that will check for life signs on our connection.
 
         :return:
