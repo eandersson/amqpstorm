@@ -43,7 +43,7 @@ class Basic(object):
                                          global_=global_)
         return self._channel.rpc_request(qos_frame)
 
-    def get(self, queue='', no_ack=False, to_dict=True):
+    def get(self, queue='', no_ack=False, to_dict=False):
         """Fetch a single message.
 
         :param str queue:

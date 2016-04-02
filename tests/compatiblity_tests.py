@@ -86,15 +86,3 @@ class CompatibilityTests(unittest.TestCase):
     @unittest.skipIf(sys.version_info[0] == 2, 'Python 3.x test')
     def test_python_3_x_range(self):
         self.assertEqual(compatibility.RANGE, range)
-
-    def test_python_pypy(self):
-        try:
-            import __pypy__
-            PYPY = True
-        except ImportError:
-            PYPY = False
-
-        if PYPY:
-            self.assertTrue(compatibility.PYPY)
-        else:
-            self.assertFalse(compatibility.PYPY)

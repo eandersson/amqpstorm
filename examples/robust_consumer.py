@@ -20,8 +20,7 @@ class Consumer(object):
         while True:
             attempts += 1
             try:
-                self.connection = Connection('127.0.0.1', 'guest', 'guest',
-                                             heartbeat=1)
+                self.connection = Connection('127.0.0.1', 'guest', 'guest')
                 break
             except amqpstorm.AMQPError as why:
                 LOGGER.exception(why)

@@ -52,7 +52,7 @@ class OpenCloseOpenCloseTest(unittest.TestCase):
             self.assertIsNone(self.connection._io.socket)
             self.assertIsNone(self.connection._io.poller)
 
-        time.sleep(0.01)
+        time.sleep(0.1)
 
         self.assertEqual(threading.activeCount(), 1,
                          msg='Current Active threads: %s'
@@ -85,7 +85,7 @@ class PublishAndGetMessagesTest(unittest.TestCase):
         # Get 5 messages.
         for _ in range(5):
             payload = self.channel.basic.get('test.basic.get')
-            self.assertIsInstance(payload, dict)
+            self.assertIsInstance(payload, Message)
 
     def tearDown(self):
         self.channel.queue.delete('test.basic.get')
@@ -254,12 +254,12 @@ class PublishAndConsumeMessagesTest(unittest.TestCase):
         # Store and inbound messages.
         inbound_messages = []
 
-        def on_message(*args):
-            self.assertIsInstance(args[0], (bytes, str))
-            self.assertIsInstance(args[1], Channel)
-            self.assertIsInstance(args[2], dict)
-            self.assertIsInstance(args[3], dict)
-            inbound_messages.append(args)
+        def on_message(message):
+            self.assertIsInstance(message.body, (bytes, str))
+            self.assertIsInstance(message.channel, Channel)
+            self.assertIsInstance(message.properties, dict)
+            self.assertIsInstance(message.method, dict)
+            inbound_messages.append(message)
 
         self.channel.basic.consume(callback=on_message,
                                    queue='test.basic.consume',
@@ -364,16 +364,14 @@ class GetAndRedeliverTest(unittest.TestCase):
         self.message = str(uuid.uuid4())
         self.channel.basic.publish(body=self.message,
                                    routing_key='test.get.redeliver')
-        payload = self.channel.basic.get('test.get.redeliver', no_ack=False)
-        self.channel.basic.reject(
-            delivery_tag=payload['method']['delivery_tag']
-        )
+        message = self.channel.basic.get('test.get.redeliver', no_ack=False)
+        message.reject()
         # Sleep for 0.5s to make sure RabbitMQ has time to catch up.
         time.sleep(0.5)
 
     def test_get_and_redeliver(self):
-        payload = self.channel.basic.get('test.get.redeliver', no_ack=False)
-        self.assertEqual(payload['body'].decode('utf-8'), self.message)
+        message = self.channel.basic.get('test.get.redeliver', no_ack=False)
+        self.assertEqual(message.body, self.message)
 
     def tearDown(self):
         self.channel.queue.delete('test.get.redeliver')

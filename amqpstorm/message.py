@@ -345,7 +345,7 @@ class Message(BaseMessage):
     def _try_decode_list(content):
         """Decode content of a list.
 
-        :param list content:
+        :param list|tuple content:
         :return:
         """
         result = list()

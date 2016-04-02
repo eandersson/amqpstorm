@@ -8,7 +8,6 @@ try:
 except ImportError:
     ssl = None
 
-PYPY = '__pypy__' in sys.builtin_module_names
 PYTHON3 = sys.version_info >= (3, 0, 0)
 
 if PYTHON3:
