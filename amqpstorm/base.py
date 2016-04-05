@@ -81,10 +81,7 @@ class Stateful(object):
 
         :return:
         """
-        if self.exceptions:
-            self.set_state(self.CLOSED)
-            why = self.exceptions[0]
-            raise why
+        pass
 
 
 class Rpc(object):
@@ -130,7 +127,6 @@ class Rpc(object):
         self._response[uuid] = None
         for action in valid_responses:
             self._request[action] = uuid
-
         return uuid
 
     def remove(self, uuid):
@@ -211,8 +207,9 @@ class Rpc(object):
             if value == uuid:
                 requests.append(key)
         self.remove(uuid)
-        message = 'rpc requests {0!s} ({1!s}) took too long'
-        raise AMQPChannelError(message.format(uuid, ', '.join(requests)))
+        message = ('rpc requests %s (%s) took too long'
+                   % (uuid, ', '.join(requests)))
+        raise AMQPChannelError(message)
 
 
 class BaseChannel(Stateful):

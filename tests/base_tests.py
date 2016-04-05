@@ -1,6 +1,7 @@
 __author__ = 'eandersson'
 
 import logging
+import time
 
 try:
     import unittest2 as unittest
@@ -10,6 +11,7 @@ except ImportError:
 from amqpstorm.base import Rpc
 from amqpstorm.base import Stateful
 from amqpstorm.base import BaseChannel
+from amqpstorm.exception import AMQPChannelError
 
 from tests.utility import FakeConnection
 from tests.utility import TestPayload
@@ -69,24 +71,6 @@ class StatefulTests(unittest.TestCase):
         stateful.set_state(Stateful.CLOSING)
         self.assertTrue(stateful.is_closing)
 
-    def test_exception_handling(self):
-        stateful = Stateful()
-        stateful.set_state(Stateful.OPEN)
-        stateful.exceptions.append(Exception('Test'))
-        self.assertTrue(stateful.is_open)
-        self.assertRaises(Exception, stateful.check_for_errors)
-        self.assertTrue(stateful.is_closed)
-
-    def test_multiple_exceptions(self):
-        stateful = Stateful()
-        stateful.set_state(Stateful.OPEN)
-        stateful.exceptions.append(IOError('Test'))
-        stateful.exceptions.append(Exception('Test'))
-        self.assertTrue(stateful.is_open)
-        self.assertRaises(IOError, stateful.check_for_errors)
-        self.assertRaises(IOError, stateful.check_for_errors)
-        self.assertTrue(stateful.is_closed)
-
 
 class RpcTests(unittest.TestCase):
     def test_register_request(self):
@@ -145,3 +129,10 @@ class RpcTests(unittest.TestCase):
         self.assertEqual(rpc._response[uuid], None)
         rpc.on_frame(TestPayload(name='Test'))
         self.assertIsInstance(rpc._response[uuid], TestPayload)
+
+    def test_raises_on_timeout(self):
+        rpc = Rpc(FakeConnection(), timeout=0.1)
+        uuid = rpc.register_request(['Test'])
+        self.assertEqual(rpc._response[uuid], None)
+        time.sleep(0.25)
+        self.assertRaises(AMQPChannelError, rpc.get_request, uuid)

@@ -5,6 +5,7 @@ import logging
 from time import sleep
 
 from pamqp import specification as pamqp_spec
+
 from pamqp.header import ContentHeader
 
 from amqpstorm import compatibility
@@ -126,7 +127,7 @@ class Channel(BaseChannel):
             LOGGER.error('[Channel%d] Unhandled Frame: %s -- %s',
                          self.channel_id, frame_in.name, dict(frame_in))
 
-    def start_consuming(self, to_tuple=False):
+    def start_consuming(self, to_tuple=True):
         """Start consuming events.
 
         :param bool to_tuple: Should incoming messages be converted to
@@ -147,7 +148,7 @@ class Channel(BaseChannel):
             self.basic.cancel(tag)
         self.remove_consumer_tag()
 
-    def process_data_events(self, to_tuple=False):
+    def process_data_events(self, to_tuple=True):
         """Consume inbound messages.
 
             This is only required when consuming messages. All other
@@ -220,9 +221,15 @@ class Channel(BaseChannel):
             if not self.exceptions:
                 why = AMQPConnectionError('connection was closed')
                 self.exceptions.append(why)
+                raise why
+        if self.exceptions:
+            if self.is_open:
+                exception = self.exceptions.pop(0)
+            else:
+                exception = self.exceptions[0]
+            raise exception
         if self.is_closed:
-            self.exceptions.append(AMQPChannelError('channel was closed'))
-        super(Channel, self).check_for_errors()
+            raise AMQPChannelError('channel was closed')
 
     def rpc_request(self, frame_out):
         """Perform a RPC Request.
@@ -243,9 +250,12 @@ class Channel(BaseChannel):
         """
         self.remove_consumer_tag()
         if frame_in.reply_code != 200:
+            reply_text = frame_in.reply_text.decode('utf-8')
             message = 'Channel %d was closed by remote server: %s' % \
-                      (self._channel_id, frame_in.reply_text.decode('utf-8'))
-            self.exceptions.append(AMQPChannelError(message))
+                      (self._channel_id, reply_text)
+            exception = AMQPChannelError(message,
+                                         reply_code=frame_in.reply_code)
+            self.exceptions.append(exception)
         del self._inbound[:]
         self.set_state(self.CLOSED)
 
@@ -255,13 +265,15 @@ class Channel(BaseChannel):
         :param pamqp_spec.Return frame_in: Amqp frame.
         :return:
         """
-        message = "Message not delivered: {0!s} ({1!s}) to queue" \
-                  " '{2!s}' from exchange '{3!s}'" \
-            .format(frame_in.reply_text.decode('utf-8'),
-                    frame_in.reply_code,
-                    frame_in.routing_key,
-                    frame_in.exchange)
-        self.exceptions.append(AMQPMessageError(message))
+        reply_text = frame_in.reply_text.decode('utf-8')
+        message = ("Message not delivered: %s (%s) to queue '%s' "
+                   "from exchange '%s'" % (reply_text,
+                                           frame_in.reply_code,
+                                           frame_in.routing_key,
+                                           frame_in.exchange))
+        exception = AMQPMessageError(message,
+                                     reply_code=frame_in.reply_code)
+        self.exceptions.append(exception)
 
     def _build_message(self):
         """Fetch and build a complete Message from the inbound queue.

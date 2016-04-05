@@ -43,7 +43,7 @@ class Basic(object):
                                          global_=global_)
         return self._channel.rpc_request(qos_frame)
 
-    def get(self, queue='', no_ack=False, to_dict=False):
+    def get(self, queue='', no_ack=False, to_dict=True):
         """Fetch a single message.
 
         :param str queue:
@@ -302,8 +302,8 @@ class Basic(object):
         elif isinstance(result, pamqp_spec.Basic.Nack):
             return False
         else:
-            raise AMQPMessageError('Unexpected Error: {0!s} - {1!s}'
-                                   .format(result, dict(result)))
+            raise AMQPMessageError('Unexpected Error: %s - %s'
+                                   % (result, dict(result)))
 
     @staticmethod
     def _create_content_body(body):

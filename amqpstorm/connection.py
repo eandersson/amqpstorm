@@ -67,8 +67,8 @@ class Connection(Stateful):
 
     def __exit__(self, exception_type, exception_value, _):
         if exception_value:
-            message = 'Closing connection due to an unhandled exception: {0!s}'
-            LOGGER.warning(message.format(exception_type))
+            message = 'Closing connection due to an unhandled exception: %s'
+            LOGGER.warning(message, exception_type)
         self.close()
 
     @property
@@ -160,10 +160,11 @@ class Connection(Stateful):
 
         :return:
         """
-        if self.exceptions:
-            self.set_state(self.CLOSED)
-            self.close()
-        super(Connection, self).check_for_errors()
+        if not self.exceptions:
+            return
+        self.set_state(self.CLOSED)
+        self.close()
+        raise self.exceptions[0]
 
     def write_frame(self, channel_id, frame_out):
         """Marshal and write an outgoing pamqp frame to the socket.

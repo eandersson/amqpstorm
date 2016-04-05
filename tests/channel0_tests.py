@@ -8,6 +8,8 @@ try:
 except ImportError:
     import unittest
 
+import amqpstorm
+
 from pamqp.specification import Connection
 
 from amqpstorm.channel0 import Channel0
@@ -58,7 +60,8 @@ class BasicChannel0Tests(unittest.TestCase):
         self.assertTrue(connection.is_closed)
 
     def test_forcefully_closed_connection(self):
-        connection = FakeConnection()
+        connection = amqpstorm.Connection('localhost', 'guest', 'guest',
+                                          lazy=True)
         connection.set_state(connection.OPEN)
         channel = Channel0(connection)
         channel._close_connection(

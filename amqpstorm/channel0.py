@@ -76,9 +76,12 @@ class Channel0(object):
         """
         self._set_connection_state(Stateful.CLOSED)
         if frame_in.reply_code != 200:
-            message = 'Connection was closed by remote server: %s' \
-                      % frame_in.reply_text.decode('utf-8')
-            self._connection.exceptions.append(AMQPConnectionError(message))
+            reply_text = frame_in.reply_text.decode('utf-8')
+            message = ('Connection was closed by remote server: %s'
+                       % reply_text)
+            exception = AMQPConnectionError(message,
+                                            reply_code=frame_in.reply_code)
+            self._connection.exceptions.append(exception)
 
     def _close_connection_ok(self):
         """Connection CloseOk.
@@ -141,8 +144,8 @@ class Channel0(object):
 
         :rtype: str
         """
-        return '\0{0}\0{1}'.format(self.parameters['username'],
-                                   self.parameters['password'])
+        return '\0%s\0%s' % (self.parameters['username'],
+                             self.parameters['password'])
 
     @staticmethod
     def _client_properties():
