@@ -508,7 +508,7 @@ class UriConnectionTest(unittest.TestCase):
         self.connection.close()
 
 
-class PublishAndFail(unittest.TestCase):
+class PublishFailAndFix(unittest.TestCase):
     def setUp(self):
         self.connection = Connection(HOST, USERNAME, PASSWORD)
         self.channel = self.connection.channel()
@@ -517,23 +517,45 @@ class PublishAndFail(unittest.TestCase):
     def test_publish_and_confirm(self):
         try:
             self.channel.basic.publish(body=str(uuid.uuid4()),
-                                       routing_key='test.publish.and.fail',
+                                       routing_key='test.publish.fail.and.fix',
                                        mandatory=True)
         except AMQPChannelError as why:
+            self.assertTrue(self.channel.is_open)
             self.assertEqual(why.error_code, 312)
             if why.error_code == 312:
-                self.channel.queue.declare('test.publish.and.fail')
+                self.channel.queue.declare('test.publish.fail.and.fix')
 
-        result = self.channel.basic.publish(body=str(uuid.uuid4()),
-                                            routing_key='test.publish.and.fail',
-                                            mandatory=True)
+        result = \
+            self.channel.basic.publish(body=str(uuid.uuid4()),
+                                       routing_key='test.publish.fail.and.fix',
+                                       mandatory=True)
         self.assertTrue(result)
 
-        payload = self.channel.queue.declare('test.publish.and.fail',
+        payload = self.channel.queue.declare('test.publish.fail.and.fix',
                                              passive=True)
         self.assertEqual(payload['message_count'], 1)
 
     def tearDown(self):
+        self.channel.queue.delete('test.publish.fail.and.fix')
+        self.channel.close()
+        self.connection.close()
+
+
+class PublishAndFail(unittest.TestCase):
+    def setUp(self):
+        self.connection = Connection(HOST, USERNAME, PASSWORD)
+        self.channel = self.connection.channel()
+        self.channel.queue.declare('test.publish.and.fail')
+        self.channel.confirm_deliveries()
+
+    def test_publish_and_confirm(self):
+        message = Message.create(self.channel, 'hello world')
+        self.assertRaises(AMQPChannelError, message.publish, 'hello_world',
+                          exchange='fake_exchange', mandatory=True)
+        self.assertFalse(self.channel.is_open)
+
+    def tearDown(self):
+        self.channel = self.connection.channel()
         self.channel.queue.delete('test.publish.and.fail')
         self.channel.close()
         self.connection.close()

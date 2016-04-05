@@ -215,19 +215,19 @@ class Channel(BaseChannel):
 
         :return:
         """
-        self._connection.check_for_errors()
-        if self._connection.is_closed:
+        if self._connection.exceptions or self._connection.is_closed:
             self.set_state(self.CLOSED)
-            if not self.exceptions:
-                why = AMQPConnectionError('connection was closed')
-                self.exceptions.append(why)
-                raise why
+            why = AMQPConnectionError('connection was closed')
+            if self._connection.exceptions:
+                why = self._connection.exceptions[0]
+            raise why
+
         if self.exceptions:
+            exception = self.exceptions[0]
             if self.is_open:
-                exception = self.exceptions.pop(0)
-            else:
-                exception = self.exceptions[0]
+                self.exceptions.pop(0)
             raise exception
+
         if self.is_closed:
             raise AMQPChannelError('channel was closed')
 

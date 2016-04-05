@@ -21,7 +21,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 class IOTests(unittest.TestCase):
-    def test_socket_close(self):
+    def test_io_socket_close(self):
         connection = FakeConnection()
         io = IO(connection.parameters)
         io.socket = MagicMock(name='socket', spec=socket.socket)
@@ -29,7 +29,7 @@ class IOTests(unittest.TestCase):
 
         self.assertIsNone(io.socket)
 
-    def test_create_socket(self):
+    def test_io_create_socket(self):
         connection = FakeConnection()
         io = IO(connection.parameters)
         addresses = io._get_socket_addresses()
@@ -41,7 +41,7 @@ class IOTests(unittest.TestCase):
         elif hasattr(socket, '_socketobject'):
             self.assertIsInstance(sock, socket._socketobject)
 
-    def test_get_socket_address(self):
+    def test_io_get_socket_address(self):
         connection = FakeConnection()
         connection.parameters['hostname'] = '127.0.0.1'
         connection.parameters['port'] = 5672
@@ -52,7 +52,7 @@ class IOTests(unittest.TestCase):
         self.assertEqual(sock_address_tuple[4],
                          ('127.0.0.1', 5672))
 
-    def test_simple_receive(self):
+    def test_io_simple_receive(self):
         connection = FakeConnection()
         io = IO(connection.parameters)
         io.socket = MagicMock(name='socket', spec=socket.socket)
@@ -60,7 +60,7 @@ class IOTests(unittest.TestCase):
 
         self.assertEqual(io._receive(), '12345')
 
-    def test_receive_raises_socket_error(self):
+    def test_io_receive_raises_socket_error(self):
         connection = FakeConnection()
 
         io = IO(connection.parameters)
@@ -71,14 +71,14 @@ class IOTests(unittest.TestCase):
 
         self.assertIsInstance(io._exceptions[0], AMQPConnectionError)
 
-    def test_receive_raises_socket_timeout(self):
+    def test_io_receive_raises_socket_timeout(self):
         connection = FakeConnection()
         io = IO(connection.parameters)
         io.socket = MagicMock(name='socket', spec=socket.socket)
         io.socket.recv.side_effect = socket.timeout('timeout')
         io._receive()
 
-    def test_simple_send_with_error(self):
+    def test_io_simple_send_with_error(self):
         connection = FakeConnection()
 
         io = IO(connection.parameters)
@@ -90,7 +90,7 @@ class IOTests(unittest.TestCase):
 
         self.assertIsInstance(io._exceptions[0], AMQPConnectionError)
 
-    def test_simple_send_zero_bytes_sent(self):
+    def test_io_simple_send_zero_bytes_sent(self):
         connection = FakeConnection()
 
         io = IO(connection.parameters)
@@ -102,10 +102,10 @@ class IOTests(unittest.TestCase):
 
         self.assertIsInstance(io._exceptions[0], AMQPConnectionError)
 
-    def test_ssl_is_set(self):
+    def test_io_ssl_is_set(self):
         self.assertIsNotNone(amqpstorm.io.ssl)
 
-    def test_default_ssl_version(self):
+    def test_io_default_ssl_version(self):
         if hasattr(ssl, 'PROTOCOL_TLSv1_2'):
             self.assertEqual(compatibility.DEFAULT_SSL_VERSION,
                              ssl.PROTOCOL_TLSv1_2)
@@ -113,7 +113,7 @@ class IOTests(unittest.TestCase):
             self.assertEqual(compatibility.DEFAULT_SSL_VERSION,
                              ssl.PROTOCOL_TLSv1)
 
-    def test_ssl_connection_without_ssl_library(self):
+    def test_io_ssl_connection_without_ssl_library(self):
         compatibility.SSL_SUPPORTED = False
         try:
             connection = FakeConnection()
@@ -129,7 +129,7 @@ class IOTests(unittest.TestCase):
         finally:
             compatibility.SSL_SUPPORTED = True
 
-    def test_normal_connection_without_ssl_library(self):
+    def test_io_normal_connection_without_ssl_library(self):
         compatibility.SSL_SUPPORTED = False
         try:
             connection = FakeConnection()

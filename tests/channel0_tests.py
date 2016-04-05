@@ -1,6 +1,7 @@
 __author__ = 'eandersson'
 
 import logging
+import time
 import platform
 
 try:
@@ -11,17 +12,19 @@ except ImportError:
 import amqpstorm
 
 from pamqp.specification import Connection
+from pamqp.heartbeat import Heartbeat
 
 from amqpstorm.channel0 import Channel0
 from amqpstorm import AMQPConnectionError
 
 from tests.utility import FakeConnection
+from tests.utility import FakeFrame
 
 logging.basicConfig(level=logging.DEBUG)
 
 
 class BasicChannel0Tests(unittest.TestCase):
-    def test_client_properties(self):
+    def test_channel0_client_properties(self):
         channel = Channel0(FakeConnection())
         result = channel._client_properties()
 
@@ -37,7 +40,7 @@ class BasicChannel0Tests(unittest.TestCase):
         self.assertEqual(result['information'], information)
         self.assertEqual(result['platform'], python_version)
 
-    def test_credentials(self):
+    def test_channel0_credentials(self):
         connection = FakeConnection()
         connection.parameters['username'] = 'guest'
         connection.parameters['password'] = 'password'
@@ -46,7 +49,7 @@ class BasicChannel0Tests(unittest.TestCase):
 
         self.assertEqual(credentials, '\0guest\0password')
 
-    def test_close_connection(self):
+    def test_channel0_close_connection(self):
         connection = FakeConnection()
         connection.set_state(connection.OPEN)
         channel = Channel0(connection)
@@ -59,7 +62,7 @@ class BasicChannel0Tests(unittest.TestCase):
         self.assertEqual(connection.exceptions, [])
         self.assertTrue(connection.is_closed)
 
-    def test_forcefully_closed_connection(self):
+    def test_channel0_forcefully_closed_connection(self):
         connection = amqpstorm.Connection('localhost', 'guest', 'guest',
                                           lazy=True)
         connection.set_state(connection.OPEN)
@@ -71,7 +74,7 @@ class BasicChannel0Tests(unittest.TestCase):
         self.assertTrue(connection.is_closed)
         self.assertRaises(AMQPConnectionError, connection.check_for_errors)
 
-    def test_send_start_ok_frame(self):
+    def test_channel0_send_start_ok_frame(self):
         connection = FakeConnection()
         connection.parameters['username'] = 'guest'
         connection.parameters['password'] = 'password'
@@ -85,7 +88,7 @@ class BasicChannel0Tests(unittest.TestCase):
         self.assertNotEqual(frame_out.locale, '')
         self.assertIsNotNone(frame_out.locale)
 
-    def test_send_tune_ok_frame(self):
+    def test_channel0_send_tune_ok_frame(self):
         connection = FakeConnection()
         channel = Channel0(connection)
         channel._send_tune_ok_frame()
@@ -95,7 +98,7 @@ class BasicChannel0Tests(unittest.TestCase):
         self.assertEqual(channel_id, 0)
         self.assertIsInstance(frame_out, Connection.TuneOk)
 
-    def test_send_close_connection_frame(self):
+    def test_channel0_send_close_connection_frame(self):
         connection = FakeConnection()
         channel = Channel0(connection)
         channel.send_close_connection_frame()
@@ -104,3 +107,34 @@ class BasicChannel0Tests(unittest.TestCase):
         channel_id, frame_out = connection.frames_out.pop()
         self.assertEqual(channel_id, 0)
         self.assertIsInstance(frame_out, Connection.Close)
+
+    def test_channel0_on_hearbeat_registers_heartbeat(self):
+        connection = amqpstorm.Connection('localhost', 'guest', 'guest',
+                                          lazy=True)
+        last_heartbeat = connection.heartbeat._last_heartbeat
+        start_time = time.time()
+        channel = Channel0(connection)
+
+        time.sleep(0.1)
+
+        def fake(*_):
+            pass
+
+        # Don't try to write to socket during test.
+        channel._write_frame = fake
+
+        # As the heartbeat timer was never started, it should be 0.
+        self.assertEqual(connection.heartbeat._last_heartbeat, 0.0)
+
+        channel.on_frame(Heartbeat())
+
+        self.assertNotEqual(connection.heartbeat._last_heartbeat,
+                            last_heartbeat)
+        self.assertGreater(connection.heartbeat._last_heartbeat, start_time)
+
+    def test_channel0_unhandled_frame(self):
+        connection = amqpstorm.Connection('localhost', 'guest', 'guest',
+                                          lazy=True)
+        channel = Channel0(connection)
+
+        channel.on_frame(FakeFrame())

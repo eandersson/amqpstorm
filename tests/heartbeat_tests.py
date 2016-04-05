@@ -27,14 +27,14 @@ class HeartbeatTests(unittest.TestCase):
         heartbeat.stop()
         self.assertIsNone(heartbeat._timer)
 
-    def test_register_beat(self):
+    def test_heartbeat_register_beat(self):
         heartbeat = Heartbeat(1)
         heartbeat.start([])
         self.assertEqual(heartbeat._beats_since_check, 0)
         heartbeat.register_beat()
         self.assertEqual(heartbeat._beats_since_check, 1)
 
-    def test_register_heartbeat(self):
+    def test_heartbeat_register_heartbeat(self):
         heartbeat = Heartbeat(1)
         heartbeat.start([])
         last_heartbeat = heartbeat._last_heartbeat
@@ -42,14 +42,14 @@ class HeartbeatTests(unittest.TestCase):
         heartbeat.register_heartbeat()
         self.assertNotEqual(heartbeat._last_heartbeat, last_heartbeat)
 
-    def test_basic_raise_on_missed_heartbeats(self):
+    def test_heartbeat_basic_raise_on_missed_heartbeats(self):
         exceptions = []
         heartbeat = Heartbeat(1)
         heartbeat.start(exceptions)
         time.sleep(5)
         self.assertGreater(len(heartbeat._exceptions), 0)
 
-    def test_basic_raise_when_check_for_life_when_exceptions_not_set(self):
+    def test_heartbeat_raise_when_check_for_life_when_exceptions_not_set(self):
         heartbeat = Heartbeat(1)
         heartbeat._beats_since_check = 0
         heartbeat._last_heartbeat = time.time() - 100

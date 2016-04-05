@@ -90,7 +90,7 @@ class Rpc(object):
     def __init__(self, adapter, timeout=360):
         """
         :param Stateful adapter: Connection or Channel.
-        :param int timeout: Rpc timeout.
+        :param int|float timeout: Rpc timeout.
         """
         self._lock = threading.Lock()
         self._adapter = adapter

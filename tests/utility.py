@@ -36,3 +36,15 @@ class TestPayload(object):
 
     def __init__(self, name):
         self.name = name
+
+
+class FakeFrame(object):
+    fake = 'fake'
+    data = 'data'
+
+    def __init__(self):
+        self.name = 'FakeFrame'
+
+    def __iter__(self):
+        for attribute in ['fake', 'data']:
+            yield (attribute[1::], getattr(self, attribute))

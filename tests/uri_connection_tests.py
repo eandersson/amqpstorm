@@ -14,7 +14,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 class UriConnectionTests(unittest.TestCase):
-    def test_default_uri(self):
+    def test_uri_default(self):
         connection = \
             UriConnection('amqp://guest:guest@localhost:5672/%2F', True)
         self.assertEqual(connection.parameters['hostname'], 'localhost')
@@ -92,31 +92,31 @@ class UriConnectionTests(unittest.TestCase):
         self.assertEqual(connection.parameters['ssl_options']['ca_certs'],
                          'test')
 
-    def test_get_ssl_version(self):
+    def test_uri_get_ssl_version(self):
         connection = \
             UriConnection('amqp://guest:guest@localhost:5672/%2F', True)
         self.assertEqual(ssl.PROTOCOL_TLSv1,
                          connection._get_ssl_version('protocol_tlsv1'))
 
-    def test_get_invalid_ssl_version(self):
+    def test_uri_get_invalid_ssl_version(self):
         connection = \
             UriConnection('amqp://guest:guest@localhost:5672/%2F', True)
         self.assertEqual(connection._get_ssl_version('protocol_test'),
                          ssl.PROTOCOL_TLSv1)
 
-    def test_get_ssl_validation(self):
+    def test_uri_get_ssl_validation(self):
         connection = \
             UriConnection('amqp://guest:guest@localhost:5672/%2F', True)
         self.assertEqual(ssl.CERT_REQUIRED,
                          connection._get_ssl_validation('cert_required'))
 
-    def test_get_invalid_ssl_validation(self):
+    def test_uri_get_invalid_ssl_validation(self):
         connection = \
             UriConnection('amqp://guest:guest@localhost:5672/%2F', True)
         self.assertEqual(ssl.CERT_NONE,
                          connection._get_ssl_validation('cert_test'))
 
-    def test_get_ssl_options(self):
+    def test_uri_get_ssl_options(self):
         connection = \
             UriConnection('amqp://guest:guest@localhost:5672/%2F', True)
         ssl_kwargs = {

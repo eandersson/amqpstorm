@@ -89,7 +89,7 @@ class BasicBasicTests(unittest.TestCase):
         # Confirm that it matches the original string.
         self.assertEqual(result_body, message)
 
-    def test_get_content_body(self):
+    def test_basic_get_content_body(self):
         message = b'Hello World!'
         body = ContentBody(value=message)
         channel = Channel(0, FakeConnection(), 360)
@@ -100,7 +100,7 @@ class BasicBasicTests(unittest.TestCase):
         self.assertEqual(basic._get_content_body(uuid, len(message)),
                          message)
 
-    def test_get_content_body_timeout_error(self):
+    def test_basic_get_content_body_timeout_error(self):
         message = b'Hello World!'
         body = ContentBody(value=message)
         channel = Channel(0, FakeConnection(), 0.0001)
