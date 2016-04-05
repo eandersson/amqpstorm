@@ -138,3 +138,44 @@ class BasicChannel0Tests(unittest.TestCase):
         channel = Channel0(connection)
 
         channel.on_frame(FakeFrame())
+
+    def test_channel0_on_close_frame(self):
+        connection = amqpstorm.Connection('localhost', 'guest', 'guest',
+                                          lazy=True)
+        connection.set_state(connection.OPEN)
+        channel = Channel0(connection)
+
+        self.assertFalse(connection.exceptions)
+
+        channel.on_frame(FakeFrame('Connection.Close'))
+
+        self.assertTrue(connection.exceptions)
+        self.assertTrue(connection.is_closed)
+
+        self.assertRaisesRegexp(AMQPConnectionError,
+                                'Connection was closed by remote server: ',
+                                connection.check_for_errors)
+
+    def test_channel0_is_blocked(self):
+        connection = amqpstorm.Connection('localhost', 'guest', 'guest',
+                                          lazy=True)
+        channel = Channel0(connection)
+
+        self.assertFalse(channel.is_blocked)
+
+        channel.on_frame(FakeFrame('Connection.Blocked'))
+
+        self.assertTrue(channel.is_blocked)
+
+    def test_channel0_unblocked(self):
+        connection = amqpstorm.Connection('localhost', 'guest', 'guest',
+                                          lazy=True)
+        channel = Channel0(connection)
+
+        channel.on_frame(FakeFrame('Connection.Blocked'))
+
+        self.assertTrue(channel.is_blocked)
+
+        channel.on_frame(FakeFrame('Connection.Unblocked'))
+
+        self.assertFalse(channel.is_blocked)

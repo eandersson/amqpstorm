@@ -17,11 +17,27 @@ from amqpstorm import Connection
 from amqpstorm.exception import *
 
 from pamqp.specification import Basic as spec_basic
+from pamqp import specification as pamqp_spec
+from pamqp import frame as pamqp_frame
+
+from tests.utility import FakeChannel
 
 logging.basicConfig(level=logging.DEBUG)
 
 
 class ConnectionTests(unittest.TestCase):
+    def test_connection_with_statement(self):
+        with Connection('127.0.0.1', 'guest', 'guest', lazy=True) as con:
+            self.assertIsInstance(con, Connection)
+
+    def test_connection_with_statement_when_failing(self):
+        try:
+            with Connection('127.0.0.1', 'guest', 'guest', lazy=True) as con:
+                con.exceptions.append(AMQPConnectionError('error'))
+                con.check_for_errors()
+        except AMQPConnectionError as why:
+            self.assertIsInstance(why, AMQPConnectionError)
+
     def test_connection_server_is_blocked_default_value(self):
         connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
 
@@ -31,6 +47,16 @@ class ConnectionTests(unittest.TestCase):
         connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
 
         self.assertEqual(connection.server_properties, {})
+
+    def test_connection_socket_property(self):
+        connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
+        connection._io.socket = 'FakeSocket'
+        self.assertEqual(connection.socket, 'FakeSocket')
+
+    def test_connection_socket_none_when_closed(self):
+        connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
+
+        self.assertFalse(connection.socket)
 
     def test_connection_fileno_property(self):
         connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
@@ -42,7 +68,7 @@ class ConnectionTests(unittest.TestCase):
 
         self.assertEqual(connection.fileno, 5)
 
-    def test_connection_fileno_none_when_connection_closed(self):
+    def test_connection_fileno_none_when_closed(self):
         connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
 
         self.assertIsNone(connection.fileno)
@@ -85,6 +111,24 @@ class ConnectionTests(unittest.TestCase):
         self.assertIsNone(result[1])
         self.assertIsNone(result[2])
 
+    def test_connection_handle_amqp_frame_error(self):
+        connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
+
+        def throw_error(*_):
+            raise pamqp_spec.AMQPFrameError()
+
+        restore_func = pamqp_frame.unmarshal
+        try:
+            pamqp_frame.unmarshal = throw_error
+
+            result = connection._handle_amqp_frame('error')
+
+            self.assertEqual(result[0], 'error')
+            self.assertIsNone(result[1])
+            self.assertIsNone(result[2])
+        finally:
+            pamqp_frame.unmarshal = restore_func
+
     def test_connection_wait_for_connection(self):
         connection = Connection('127.0.0.1', 'guest', 'guest', timeout=5,
                                 lazy=True)
@@ -113,6 +157,23 @@ class ConnectionTests(unittest.TestCase):
 
         self.assertRaises(AMQPConnectionError,
                           connection._wait_for_connection_to_open)
+
+    def test_connection_close_channels(self):
+        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=1,
+                                lazy=True)
+        connection._channels[0] = FakeChannel()
+        connection._channels[1] = FakeChannel()
+        connection._channels[2] = FakeChannel(FakeChannel.CLOSED)
+
+        self.assertTrue(connection._channels[0].is_open)
+        self.assertTrue(connection._channels[1].is_open)
+        self.assertTrue(connection._channels[2].is_closed)
+
+        connection._close_channels()
+
+        self.assertTrue(connection._channels[0].is_closed)
+        self.assertTrue(connection._channels[1].is_closed)
+        self.assertTrue(connection._channels[2].is_closed)
 
     def test_connection_closed_on_exception(self):
         connection = Connection('127.0.0.1', 'guest', 'guest', timeout=1,
@@ -211,3 +272,10 @@ class ConnectionParameterTests(unittest.TestCase):
                           'guest', 'guest', timeout='6', lazy=True)
         self.assertRaises(AMQPInvalidArgument, Connection, '127.0.0.1',
                           'guest', 'guest', timeout=None, lazy=True)
+
+    def test_connection_invalid_timeout_on_channel(self):
+        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=1,
+                                lazy=True)
+        self.assertRaisesRegexp(AMQPInvalidArgument,
+                                'rpc_timeout should be an integer',
+                                connection.channel, None)

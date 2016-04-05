@@ -15,6 +15,24 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 class HeartbeatTests(unittest.TestCase):
+    def test_heartbeat_do_not_execute_life_signs_when_stopped(self):
+        heartbeat = Heartbeat(60)
+        heartbeat._stopped.set()
+
+        self.assertFalse(heartbeat._check_for_life_signs())
+
+    def test_heartbeat_interval(self):
+        heartbeat = Heartbeat(60)
+
+        self.assertEqual(heartbeat._interval, 61)
+        self.assertEqual(heartbeat._threshold, 122)
+
+    def test_heartbeat_minimum_interval(self):
+        heartbeat = Heartbeat(0.1)
+
+        self.assertEqual(heartbeat._interval, 2)
+        self.assertEqual(heartbeat._threshold, 4)
+
     def test_heartbeat_start(self):
         heartbeat = Heartbeat(1)
         heartbeat.start([])

@@ -23,7 +23,7 @@ class Heartbeat(object):
         self._last_heartbeat = 0.0
         self._beats_since_check = 0
         self._interval = interval + 1
-        self._threshold = interval * 2
+        self._threshold = (interval + 1) * 2
 
     def register_beat(self):
         """Register that a frame has been received.
@@ -77,7 +77,7 @@ class Heartbeat(object):
         :return:
         """
         if self._stopped.is_set():
-            return
+            return False
         self._lock.acquire()
         try:
             elapsed = time.time() - self._last_heartbeat
@@ -93,6 +93,7 @@ class Heartbeat(object):
         finally:
             self._lock.release()
         self._start_new_timer()
+        return True
 
     def _start_new_timer(self):
         """Create a timer that will check for life signs on our connection.

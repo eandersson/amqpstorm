@@ -27,6 +27,15 @@ class FakeConnection(Stateful):
         self.frames_out.append((channel_id, frames_out))
 
 
+class FakeChannel(Stateful):
+
+    def __init__(self, state=Stateful.OPEN):
+        super(FakeChannel, self).__init__()
+        self.set_state(state)
+
+    def close(self):
+        self.set_state(self.CLOSED)
+
 class TestPayload(object):
     __slots__ = ['name']
 
@@ -42,8 +51,12 @@ class FakeFrame(object):
     fake = 'fake'
     data = 'data'
 
-    def __init__(self):
-        self.name = 'FakeFrame'
+    def __init__(self, name='FakeFrame', reason='', reply_code=500,
+                 reply_text=''):
+        self.name = name
+        self.reason = reason
+        self.reply_code = reply_code
+        self.reply_text = reply_text
 
     def __iter__(self):
         for attribute in ['fake', 'data']:
