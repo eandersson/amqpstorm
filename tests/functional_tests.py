@@ -84,7 +84,7 @@ class PublishAndGetMessagesTest(unittest.TestCase):
 
         # Get 5 messages.
         for _ in range(5):
-            payload = self.channel.basic.get('test.basic.get')
+            payload = self.channel.basic.get('test.basic.get', to_dict=False)
             self.assertIsInstance(payload, Message)
 
     def tearDown(self):
@@ -268,7 +268,7 @@ class PublishAndConsumeMessagesTest(unittest.TestCase):
         # Sleep for 0.5s to make sure RabbitMQ has time to catch up.
         time.sleep(0.5)
 
-        self.channel.process_data_events()
+        self.channel.process_data_events(to_tuple=False)
 
         # Make sure all five messages were downloaded.
         self.assertEqual(len(inbound_messages), 5)
@@ -364,13 +364,15 @@ class GetAndRedeliverTest(unittest.TestCase):
         self.message = str(uuid.uuid4())
         self.channel.basic.publish(body=self.message,
                                    routing_key='test.get.redeliver')
-        message = self.channel.basic.get('test.get.redeliver', no_ack=False)
+        message = self.channel.basic.get('test.get.redeliver', no_ack=False,
+                                         to_dict=False)
         message.reject()
         # Sleep for 0.5s to make sure RabbitMQ has time to catch up.
         time.sleep(0.5)
 
     def test_get_and_redeliver(self):
-        message = self.channel.basic.get('test.get.redeliver', no_ack=False)
+        message = self.channel.basic.get('test.get.redeliver', no_ack=False,
+                                         to_dict=False)
         self.assertEqual(message.body, self.message)
 
     def tearDown(self):
@@ -502,5 +504,36 @@ class UriConnectionTest(unittest.TestCase):
         self.connection = UriConnection(URI)
         self.channel = self.connection.channel()
         self.assertTrue(self.connection.is_open)
+        self.channel.close()
+        self.connection.close()
+
+
+class PublishAndFail(unittest.TestCase):
+    def setUp(self):
+        self.connection = Connection(HOST, USERNAME, PASSWORD)
+        self.channel = self.connection.channel()
+        self.channel.confirm_deliveries()
+
+    def test_publish_and_confirm(self):
+        try:
+            self.channel.basic.publish(body=str(uuid.uuid4()),
+                                       routing_key='test.publish.and.fail',
+                                       mandatory=True)
+        except AMQPChannelError as why:
+            self.assertEqual(why.error_code, 312)
+            if why.error_code == 312:
+                self.channel.queue.declare('test.publish.and.fail')
+
+        result = self.channel.basic.publish(body=str(uuid.uuid4()),
+                                            routing_key='test.publish.and.fail',
+                                            mandatory=True)
+        self.assertTrue(result)
+
+        payload = self.channel.queue.declare('test.publish.and.fail',
+                                             passive=True)
+        self.assertEqual(payload['message_count'], 1)
+
+    def tearDown(self):
+        self.channel.queue.delete('test.publish.and.fail')
         self.channel.close()
         self.connection.close()

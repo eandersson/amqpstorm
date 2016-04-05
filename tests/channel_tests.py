@@ -141,6 +141,7 @@ class BasicChannelTests(unittest.TestCase):
 
     def test_throw_exception_check_for_error(self):
         channel = Channel(0, FakeConnection(), 360)
+        channel.set_state(channel.OPEN)
         channel.exceptions.append(AMQPConnectionError('Test'))
         self.assertRaises(AMQPConnectionError, channel.check_for_errors)
 
