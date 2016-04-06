@@ -112,19 +112,6 @@ class BasicChannelTests(unittest.TestCase):
 
         self.assertEqual(index, 4)
 
-    def test_channel_basic_return_raises_when_500(self):
-        channel = Channel(0, None, 360)
-
-        basic_return = specification.Basic.Return(reply_code=500,
-                                                  reply_text=b'Error')
-        channel._basic_return(basic_return)
-
-        self.assertEqual(len(channel.exceptions), 1)
-        why = channel.exceptions.pop(0)
-        self.assertIsInstance(why, AMQPMessageError)
-        self.assertEqual(str(why), "Message not delivered: Error (500) "
-                                   "to queue '' from exchange ''")
-
     def test_channel_close(self):
         channel = Channel(0, None, 360)
 
@@ -134,9 +121,7 @@ class BasicChannelTests(unittest.TestCase):
         channel._consumer_tags = [1, 2, 3]
 
         # Close Channel.
-        # FixMe: Work around for reply_text not being a byte string
-        # when not sent from RabbitMQ (i.e using the default pamqp message).
-        channel._close_channel(specification.Channel.Close(reply_text=b''))
+        channel._close_channel(specification.Channel.Close(reply_text=''))
 
         self.assertEqual(channel._inbound, [])
         self.assertEqual(channel._consumer_tags, [])
@@ -216,6 +201,8 @@ class BasicChannelTests(unittest.TestCase):
 
         channel.check_for_errors()
 
+
+class ChannelFrameTests(unittest.TestCase):
     def test_channel_unhandled_frame(self):
         connection = amqpstorm.Connection('localhost', 'guest', 'guest',
                                           lazy=True)
@@ -254,3 +241,16 @@ class BasicChannelTests(unittest.TestCase):
 
         self.assertEqual(str(channel.exceptions[0]),
                          'Channel 0 was closed by remote server: test')
+
+    def test_channel_basic_return_raises_when_500(self):
+        channel = Channel(0, None, 360)
+
+        basic_return = specification.Basic.Return(reply_code=500,
+                                                  reply_text='Error')
+        channel._basic_return(basic_return)
+
+        self.assertEqual(len(channel.exceptions), 1)
+        why = channel.exceptions.pop(0)
+        self.assertIsInstance(why, AMQPMessageError)
+        self.assertEqual(str(why), "Message not delivered: Error (500) "
+                                   "to queue '' from exchange ''")

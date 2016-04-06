@@ -98,7 +98,7 @@ def try_utf8_decode(value):
         return value
     elif PYTHON3 and not isinstance(value, bytes):
         return value
-    elif not PYTHON3 and not is_unicode(value):
+    elif not PYTHON3 and not isinstance(value, unicode):
         return value
 
     try:

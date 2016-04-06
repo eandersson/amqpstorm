@@ -178,23 +178,6 @@ class Basic(object):
                                          multiple=multiple)
         self._channel.write_frame(ack_frame)
 
-    def reject(self, delivery_tag=None, requeue=True):
-        """Reject Message.
-
-        :param int/long delivery_tag: Server-assigned delivery tag
-        :param bool requeue: Requeue the message
-        :return:
-        """
-        if delivery_tag is not None \
-                and not compatibility.is_integer(delivery_tag):
-            raise AMQPInvalidArgument('delivery_tag should be an integer '
-                                      'or None')
-        elif not isinstance(requeue, bool):
-            raise AMQPInvalidArgument('requeue should be a boolean')
-        reject_frame = pamqp_spec.Basic.Reject(delivery_tag=delivery_tag,
-                                               requeue=requeue)
-        self._channel.write_frame(reject_frame)
-
     def nack(self, delivery_tag=None, multiple=False, requeue=True):
         """Negative Acknowledgement.
 
@@ -215,6 +198,23 @@ class Basic(object):
                                            multiple=multiple,
                                            requeue=requeue)
         self._channel.write_frame(nack_frame)
+
+    def reject(self, delivery_tag=None, requeue=True):
+        """Reject Message.
+
+        :param int/long delivery_tag: Server-assigned delivery tag
+        :param bool requeue: Requeue the message
+        :return:
+        """
+        if delivery_tag is not None \
+                and not compatibility.is_integer(delivery_tag):
+            raise AMQPInvalidArgument('delivery_tag should be an integer '
+                                      'or None')
+        elif not isinstance(requeue, bool):
+            raise AMQPInvalidArgument('requeue should be a boolean')
+        reject_frame = pamqp_spec.Basic.Reject(delivery_tag=delivery_tag,
+                                               requeue=requeue)
+        self._channel.write_frame(reject_frame)
 
     @staticmethod
     def _validate_publish_parameters(body, exchange, immediate, mandatory,

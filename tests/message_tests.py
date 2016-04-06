@@ -12,6 +12,8 @@ except ImportError:
 from amqpstorm import Message
 from amqpstorm.exception import *
 
+from tests.utility import FakeChannel
+
 logging.basicConfig(level=logging.DEBUG)
 
 
@@ -147,6 +149,57 @@ class MessageTests(unittest.TestCase):
                           channel=FakeClass())
 
         self.assertIsInstance(message.channel, FakeClass)
+
+    def test_message_ack(self):
+        delivery_tag = 123456
+        message = Message.create(body='',
+                                 channel=FakeChannel())
+        message._method = {
+            'delivery_tag': delivery_tag
+        }
+
+        message.ack()
+        result = message.channel.result.pop(0)
+        self.assertEqual(result[0], delivery_tag)
+        self.assertEqual(result[1], False)
+
+    def test_message_nack(self):
+        delivery_tag = 123456
+        message = Message.create(body='',
+                                 channel=FakeChannel())
+        message._method = {
+            'delivery_tag': delivery_tag
+        }
+
+        message.nack(requeue=True)
+        result = message.channel.result.pop(0)
+        self.assertEqual(result[0], delivery_tag)
+        self.assertEqual(result[1], False)
+        self.assertEqual(result[2], True)
+
+        message.nack(requeue=False)
+        result = message.channel.result.pop(0)
+        self.assertEqual(result[0], delivery_tag)
+        self.assertEqual(result[1], False)
+        self.assertEqual(result[2], False)
+
+    def test_message_reject(self):
+        delivery_tag = 123456
+        message = Message.create(body='',
+                                 channel=FakeChannel())
+        message._method = {
+            'delivery_tag': delivery_tag
+        }
+
+        message.reject(requeue=True)
+        result = message.channel.result.pop(0)
+        self.assertEqual(result[0], delivery_tag)
+        self.assertEqual(result[1], True)
+
+        message.reject(requeue=False)
+        result = message.channel.result.pop(0)
+        self.assertEqual(result[0], delivery_tag)
+        self.assertEqual(result[1], False)
 
     def test_message_ack_raises_on_outbound(self):
         message = Message.create(body='',

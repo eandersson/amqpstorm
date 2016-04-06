@@ -1,9 +1,12 @@
 __author__ = 'eandersson'
 
+from amqpstorm import compatibility
 from amqpstorm.base import Stateful
+from amqpstorm.exception import AMQPInvalidArgument
 
 
 class FakeConnection(Stateful):
+    """Fake Connection for Unit-Testing."""
     frames_out = []
     parameters = {
         'hostname': 'localhost',
@@ -17,9 +20,6 @@ class FakeConnection(Stateful):
         super(FakeConnection, self).__init__()
         self.set_state(state)
 
-    def check_for_errors(self):
-        super(FakeConnection, self).check_for_errors()
-
     def write_frame(self, channel_id, frame_out):
         self.frames_out.append((channel_id, frame_out))
 
@@ -28,15 +28,56 @@ class FakeConnection(Stateful):
 
 
 class FakeChannel(Stateful):
+    """Fake Channel for Unit-Testing."""
+    result = list()
 
     def __init__(self, state=Stateful.OPEN):
         super(FakeChannel, self).__init__()
         self.set_state(state)
+        self.basic = FakeBasic(self)
 
     def close(self):
         self.set_state(self.CLOSED)
 
-class TestPayload(object):
+
+class FakeBasic(object):
+    """Fake Basic for Unit-Testing."""
+
+    def __init__(self, channel):
+        self.channel = channel
+
+    def ack(self, delivery_tag=None, multiple=False):
+        if delivery_tag is not None \
+                and not compatibility.is_integer(delivery_tag):
+            raise AMQPInvalidArgument('delivery_tag should be an integer '
+                                      'or None')
+        elif not isinstance(multiple, bool):
+            raise AMQPInvalidArgument('multiple should be a boolean')
+        self.channel.result.append((delivery_tag, multiple))
+
+    def nack(self, delivery_tag=None, multiple=False, requeue=True):
+        if delivery_tag is not None \
+                and not compatibility.is_integer(delivery_tag):
+            raise AMQPInvalidArgument('delivery_tag should be an integer '
+                                      'or None')
+        elif not isinstance(multiple, bool):
+            raise AMQPInvalidArgument('multiple should be a boolean')
+        elif not isinstance(requeue, bool):
+            raise AMQPInvalidArgument('requeue should be a boolean')
+        self.channel.result.append((delivery_tag, multiple, requeue))
+
+    def reject(self, delivery_tag=None, requeue=True):
+        if delivery_tag is not None \
+                and not compatibility.is_integer(delivery_tag):
+            raise AMQPInvalidArgument('delivery_tag should be an integer '
+                                      'or None')
+        elif not isinstance(requeue, bool):
+            raise AMQPInvalidArgument('requeue should be a boolean')
+        self.channel.result.append((delivery_tag, requeue))
+
+
+class FakePayload(object):
+    """Fake Payload for Unit-Testing."""
     __slots__ = ['name']
 
     def __iter__(self):
@@ -48,16 +89,13 @@ class TestPayload(object):
 
 
 class FakeFrame(object):
-    fake = 'fake'
-    data = 'data'
+    """Fake Frame for Unit-Testing."""
+    _data_1 = 'hello'
+    _data_2 = 'world'
 
-    def __init__(self, name='FakeFrame', reason='', reply_code=500,
-                 reply_text=''):
+    def __init__(self, name='FakeFrame'):
         self.name = name
-        self.reason = reason
-        self.reply_code = reply_code
-        self.reply_text = reply_text
 
     def __iter__(self):
-        for attribute in ['fake', 'data']:
+        for attribute in ['_data_1', '_data_2']:
             yield (attribute[1::], getattr(self, attribute))

@@ -1,5 +1,5 @@
 """AMQP-Storm."""
-__version__ = '1.3.0a1'
+__version__ = '1.3.0'
 __author__ = 'eandersson'
 
 import logging

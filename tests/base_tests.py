@@ -14,7 +14,7 @@ from amqpstorm.base import BaseChannel
 from amqpstorm.exception import AMQPChannelError
 
 from tests.utility import FakeConnection
-from tests.utility import TestPayload
+from tests.utility import FakePayload
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -83,16 +83,16 @@ class RpcTests(unittest.TestCase):
     def test_rpc_get_request(self):
         rpc = Rpc(FakeConnection())
         uuid = rpc.register_request(['Test'])
-        self.assertTrue(rpc.on_frame(TestPayload(name='Test')))
+        self.assertTrue(rpc.on_frame(FakePayload(name='Test')))
         self.assertIsInstance(rpc.get_request(uuid=uuid, raw=True),
-                              TestPayload)
+                              FakePayload)
 
     def test_rpc_remove(self):
         rpc = Rpc(FakeConnection())
         uuid = rpc.register_request(['Test'])
         self.assertEqual(len(rpc._request), 1)
         self.assertEqual(len(rpc._response), 1)
-        rpc.on_frame(TestPayload(name='Test'))
+        rpc.on_frame(FakePayload(name='Test'))
         rpc.remove(uuid)
         self.assertEqual(len(rpc._request), 0)
         self.assertEqual(len(rpc._response), 0)
@@ -127,8 +127,8 @@ class RpcTests(unittest.TestCase):
         rpc = Rpc(FakeConnection())
         uuid = rpc.register_request(['Test'])
         self.assertEqual(rpc._response[uuid], None)
-        rpc.on_frame(TestPayload(name='Test'))
-        self.assertIsInstance(rpc._response[uuid], TestPayload)
+        rpc.on_frame(FakePayload(name='Test'))
+        self.assertIsInstance(rpc._response[uuid], FakePayload)
 
     def test_rpc_raises_on_timeout(self):
         rpc = Rpc(FakeConnection(), timeout=0.1)
