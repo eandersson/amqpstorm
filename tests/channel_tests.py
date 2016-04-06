@@ -222,3 +222,35 @@ class BasicChannelTests(unittest.TestCase):
         channel = Channel(0, connection, rpc_timeout=360)
 
         channel.on_frame(FakeFrame())
+
+    def test_channel_basic_cancel_frame(self):
+        connection = amqpstorm.Connection('localhost', 'guest', 'guest',
+                                          lazy=True)
+        channel = Channel(0, connection, rpc_timeout=360)
+
+        channel.on_frame(specification.Basic.Cancel())
+
+    def test_channel_basic_return_frame(self):
+        connection = amqpstorm.Connection('localhost', 'guest', 'guest',
+                                          lazy=True)
+        channel = Channel(0, connection, rpc_timeout=360)
+
+        channel.on_frame(specification.Basic.Return(reply_code=500,
+                                                    reply_text='test',
+                                                    exchange='exchange',
+                                                    routing_key='routing_key'))
+
+        self.assertEqual(str(channel.exceptions[0]),
+                         "Message not delivered: test (500) to queue "
+                         "'routing_key' from exchange 'exchange'")
+
+    def test_channel_close_frame(self):
+        connection = amqpstorm.Connection('localhost', 'guest', 'guest',
+                                          lazy=True)
+        channel = Channel(0, connection, rpc_timeout=360)
+
+        channel.on_frame(specification.Channel.Close(reply_code=500,
+                                                     reply_text='test'))
+
+        self.assertEqual(str(channel.exceptions[0]),
+                         'Channel 0 was closed by remote server: test')

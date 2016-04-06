@@ -20,6 +20,7 @@ from amqpstorm.exception import AMQPMessageError
 from amqpstorm.exchange import Exchange
 from amqpstorm.message import Message
 from amqpstorm.queue import Queue
+from amqpstorm.compatibility import try_utf8_decode
 
 LOGGER = logging.getLogger(__name__)
 CONTENT_FRAME = ['Basic.Deliver', 'ContentHeader', 'ContentBody']
@@ -117,7 +118,7 @@ class Channel(BaseChannel):
             self._close_channel(frame_in)
         elif frame_in.name == 'Basic.Cancel':
             LOGGER.warning('Received Basic.Cancel on consumer_tag: %s',
-                           frame_in.consumer_tag.decode('utf-8'))
+                           try_utf8_decode(frame_in.consumer_tag))
             self.remove_consumer_tag(frame_in.consumer_tag)
         elif frame_in.name == 'Basic.CancelOk':
             self.remove_consumer_tag(frame_in.consumer_tag)
@@ -250,7 +251,7 @@ class Channel(BaseChannel):
         """
         self.remove_consumer_tag()
         if frame_in.reply_code != 200:
-            reply_text = frame_in.reply_text.decode('utf-8')
+            reply_text = try_utf8_decode(frame_in.reply_text)
             message = 'Channel %d was closed by remote server: %s' % \
                       (self._channel_id, reply_text)
             exception = AMQPChannelError(message,
@@ -265,7 +266,7 @@ class Channel(BaseChannel):
         :param pamqp_spec.Return frame_in: Amqp frame.
         :return:
         """
-        reply_text = frame_in.reply_text.decode('utf-8')
+        reply_text = try_utf8_decode(frame_in.reply_text)
         message = ("Message not delivered: %s (%s) to queue '%s' "
                    "from exchange '%s'" % (reply_text,
                                            frame_in.reply_code,

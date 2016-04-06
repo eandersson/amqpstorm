@@ -13,6 +13,7 @@ from amqpstorm import __version__
 from amqpstorm.base import FRAME_MAX
 from amqpstorm.base import Stateful
 from amqpstorm.exception import AMQPConnectionError
+from amqpstorm.compatibility import try_utf8_decode
 
 LOGGER = logging.getLogger(__name__)
 
@@ -53,7 +54,7 @@ class Channel0(object):
         elif frame_in.name == 'Connection.Blocked':
             self.is_blocked = True
             LOGGER.warning('Connection was blocked by remote server: %s',
-                           frame_in.reason.decode('utf-8'))
+                           try_utf8_decode(frame_in.reason))
         elif frame_in.name == 'Connection.Unblocked':
             self.is_blocked = False
             LOGGER.info('Connection is no longer blocked by remote server')
@@ -76,7 +77,7 @@ class Channel0(object):
         """
         self._set_connection_state(Stateful.CLOSED)
         if frame_in.reply_code != 200:
-            reply_text = frame_in.reply_text.decode('utf-8')
+            reply_text = try_utf8_decode(frame_in.reply_text)
             message = ('Connection was closed by remote server: %s'
                        % reply_text)
             exception = AMQPConnectionError(message,

@@ -163,7 +163,7 @@ class BasicChannel0Tests(unittest.TestCase):
 
         self.assertFalse(channel.is_blocked)
 
-        channel.on_frame(FakeFrame('Connection.Blocked'))
+        channel.on_frame(Connection.Blocked())
 
         self.assertTrue(channel.is_blocked)
 
