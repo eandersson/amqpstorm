@@ -1,21 +1,26 @@
 __author__ = 'eandersson'
+
 import logging
 
 from amqpstorm import Connection
 
+
 logging.basicConfig(level=logging.DEBUG)
 
 
-def on_message(message):
+def on_message(body, channel, header, properties):
     """This function is called on message received.
 
-    :param message:
+    :param body: Message body
+    :param channel: Channel
+    :param header: Message header
+    :param properties: Message properties
     :return:
     """
-    print("Message:", message.body)
+    print("Message:", body)
 
     # Acknowledge that we handled the message without any issues.
-    message.ack()
+    channel.basic.ack(delivery_tag=header['delivery_tag'])
 
 
 def consumer():
@@ -36,7 +41,7 @@ def consumer():
 
             try:
                 # Start consiming the messages.
-                channel.start_consuming(to_tuple=False)
+                channel.start_consuming()
             except KeyboardInterrupt:
                 channel.close()
 

@@ -23,7 +23,122 @@ from tests.utility import FakeFrame
 logging.basicConfig(level=logging.DEBUG)
 
 
-class BasicChannelTests(unittest.TestCase):
+class ChannelTests(unittest.TestCase):
+    def test_channel_id(self):
+        channel = Channel(0, None, 360)
+        self.assertEqual(int(channel), 0)
+
+        channel = Channel(1557, None, 360)
+        self.assertEqual(int(channel), 1557)
+
+    def test_channel_close(self):
+        channel = Channel(0, None, 360)
+
+        # Set up Fake Channel.
+        channel._inbound = [1, 2, 3]
+        channel.set_state(channel.OPEN)
+        channel._consumer_tags = [1, 2, 3]
+
+        # Close Channel.
+        channel._close_channel(specification.Channel.Close(reply_text=''))
+
+        self.assertEqual(channel._inbound, [])
+        self.assertEqual(channel._consumer_tags, [])
+        self.assertEqual(channel._state, channel.CLOSED)
+
+
+class ChannelExceptionTests(unittest.TestCase):
+    def test_chanel_invalid_close_parameter(self):
+        channel = Channel(0, None, 360)
+        self.assertRaisesRegexp(AMQPInvalidArgument,
+                                'reply_code should be an integer',
+                                channel.close, 'Hello', 'error')
+        self.assertRaisesRegexp(AMQPInvalidArgument,
+                                'reply_text should be a string',
+                                channel.close, 200, 200)
+
+    def test_chanel_callback_not_set(self):
+        channel = Channel(0, None, 360)
+        self.assertRaisesRegexp(AMQPChannelError,
+                                'no consumer_callback defined',
+                                channel.process_data_events)
+
+    def test_channel_throw_exception_check_for_error(self):
+        channel = Channel(0, FakeConnection(), 360)
+        channel.set_state(channel.OPEN)
+        channel.exceptions.append(AMQPConnectionError('Test'))
+
+        self.assertRaises(AMQPConnectionError, channel.check_for_errors)
+
+    def test_channel_check_error_no_exception(self):
+        channel = Channel(0, FakeConnection(), 360)
+        channel.set_state(Channel.OPEN)
+        channel.check_for_errors()
+
+    def test_channel_check_error_when_closed(self):
+        channel = Channel(0, FakeConnection(), 360)
+
+        self.assertRaises(exception.AMQPChannelError, channel.check_for_errors)
+
+    def test_channel_check_error_connection_closed(self):
+        channel = Channel(0, FakeConnection(FakeConnection.CLOSED), 360)
+
+        self.assertRaises(exception.AMQPConnectionError,
+                          channel.check_for_errors)
+
+    def test_channel_raises_when_closed(self):
+        channel = Channel(0, FakeConnection(FakeConnection.OPEN), 360)
+        channel.set_state(channel.CLOSED)
+
+        self.assertFalse(channel.is_open)
+        self.assertRaisesRegexp(exception.AMQPChannelError,
+                                'channel was closed',
+                                channel.check_for_errors)
+        self.assertTrue(channel.is_closed)
+
+    def test_channel_closed_after_connection_closed(self):
+        channel = Channel(0, FakeConnection(FakeConnection.CLOSED), 360)
+        channel.set_state(channel.OPEN)
+
+        self.assertTrue(channel.is_open)
+        self.assertRaisesRegexp(exception.AMQPConnectionError,
+                                'connection was closed',
+                                channel.check_for_errors)
+        self.assertTrue(channel.is_closed)
+
+    def test_channel_closed_after_connection_exception(self):
+        connection = amqpstorm.Connection('localhost', 'guest', 'guest',
+                                          lazy=True)
+        channel = Channel(0, connection, 360)
+        connection.exceptions.append(AMQPConnectionError('error'))
+        channel.set_state(channel.OPEN)
+
+        self.assertTrue(connection.is_closed)
+        self.assertTrue(channel.is_open)
+        self.assertRaisesRegexp(exception.AMQPConnectionError, 'error',
+                                channel.check_for_errors)
+        self.assertTrue(channel.is_closed)
+
+    def test_channel_consume_exception_when_recoverable(self):
+        connection = amqpstorm.Connection('localhost', 'guest', 'guest',
+                                          lazy=True)
+        connection.set_state(connection.OPEN)
+        channel = Channel(0, connection, 360)
+        channel.set_state(channel.OPEN)
+        channel.exceptions.append(AMQPChannelError('no-route'))
+
+        self.assertTrue(connection.is_open)
+        self.assertTrue(channel.is_open)
+
+        self.assertRaisesRegexp(exception.AMQPChannelError, 'no-route',
+                                channel.check_for_errors)
+
+        self.assertTrue(channel.is_open)
+
+        channel.check_for_errors()
+
+
+class ChannelBuildMessageTests(unittest.TestCase):
     def test_channel_build_message(self):
         channel = Channel(0, None, 360)
 
@@ -112,103 +227,24 @@ class BasicChannelTests(unittest.TestCase):
 
         self.assertEqual(index, 4)
 
-    def test_channel_close(self):
-        channel = Channel(0, None, 360)
-
-        # Set up Fake Channel.
-        channel._inbound = [1, 2, 3]
-        channel.set_state(channel.OPEN)
-        channel._consumer_tags = [1, 2, 3]
-
-        # Close Channel.
-        channel._close_channel(specification.Channel.Close(reply_text=''))
-
-        self.assertEqual(channel._inbound, [])
-        self.assertEqual(channel._consumer_tags, [])
-        self.assertEqual(channel._state, channel.CLOSED)
-
-    def test_channel_throw_exception_check_for_error(self):
-        channel = Channel(0, FakeConnection(), 360)
-        channel.set_state(channel.OPEN)
-        channel.exceptions.append(AMQPConnectionError('Test'))
-
-        self.assertRaises(AMQPConnectionError, channel.check_for_errors)
-
-    def test_channel_check_error_no_exception(self):
-        channel = Channel(0, FakeConnection(), 360)
-        channel.set_state(Channel.OPEN)
-        channel.check_for_errors()
-
-    def test_channel_check_error_when_closed(self):
-        channel = Channel(0, FakeConnection(), 360)
-
-        self.assertRaises(exception.AMQPChannelError, channel.check_for_errors)
-
-    def test_channel_check_error_connection_closed(self):
-        channel = Channel(0, FakeConnection(FakeConnection.CLOSED), 360)
-
-        self.assertRaises(exception.AMQPConnectionError,
-                          channel.check_for_errors)
-
-    def test_channel_raises_when_closed(self):
-        channel = Channel(0, FakeConnection(FakeConnection.OPEN), 360)
-        channel.set_state(channel.CLOSED)
-
-        self.assertFalse(channel.is_open)
-        self.assertRaisesRegexp(exception.AMQPChannelError,
-                                'channel was closed',
-                                channel.check_for_errors)
-        self.assertTrue(channel.is_closed)
-
-    def test_channel_closed_after_connection_closed(self):
-        channel = Channel(0, FakeConnection(FakeConnection.CLOSED), 360)
-        channel.set_state(channel.OPEN)
-
-        self.assertTrue(channel.is_open)
-        self.assertRaisesRegexp(exception.AMQPConnectionError,
-                                'connection was closed',
-                                channel.check_for_errors)
-        self.assertTrue(channel.is_closed)
-
-    def test_channel_closed_after_connection_exception(self):
-        connection = amqpstorm.Connection('localhost', 'guest', 'guest',
-                                          lazy=True)
-        channel = Channel(0, connection, 360)
-        connection.exceptions.append(AMQPConnectionError('error'))
-        channel.set_state(channel.OPEN)
-
-        self.assertTrue(connection.is_closed)
-        self.assertTrue(channel.is_open)
-        self.assertRaisesRegexp(exception.AMQPConnectionError, 'error',
-                                channel.check_for_errors)
-        self.assertTrue(channel.is_closed)
-
-    def test_channel_consume_exception_when_recoverable(self):
-        connection = amqpstorm.Connection('localhost', 'guest', 'guest',
-                                          lazy=True)
-        connection.set_state(connection.OPEN)
-        channel = Channel(0, connection, 360)
-        channel.set_state(channel.OPEN)
-        channel.exceptions.append(AMQPChannelError('no-route'))
-
-        self.assertTrue(connection.is_open)
-        self.assertTrue(channel.is_open)
-
-        self.assertRaisesRegexp(exception.AMQPChannelError, 'no-route',
-                                channel.check_for_errors)
-
-        self.assertTrue(channel.is_open)
-
-        channel.check_for_errors()
-
 
 class ChannelFrameTests(unittest.TestCase):
-    def test_channel_unhandled_frame(self):
-        connection = amqpstorm.Connection('localhost', 'guest', 'guest',
-                                          lazy=True)
-        channel = Channel(0, connection, rpc_timeout=360)
+    def test_channel_consume_ok_frame(self):
+        tag = 'hello-world'
+        channel = Channel(0, None, rpc_timeout=360)
 
-        channel.on_frame(FakeFrame())
+        channel.on_frame(specification.Basic.ConsumeOk(tag))
+
+        self.assertEqual(channel.consumer_tags[0], tag)
+
+    def test_channel_cancel_ok_frame(self):
+        tag = 'hello-world'
+        channel = Channel(0, None, rpc_timeout=360)
+        channel.add_consumer_tag(tag)
+
+        channel.on_frame(specification.Basic.CancelOk(tag))
+
+        self.assertFalse(channel.consumer_tags)
 
     def test_channel_basic_cancel_frame(self):
         connection = amqpstorm.Connection('localhost', 'guest', 'guest',
@@ -254,3 +290,10 @@ class ChannelFrameTests(unittest.TestCase):
         self.assertIsInstance(why, AMQPMessageError)
         self.assertEqual(str(why), "Message not delivered: Error (500) "
                                    "to queue '' from exchange ''")
+
+    def test_channel_unhandled_frame(self):
+        connection = amqpstorm.Connection('localhost', 'guest', 'guest',
+                                          lazy=True)
+        channel = Channel(0, connection, rpc_timeout=360)
+
+        channel.on_frame(FakeFrame())
