@@ -1,4 +1,3 @@
-__author__ = 'eandersson'
 """
 RPC Server example based on code from the official RabbitMQ Tutorial.
 http://www.rabbitmq.com/tutorials/tutorial-six-python.html

@@ -1,5 +1,4 @@
 """AMQP-Storm Connection.Channel0."""
-__author__ = 'eandersson'
 
 import locale
 import logging

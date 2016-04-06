@@ -1,5 +1,4 @@
 """AMQP-Storm Connection.Channel."""
-__author__ = 'eandersson'
 
 import logging
 from time import sleep

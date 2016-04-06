@@ -1,5 +1,4 @@
 """AMQP-Storm Message."""
-__author__ = 'eandersson'
 
 import json
 import uuid

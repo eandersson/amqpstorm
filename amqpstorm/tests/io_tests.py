@@ -1,5 +1,3 @@
-__author__ = 'eandersson'
-
 import logging
 import socket
 import ssl
@@ -15,7 +13,8 @@ import amqpstorm.io
 from amqpstorm.io import IO
 from amqpstorm.exception import *
 from amqpstorm import compatibility
-from tests.utility import FakeConnection
+
+from amqpstorm.tests.utility import FakeConnection
 
 logging.basicConfig(level=logging.DEBUG)
 

@@ -1,5 +1,4 @@
 """AMQP-Storm Exception."""
-__author__ = 'eandersson'
 
 AMQP_ERROR_MAPPING = {
     311: ('CONTENT-TOO-LARGE',

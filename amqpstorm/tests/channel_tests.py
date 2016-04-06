@@ -1,5 +1,3 @@
-__author__ = 'eandersson'
-
 import logging
 
 try:
@@ -17,8 +15,8 @@ from amqpstorm import Message
 from amqpstorm import Channel
 from amqpstorm.exception import *
 
-from tests.utility import FakeConnection
-from tests.utility import FakeFrame
+from amqpstorm.tests.utility import FakeConnection
+from amqpstorm.tests.utility import FakeFrame
 
 logging.basicConfig(level=logging.DEBUG)
 

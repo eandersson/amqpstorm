@@ -1,5 +1,3 @@
-__author__ = 'eandersson'
-
 import logging
 import uuid
 
@@ -16,7 +14,7 @@ from amqpstorm import exception
 from amqpstorm.channel import Basic
 from amqpstorm.channel import Channel
 
-from tests.utility import FakeConnection
+from amqpstorm.tests.utility import FakeConnection
 
 logging.basicConfig(level=logging.DEBUG)
 

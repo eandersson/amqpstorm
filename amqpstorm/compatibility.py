@@ -1,5 +1,4 @@
 """Python 2/3 Compatibility layer."""
-__author__ = 'eandersson'
 
 import sys
 

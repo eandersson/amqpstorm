@@ -1,5 +1,5 @@
 """AMQP-Storm Uri wrapper for Connection."""
-__author__ = 'eandersson'
+
 
 import logging
 

@@ -1,5 +1,3 @@
-__author__ = 'eandersson'
-
 import logging
 import socket
 import ssl
@@ -20,7 +18,7 @@ from pamqp.specification import Basic as spec_basic
 from pamqp import specification as pamqp_spec
 from pamqp import frame as pamqp_frame
 
-from tests.utility import FakeChannel
+from amqpstorm.tests.utility import FakeChannel
 
 logging.basicConfig(level=logging.DEBUG)
 

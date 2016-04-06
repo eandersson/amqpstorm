@@ -1,5 +1,4 @@
 """AMQP-Storm Connection."""
-__author__ = 'eandersson'
 
 import logging
 import time

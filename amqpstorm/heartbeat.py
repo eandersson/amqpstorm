@@ -1,5 +1,4 @@
 """AMQP-Storm Connection.Heartbeat."""
-__author__ = 'eandersson'
 
 import logging
 import threading

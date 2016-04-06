@@ -1,4 +1,3 @@
-__author__ = 'eandersson'
 import logging
 
 from amqpstorm import Connection

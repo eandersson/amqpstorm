@@ -1,5 +1,3 @@
-__author__ = 'eandersson'
-
 import logging
 import threading
 import time
@@ -17,10 +15,10 @@ from amqpstorm import UriConnection
 from amqpstorm import AMQPMessageError
 from amqpstorm import AMQPChannelError
 
-from tests import HOST
-from tests import USERNAME
-from tests import PASSWORD
-from tests import URI
+HOST = '127.0.0.1'
+USERNAME = 'guest'
+PASSWORD = 'guest'
+URI = 'amqp://guest:guest@127.0.0.1:5672/%2F'
 
 logging.basicConfig(level=logging.DEBUG)
 

@@ -1,5 +1,4 @@
 """AMQP-Storm Channel.Queue."""
-__author__ = 'eandersson'
 
 import logging
 

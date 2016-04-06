@@ -1,5 +1,3 @@
-__author__ = 'eandersson'
-
 import logging
 import time
 import platform
@@ -17,8 +15,8 @@ from pamqp.heartbeat import Heartbeat
 from amqpstorm.channel0 import Channel0
 from amqpstorm import AMQPConnectionError
 
-from tests.utility import FakeConnection
-from tests.utility import FakeFrame
+from amqpstorm.tests.utility import FakeConnection
+from amqpstorm.tests.utility import FakeFrame
 
 logging.basicConfig(level=logging.DEBUG)
 

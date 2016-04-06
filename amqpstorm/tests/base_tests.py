@@ -1,5 +1,3 @@
-__author__ = 'eandersson'
-
 import logging
 import time
 
@@ -13,8 +11,8 @@ from amqpstorm.base import Stateful
 from amqpstorm.base import BaseChannel
 from amqpstorm.exception import AMQPChannelError
 
-from tests.utility import FakeConnection
-from tests.utility import FakePayload
+from amqpstorm.tests.utility import FakeConnection
+from amqpstorm.tests.utility import FakePayload
 
 logging.basicConfig(level=logging.DEBUG)
 

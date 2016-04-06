@@ -1,5 +1,4 @@
-"""AMQP-Storm IO."""
-__author__ = 'eandersson'
+"""AMQP-Storm Connection.IO."""
 
 import logging
 import select

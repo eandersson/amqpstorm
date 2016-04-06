@@ -1,5 +1,4 @@
 """AMQP-Storm Base."""
-__author__ = 'eandersson'
 
 import threading
 import time

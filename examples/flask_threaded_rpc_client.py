@@ -1,5 +1,3 @@
-__author__ = 'eandersson'
-
 import threading
 from time import sleep
 

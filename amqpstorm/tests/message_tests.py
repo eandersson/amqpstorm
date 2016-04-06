@@ -1,5 +1,3 @@
-__author__ = 'eandersson'
-
 import logging
 import uuid
 from datetime import datetime
@@ -12,7 +10,7 @@ except ImportError:
 from amqpstorm import Message
 from amqpstorm.exception import *
 
-from tests.utility import FakeChannel
+from amqpstorm.tests.utility import FakeChannel
 
 logging.basicConfig(level=logging.DEBUG)
 

@@ -1,5 +1,3 @@
-__author__ = 'eandersson'
-
 import logging
 import sys
 

@@ -1,5 +1,3 @@
-__author__ = 'eandersson'
-
 from amqpstorm import compatibility
 from amqpstorm.base import Stateful
 from amqpstorm.exception import AMQPInvalidArgument
