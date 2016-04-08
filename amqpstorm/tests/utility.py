@@ -1,3 +1,5 @@
+import logging
+
 from amqpstorm import compatibility
 from amqpstorm.base import Stateful
 from amqpstorm.exception import AMQPInvalidArgument
@@ -88,12 +90,28 @@ class FakePayload(object):
 
 class FakeFrame(object):
     """Fake Frame for Unit-Testing."""
-    _data_1 = 'hello'
-    _data_2 = 'world'
+    _data_1 = 'hello world'
 
     def __init__(self, name='FakeFrame'):
         self.name = name
 
     def __iter__(self):
-        for attribute in ['_data_1', '_data_2']:
+        for attribute in ['_data_1']:
             yield (attribute[1::], getattr(self, attribute))
+
+
+class MockLoggingHandler(logging.Handler):
+    """Mock Logging Handler for Unit-Testing."""
+
+    def __init__(self, *args, **kwargs):
+        self.messages = {
+            'debug': [],
+            'info': [],
+            'warning': [],
+            'error': [],
+            'critical': [],
+        }
+        logging.Handler.__init__(self, *args, **kwargs)
+
+    def emit(self, record):
+        self.messages[record.levelname.lower()].append(record.getMessage())

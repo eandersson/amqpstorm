@@ -17,6 +17,7 @@ from amqpstorm import AMQPConnectionError
 
 from amqpstorm.tests.utility import FakeConnection
 from amqpstorm.tests.utility import FakeFrame
+from amqpstorm.tests.utility import MockLoggingHandler
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -108,6 +109,10 @@ class Channel0Tests(unittest.TestCase):
 
 
 class Channel0FrameTests(unittest.TestCase):
+    def setUp(self):
+        self.logging_handler = MockLoggingHandler()
+        logging.root.addHandler(self.logging_handler)
+
     def test_channel0_open_ok_frame(self):
         connection = amqpstorm.Connection('localhost', 'guest', 'guest',
                                           lazy=True)
@@ -143,9 +148,11 @@ class Channel0FrameTests(unittest.TestCase):
 
         self.assertFalse(channel.is_blocked)
 
-        channel.on_frame(Connection.Blocked())
+        channel.on_frame(Connection.Blocked('unit-test'))
 
         self.assertTrue(channel.is_blocked)
+        self.assertEqual(self.logging_handler.messages['warning'][0],
+                         'Connection is blocked by remote server: unit-test')
 
     def test_channel0_unblocked(self):
         connection = amqpstorm.Connection('localhost', 'guest', 'guest',
@@ -159,6 +166,8 @@ class Channel0FrameTests(unittest.TestCase):
         channel.on_frame(Connection.Unblocked())
 
         self.assertFalse(channel.is_blocked)
+        self.assertEqual(self.logging_handler.messages['info'][0],
+                         'Connection is no longer blocked by remote server')
 
     def test_channel0_on_hearbeat_registers_heartbeat(self):
         connection = amqpstorm.Connection('localhost', 'guest', 'guest',
@@ -190,3 +199,7 @@ class Channel0FrameTests(unittest.TestCase):
         channel = Channel0(connection)
 
         channel.on_frame(FakeFrame())
+
+        self.assertEqual(self.logging_handler.messages['error'][0],
+                         "[Channel0] Unhandled Frame: FakeFrame -- "
+                         "{'data_1': 'hello world'}")

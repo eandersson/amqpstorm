@@ -17,6 +17,7 @@ from amqpstorm.exception import *
 
 from amqpstorm.tests.utility import FakeConnection
 from amqpstorm.tests.utility import FakeFrame
+from amqpstorm.tests.utility import MockLoggingHandler
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -227,6 +228,10 @@ class ChannelBuildMessageTests(unittest.TestCase):
 
 
 class ChannelFrameTests(unittest.TestCase):
+    def setUp(self):
+        self.logging_handler = MockLoggingHandler()
+        logging.root.addHandler(self.logging_handler)
+
     def test_channel_consume_ok_frame(self):
         tag = 'hello-world'
         channel = Channel(0, None, rpc_timeout=360)
@@ -249,7 +254,10 @@ class ChannelFrameTests(unittest.TestCase):
                                           lazy=True)
         channel = Channel(0, connection, rpc_timeout=360)
 
-        channel.on_frame(specification.Basic.Cancel())
+        channel.on_frame(specification.Basic.Cancel('unit-test'))
+
+        self.assertEqual(self.logging_handler.messages['warning'][0],
+                         'Received Basic.Cancel on consumer_tag: unit-test')
 
     def test_channel_basic_return_frame(self):
         connection = amqpstorm.Connection('localhost', 'guest', 'guest',
@@ -295,3 +303,7 @@ class ChannelFrameTests(unittest.TestCase):
         channel = Channel(0, connection, rpc_timeout=360)
 
         channel.on_frame(FakeFrame())
+
+        self.assertEqual(self.logging_handler.messages['error'][0],
+                         "[Channel0] Unhandled Frame: FakeFrame -- "
+                         "{'data_1': 'hello world'}")

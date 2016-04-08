@@ -22,6 +22,8 @@ URI = 'amqp://guest:guest@127.0.0.1:5672/%2F'
 
 logging.basicConfig(level=logging.DEBUG)
 
+LOGGER = logging.getLogger(__name__)
+
 
 class OpenCloseOpenCloseTest(unittest.TestCase):
     def setUp(self):
@@ -101,15 +103,18 @@ class Publish50kTest(unittest.TestCase):
     def test_publish_50k_messages(self):
         body = str(uuid.uuid4())
         # Publish 5 Messages.
+        start_time = time.time()
         for _ in range(50000):
             self.channel.basic.publish(body=body,
                                        routing_key='test.basic.50k')
+        end_time = time.time() - start_time
 
         # Sleep for 2.5s to make sure RabbitMQ has time to catch up.
         time.sleep(2.5)
 
         result = self.channel.queue.declare(queue='test.basic.50k',
                                             passive=True)
+        LOGGER.info('Published 50k messages in %d', round(end_time, 3))
         self.assertEqual(result['message_count'], 50000)
 
     def tearDown(self):
