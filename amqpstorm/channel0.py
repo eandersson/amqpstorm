@@ -14,6 +14,8 @@ from amqpstorm.base import Stateful
 from amqpstorm.exception import AMQPConnectionError
 from amqpstorm.compatibility import try_utf8_decode
 
+AUTH_MECHANISM = 'PLAIN'
+LOCALE = locale.getdefaultlocale()[0] or 'en_US'
 LOGGER = logging.getLogger(__name__)
 
 
@@ -40,7 +42,7 @@ class Channel0(object):
             self._write_frame(Heartbeat())
         elif frame_in.name == 'Connection.Start':
             self.server_properties = frame_in.server_properties
-            self._send_start_ok_frame()
+            self._send_start_ok_frame(frame_in)
         elif frame_in.name == 'Connection.Tune':
             self._send_tune_ok_frame()
             self._send_open_connection()
@@ -58,8 +60,7 @@ class Channel0(object):
             self.is_blocked = False
             LOGGER.info('Connection is no longer blocked by remote server')
         else:
-            LOGGER.error('[Channel0] Unhandled Frame: %s -- %s',
-                         frame_in.name, dict(frame_in))
+            LOGGER.error('[Channel0] Unhandled Frame: %s', frame_in.name)
 
     def send_close_connection_frame(self):
         """Send Connection Close frame.
@@ -106,17 +107,23 @@ class Channel0(object):
         """
         self._connection.write_frame(0, frame_out)
 
-    def _send_start_ok_frame(self):
+    def _send_start_ok_frame(self, frame_in):
         """Send Start OK frame.
 
         :param pamqp_spec.Frame frame_out: Amqp frame.
         :return:
         """
-        _locale = locale.getdefaultlocale()[0] or 'en_US'
+        if 'PLAIN' not in frame_in.mechanisms:
+            exception = AMQPConnectionError('Unsupported Security Mechanism(s)'
+                                            ': %s' % frame_in.mechanisms)
+            self._connection.exceptions.append(exception)
+            return
+        credentials = self._plain_credentials()
         frame = pamqp_connection.StartOk(
+            mechanism=AUTH_MECHANISM,
             client_properties=self._client_properties(),
-            response=self._credentials(),
-            locale=_locale)
+            response=credentials,
+            locale=LOCALE)
         self._write_frame(frame)
 
     def _send_tune_ok_frame(self):
@@ -139,7 +146,7 @@ class Channel0(object):
         )
         self._write_frame(frame)
 
-    def _credentials(self):
+    def _plain_credentials(self):
         """AMQP Plain Credentials.
 
         :rtype: str
@@ -153,14 +160,16 @@ class Channel0(object):
 
         :rtype: dict
         """
-        return {'product': 'AMQP-Storm',
-                'platform': 'Python %s' % platform.python_version(),
-                'capabilities': {
-                    'basic.nack': True,
-                    'connection.blocked': True,
-                    'publisher_confirms': True,
-                    'consumer_cancel_notify': True,
-                    'authentication_failure_close': True,
-                },
-                'information': 'See https://github.com/eandersson/amqp-storm',
-                'version': __version__}
+        return {
+            'product': 'AMQP-Storm',
+            'platform': 'Python %s' % platform.python_version(),
+            'capabilities': {
+                'basic.nack': True,
+                'connection.blocked': True,
+                'publisher_confirms': True,
+                'consumer_cancel_notify': True,
+                'authentication_failure_close': True,
+            },
+            'information': 'See https://github.com/eandersson/amqp-storm',
+            'version': __version__
+        }

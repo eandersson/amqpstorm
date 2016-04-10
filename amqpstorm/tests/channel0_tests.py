@@ -44,7 +44,7 @@ class Channel0Tests(unittest.TestCase):
         connection.parameters['username'] = 'guest'
         connection.parameters['password'] = 'password'
         channel = Channel0(connection)
-        credentials = channel._credentials()
+        credentials = channel._plain_credentials()
 
         self.assertEqual(credentials, '\0guest\0password')
 
@@ -78,7 +78,7 @@ class Channel0Tests(unittest.TestCase):
         connection.parameters['username'] = 'guest'
         connection.parameters['password'] = 'password'
         channel = Channel0(connection)
-        channel._send_start_ok_frame()
+        channel._send_start_ok_frame(Connection.Start())
 
         self.assertNotEqual(connection.frames_out, [])
         channel_id, frame_out = connection.frames_out.pop()
@@ -106,6 +106,14 @@ class Channel0Tests(unittest.TestCase):
         channel_id, frame_out = connection.frames_out.pop()
         self.assertEqual(channel_id, 0)
         self.assertIsInstance(frame_out, Connection.Close)
+
+    def test_channel0_invalid_authentication_mechanism(self):
+        connection = amqpstorm.Connection('localhost', 'guest', 'guest',
+                                          lazy=True)
+        channel = Channel0(connection)
+        channel._send_start_ok_frame(
+            Connection.Start(mechanisms='CRAM-MD5 SCRAM-SHA-1 SCRAM-SHA-256'))
+        self.assertRaises(AMQPConnectionError, connection.check_for_errors)
 
 
 class Channel0FrameTests(unittest.TestCase):
@@ -201,5 +209,4 @@ class Channel0FrameTests(unittest.TestCase):
         channel.on_frame(FakeFrame())
 
         self.assertEqual(self.logging_handler.messages['error'][0],
-                         "[Channel0] Unhandled Frame: FakeFrame -- "
-                         "{'data_1': 'hello world'}")
+                         "[Channel0] Unhandled Frame: FakeFrame")

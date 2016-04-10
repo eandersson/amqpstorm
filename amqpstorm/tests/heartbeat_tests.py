@@ -62,7 +62,7 @@ class HeartbeatTests(unittest.TestCase):
         exceptions = []
         heartbeat = Heartbeat(1)
         heartbeat.start(exceptions)
-        time.sleep(5)
+        time.sleep(6)
         self.assertGreater(len(heartbeat._exceptions), 0)
 
     def test_heartbeat_raise_when_check_for_life_when_exceptions_not_set(self):

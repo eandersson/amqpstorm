@@ -121,6 +121,8 @@ class Channel(BaseChannel):
             self.remove_consumer_tag(frame_in.consumer_tag)
         elif frame_in.name == 'Basic.CancelOk':
             self.remove_consumer_tag(frame_in.consumer_tag)
+        elif frame_in.name == 'Channel.Flow':
+            self.write_frame(pamqp_spec.Channel.FlowOk(frame_in.active))
         elif frame_in.name == 'Basic.Return':
             self._basic_return(frame_in)
         else:

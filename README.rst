@@ -1,6 +1,6 @@
 AMQP-Storm
 -------------
-Thread-safe Python AMQP Client Library based on pamqp.
+Thread-safe Python RabbitMQ Client Library based on pamqp.
 
 |Version| |Downloads| |License| |CodeClimate| |Travis|
 

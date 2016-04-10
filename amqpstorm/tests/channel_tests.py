@@ -249,6 +249,17 @@ class ChannelFrameTests(unittest.TestCase):
 
         self.assertFalse(channel.consumer_tags)
 
+    def test_channel_flow_frame(self):
+        connection = FakeConnection()
+        connection.set_state(connection.OPEN)
+        channel = Channel(0, connection, rpc_timeout=360)
+        channel.set_state(channel.OPEN)
+
+        channel.on_frame(specification.Channel.Flow())
+
+        self.assertIsInstance(connection.frames_out[0][1],
+                              specification.Channel.FlowOk)
+
     def test_channel_basic_cancel_frame(self):
         connection = amqpstorm.Connection('localhost', 'guest', 'guest',
                                           lazy=True)
