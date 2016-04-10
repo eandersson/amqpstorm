@@ -17,6 +17,7 @@ from amqpstorm.compatibility import try_utf8_decode
 AUTH_MECHANISM = 'PLAIN'
 LOCALE = locale.getdefaultlocale()[0] or 'en_US'
 LOGGER = logging.getLogger(__name__)
+MAX_CHANNELS = 65535
 
 
 class Channel0(object):
@@ -131,7 +132,7 @@ class Channel0(object):
 
         :return:
         """
-        frame = pamqp_connection.TuneOk(channel_max=0,
+        frame = pamqp_connection.TuneOk(channel_max=MAX_CHANNELS,
                                         frame_max=FRAME_MAX,
                                         heartbeat=self._heartbeat)
         self._write_frame(frame)
