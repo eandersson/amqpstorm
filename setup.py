@@ -1,7 +1,7 @@
 from setuptools import setup
 
 long_description = """
-See https://github.com/eandersson/amqp-storm for more information.
+See https://github.com/eandersson/amqpstorm for more information.
 """
 
 setup(name='AMQPStorm',
@@ -13,7 +13,7 @@ setup(name='AMQPStorm',
       include_package_data=True,
       packages=['amqpstorm', 'amqpstorm.tests'],
       license='MIT License',
-      url='http://github.com/eandersson/amqp-storm',
+      url='http://github.com/eandersson/amqpstorm',
       install_requires=['pamqp>=1.6.1,<2.0'],
       package_data={'': ['README.md', 'LICENSE', 'CHANGELOG']},
       classifiers=[

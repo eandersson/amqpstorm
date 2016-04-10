@@ -27,7 +27,7 @@ class Channel0Tests(unittest.TestCase):
         channel = Channel0(FakeConnection())
         result = channel._client_properties()
 
-        information = 'See https://github.com/eandersson/amqp-storm'
+        information = 'See https://github.com/eandersson/amqpstorm'
         python_version = 'Python %s' % platform.python_version()
 
         self.assertIsInstance(result, dict)
