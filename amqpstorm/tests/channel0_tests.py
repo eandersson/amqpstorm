@@ -78,7 +78,7 @@ class Channel0Tests(unittest.TestCase):
         connection.parameters['username'] = 'guest'
         connection.parameters['password'] = 'password'
         channel = Channel0(connection)
-        channel._send_start_ok_frame(Connection.Start())
+        channel._send_start_ok_frame(Connection.Start(mechanisms=b'PLAIN'))
 
         self.assertNotEqual(connection.frames_out, [])
         channel_id, frame_out = connection.frames_out.pop()

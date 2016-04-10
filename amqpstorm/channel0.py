@@ -113,7 +113,7 @@ class Channel0(object):
         :param pamqp_spec.Frame frame_out: Amqp frame.
         :return:
         """
-        if 'PLAIN' not in frame_in.mechanisms:
+        if 'PLAIN' not in try_utf8_decode(frame_in.mechanisms):
             exception = AMQPConnectionError('Unsupported Security Mechanism(s)'
                                             ': %s' % frame_in.mechanisms)
             self._connection.exceptions.append(exception)
