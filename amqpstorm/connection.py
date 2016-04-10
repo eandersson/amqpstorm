@@ -24,7 +24,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Connection(Stateful):
-    """RabbitMQ Connection Class."""
+    """AMQPStorm Connection"""
 
     def __init__(self, hostname, username, password, port=5672, **kwargs):
         """Create a new instance of the Connection class.
@@ -135,6 +135,9 @@ class Connection(Stateful):
     def channel(self, rpc_timeout=360):
         """Open Channel.
 
+        :param int rpc_timeout: Timeout before we give up waiting for an RPC
+                                response from the server.
+
         :raises AMQPInvalidArgument: Raises on invalid arguments.
         :raises AMQPChannelError: Raises if the channel cannot be opened
                                   before the rpc_timeout is reached.
@@ -155,8 +158,10 @@ class Connection(Stateful):
         return self._channels[channel_id]
 
     def check_for_errors(self):
-        """Check connection for potential errors.
+        """Check connection for errors.
 
+        :raises AMQPConnectionError: Raises if the connection
+                                     encountered an error.
         :return:
         """
         if not self.exceptions:

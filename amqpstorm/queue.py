@@ -11,7 +11,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Queue(object):
-    """Channel.Queue."""
+    """AMQPStorm Channel.queue"""
 
     def __init__(self, channel):
         self._channel = channel

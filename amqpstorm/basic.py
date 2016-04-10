@@ -18,7 +18,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Basic(object):
-    """Channel.Basic."""
+    """AMQPStorm Channel.basic"""
 
     def __init__(self, channel):
         self._channel = channel

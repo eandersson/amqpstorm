@@ -11,7 +11,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Exchange(object):
-    """Channel.Exchange."""
+    """Channel.exchange"""
 
     def __init__(self, channel):
         self._channel = channel

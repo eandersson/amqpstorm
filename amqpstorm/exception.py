@@ -66,7 +66,7 @@ AMQP_ERROR_MAPPING = {
 
 
 class AMQPError(IOError):
-    """General AMQP Error."""
+    """General AMQP Error"""
     _documentation = None
     _error_code = None
     _error_type = None
@@ -96,19 +96,19 @@ class AMQPError(IOError):
 
 
 class AMQPConnectionError(AMQPError):
-    """AMQP Connection Error."""
+    """AMQP Connection Error"""
     pass
 
 
 class AMQPChannelError(AMQPError):
-    """AMQP Channel Error."""
+    """AMQP Channel Error"""
     pass
 
 
 class AMQPMessageError(AMQPChannelError):
-    """AMQP Message Error."""
+    """AMQP Message Error"""
     pass
 
 
 class AMQPInvalidArgument(AMQPError):
-    """AMQP Argument Error."""
+    """AMQP Argument Error"""

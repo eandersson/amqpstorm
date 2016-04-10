@@ -26,18 +26,18 @@ CONTENT_FRAME = ['Basic.Deliver', 'ContentHeader', 'ContentBody']
 
 
 class Channel(BaseChannel):
-    """RabbitMQ Channel Class."""
+    """AMQPStorm Channel"""
 
     def __init__(self, channel_id, connection, rpc_timeout):
         super(Channel, self).__init__(channel_id)
         self.rpc = Rpc(self, timeout=rpc_timeout)
-        self._inbound = []
-        self._connection = connection
         self.confirming_deliveries = False
         self.consumer_callback = None
-        self.basic = Basic(self)
-        self.queue = Queue(self)
-        self.exchange = Exchange(self)
+        self._inbound = []
+        self._connection = connection
+        self._basic = None
+        self._exchange = None
+        self._queue = None
 
     def __enter__(self):
         return self
@@ -53,6 +53,36 @@ class Channel(BaseChannel):
     def __int__(self):
         return self._channel_id
 
+    @property
+    def basic(self):
+        """RabbitMQ Basic Operations.
+
+        :rtype: Basic
+        """
+        if not self._basic:
+            self._basic = Basic(self)
+        return self._basic
+
+    @property
+    def exchange(self):
+        """RabbitMQ Exchange Operations.
+
+        :rtype: Exchange
+        """
+        if not self._exchange:
+            self._exchange = Exchange(self)
+        return self._exchange
+
+    @property
+    def queue(self):
+        """RabbitMQ Queue Operations.
+
+        :rtype: Queue
+        """
+        if not self._queue:
+            self._queue = Queue(self)
+        return self._queue
+
     def open(self):
         """Open Channel.
 
@@ -67,8 +97,8 @@ class Channel(BaseChannel):
     def close(self, reply_code=0, reply_text=''):
         """Close Channel.
 
-        :param int reply_code:
-        :param str reply_text:
+        :param int reply_code: Close reply code (e.g. 200)
+        :param str reply_text: Close reply text
         :return:
         """
         LOGGER.debug('Channel #%d Closing', self.channel_id)
@@ -130,17 +160,17 @@ class Channel(BaseChannel):
                          self.channel_id, frame_in.name, dict(frame_in))
 
     def start_consuming(self, to_tuple=True):
-        """Start consuming events.
+        """Start consuming messages.
 
-        :param bool to_tuple: Should incoming messages be converted to
-                              arguments before delivery.
+        :param bool to_tuple: Should incoming messages be converted to a
+                              tuple before delivery.
         :return:
         """
         while self.consumer_tags and not self.is_closed:
             self.process_data_events(to_tuple=to_tuple)
 
     def stop_consuming(self):
-        """Stop consuming events.
+        """Stop consuming messages.
 
         :return:
         """
@@ -156,8 +186,8 @@ class Channel(BaseChannel):
             This is only required when consuming messages. All other
             events are automatically handled in the background.
 
-        :param bool to_tuple: Should incoming messages be converted to
-                              arguments before delivery.
+        :param bool to_tuple: Should incoming messages be converted to a
+                              tuple before delivery.
         :return:
         """
         if not self.consumer_callback:
@@ -174,10 +204,10 @@ class Channel(BaseChannel):
     def build_inbound_messages(self, break_on_empty=False, to_tuple=False):
         """Build messages in the inbound queue.
 
-        :param bool break_on_empty: Should we break the loop if there are
-                                    no more messages in the inbound queue.
-        :param bool to_tuple: Should incoming messages be converted to
-                              arguments before delivery.
+        :param bool break_on_empty: Should we break the loop when there are
+                                    no more messages to consume.
+        :param bool to_tuple: Should incoming messages be converted to a
+                              tuple before delivery.
         :rtype: :py:class:`generator`
         """
         self.check_for_errors()
@@ -213,8 +243,11 @@ class Channel(BaseChannel):
         self._connection.write_frames(self.channel_id, multiple_frames)
 
     def check_for_errors(self):
-        """Check for errors.
+        """Check connection and channel for errors.
 
+        :raises AMQPChannelError: Raises if the channel encountered an error.
+        :raises AMQPConnectionError: Raises if the connection
+                                     encountered an error.
         :return:
         """
         if self._connection.exceptions or self._connection.is_closed:

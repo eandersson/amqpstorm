@@ -20,14 +20,15 @@ LOGGER = logging.getLogger(__name__)
 
 
 class UriConnection(Connection):
-    """Wrapper of the Connection class that takes the AMQP uri schema."""
+    """AMQPStorm UriConnection.
+
+        e.g.
+            amqp://guest:guest@localhost:5672/%2F?heartbeat=60
+            amqps://guest:guest@localhost:5671/%2F?heartbeat=60
+    """
 
     def __init__(self, uri, lazy=False):
         """Create a new Connection instance using an AMQP Uri string.
-
-            e.g.
-                amqp://guest:guest@localhost:5672/%2F?heartbeat=60
-                amqps://guest:guest@localhost:5671/%2F?heartbeat=60
 
         :param str uri: AMQP Connection string
         """

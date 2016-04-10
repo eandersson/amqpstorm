@@ -10,7 +10,7 @@ from amqpstorm.exception import AMQPMessageError
 
 
 class Message(BaseMessage):
-    """RabbitMQ Message Class."""
+    """AMQPStorm Message"""
     __slots__ = ['_auto_decode', '_decode_cache']
 
     def __init__(self, channel, auto_decode=True, **message):
@@ -65,7 +65,7 @@ class Message(BaseMessage):
 
     @property
     def channel(self):
-        """Return the Channel.
+        """Return the Channel used by this message.
 
         :rtype: Channel
         """

@@ -55,6 +55,7 @@ class Poller(object):
 
 
 class IO(object):
+    """AMQPStorm Connection.io"""
     def __init__(self, parameters, on_read=None):
         self._inbound_thread = None
         self._lock = threading.Lock()
