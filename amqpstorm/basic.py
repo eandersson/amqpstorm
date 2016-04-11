@@ -18,19 +18,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Basic(object):
-    """AMQPStorm Channel.basic
-
-        Usage:
-            channel = connection.channel()
-            channel.basic.qos(..)
-            channel.basic.get(..)
-            channel.basic.recover(..)
-            channel.basic.consume(..)
-            channel.basic.cancel(..)
-            channel.basic.ack(..)
-            channel.basic.nack(..)
-            channel.basic.reject(..)
-    """
+    """AMQP Channel.basic"""
 
     def __init__(self, channel):
         self._channel = channel

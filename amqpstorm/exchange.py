@@ -11,15 +11,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Exchange(object):
-    """Channel.exchange
-
-        Usage:
-            channel = connection.channel()
-            channel.exchange.declare(..)
-            channel.exchange.delete(..)
-            channel.exchange.bind(..)
-            channel.exchange.unbind(..)
-    """
+    """AMQP Channel.exchange"""
 
     def __init__(self, channel):
         self._channel = channel

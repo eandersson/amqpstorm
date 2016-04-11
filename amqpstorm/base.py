@@ -11,7 +11,7 @@ FRAME_MAX = 131072
 
 
 class Stateful(object):
-    """AMQPStorm Stateful"""
+    """Stateful"""
     CLOSED = 0
     CLOSING = 1
     OPENING = 2
@@ -84,7 +84,7 @@ class Stateful(object):
 
 
 class Rpc(object):
-    """AMQPStorm Channel.rpc"""
+    """AMQP Channel.rpc"""
 
     def __init__(self, adapter, timeout=360):
         """
@@ -212,7 +212,7 @@ class Rpc(object):
 
 
 class BaseChannel(Stateful):
-    """AMQPStorm BaseChannel"""
+    """AMQP BaseChannel"""
 
     def __init__(self, channel_id):
         super(BaseChannel, self).__init__()
@@ -260,7 +260,7 @@ class BaseChannel(Stateful):
 
 
 class BaseMessage(object):
-    """AMQPStorm BaseMessage"""
+    """AMQP BaseMessage"""
     __slots__ = ['_body', '_channel', '_method', '_properties']
 
     def __init__(self, channel, **message):

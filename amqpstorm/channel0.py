@@ -21,7 +21,7 @@ MAX_CHANNELS = 65535
 
 
 class Channel0(object):
-    """AMQPStorm Connection.Channel0"""
+    """AMQP Connection.Channel0"""
 
     def __init__(self, connection):
         super(Channel0, self).__init__()

@@ -24,14 +24,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Connection(Stateful):
-    """AMQPStorm Connection
-
-        Create a new Connection.
-
-        Usage:
-            Connection('localhost', 'guest', guest', port=5672)
-            Connection('localhost', 'guest', guest', port=5672, heartbeat=60)
-    """
+    """AMQP Connection"""
 
     def __init__(self, hostname, username, password, port=5672, **kwargs):
         """

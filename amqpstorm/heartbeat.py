@@ -10,7 +10,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Heartbeat(object):
-    """AMQPStorm Internal Heartbeat Checker"""
+    """AMQP Internal Heartbeat Checker"""
 
     def __init__(self, interval):
         if interval < 1:
