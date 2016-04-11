@@ -99,6 +99,12 @@ class Channel(BaseChannel):
 
         :param int reply_code: Close reply code (e.g. 200)
         :param str reply_text: Close reply text
+
+        :raises AMQPInvalidArgument: Invalid Parameters
+        :raises AMQPChannelError: Raises if the channel encountered an error.
+        :raises AMQPConnectionError: Raises if the connection
+                                     encountered an error.
+
         :return:
         """
         LOGGER.debug('Channel #%d Closing', self.channel_id)
@@ -123,6 +129,10 @@ class Channel(BaseChannel):
     def confirm_deliveries(self):
         """Set the channel to confirm that each message has been
         successfully delivered.
+
+        :raises AMQPChannelError: Raises if the channel encountered an error.
+        :raises AMQPConnectionError: Raises if the connection
+                                     encountered an error.
 
         :return:
         """
@@ -164,6 +174,11 @@ class Channel(BaseChannel):
 
         :param bool to_tuple: Should incoming messages be converted to a
                               tuple before delivery.
+
+        :raises AMQPChannelError: Raises if the channel encountered an error.
+        :raises AMQPConnectionError: Raises if the connection
+                                     encountered an error.
+
         :return:
         """
         while self.consumer_tags and not self.is_closed:
@@ -171,6 +186,10 @@ class Channel(BaseChannel):
 
     def stop_consuming(self):
         """Stop consuming messages.
+
+        :raises AMQPChannelError: Raises if the channel encountered an error.
+        :raises AMQPConnectionError: Raises if the connection
+                                     encountered an error.
 
         :return:
         """
@@ -188,6 +207,11 @@ class Channel(BaseChannel):
 
         :param bool to_tuple: Should incoming messages be converted to a
                               tuple before delivery.
+
+        :raises AMQPChannelError: Raises if the channel encountered an error.
+        :raises AMQPConnectionError: Raises if the connection
+                                     encountered an error.
+
         :return:
         """
         if not self.consumer_callback:
@@ -208,6 +232,11 @@ class Channel(BaseChannel):
                                     no more messages to consume.
         :param bool to_tuple: Should incoming messages be converted to a
                               tuple before delivery.
+
+        :raises AMQPChannelError: Raises if the channel encountered an error.
+        :raises AMQPConnectionError: Raises if the connection
+                                     encountered an error.
+
         :rtype: :py:class:`generator`
         """
         self.check_for_errors()

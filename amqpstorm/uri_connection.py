@@ -22,14 +22,15 @@ LOGGER = logging.getLogger(__name__)
 class UriConnection(Connection):
     """AMQPStorm UriConnection.
 
-        e.g.
-            amqp://guest:guest@localhost:5672/%2F?heartbeat=60
-            amqps://guest:guest@localhost:5671/%2F?heartbeat=60
+        Create a new Connection instance using an AMQP Uri string.
+
+        Usage:
+            UriConnect('amqp://guest:guest@localhost:5672/%2F?heartbeat=60')
+            UriConnect('amqps://guest:guest@localhost:5671/%2F?heartbeat=60')
     """
 
     def __init__(self, uri, lazy=False):
-        """Create a new Connection instance using an AMQP Uri string.
-
+        """
         :param str uri: AMQP Connection string
         """
         uri = compatibility.patch_uri(uri)

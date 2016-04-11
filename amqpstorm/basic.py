@@ -18,7 +18,19 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Basic(object):
-    """AMQPStorm Channel.basic"""
+    """AMQPStorm Channel.basic
+
+        Usage:
+            channel = connection.channel()
+            channel.basic.qos(..)
+            channel.basic.get(..)
+            channel.basic.recover(..)
+            channel.basic.consume(..)
+            channel.basic.cancel(..)
+            channel.basic.ack(..)
+            channel.basic.nack(..)
+            channel.basic.reject(..)
+    """
 
     def __init__(self, channel):
         self._channel = channel
@@ -29,6 +41,12 @@ class Basic(object):
         :param int prefetch_count: Prefetch window in messages
         :param int/long prefetch_size: Prefetch window in octets
         :param bool global_: Apply to entire connection
+
+        :raises AMQPInvalidArgument: Invalid Parameters
+        :raises AMQPChannelError: Raises if the channel encountered an error.
+        :raises AMQPConnectionError: Raises if the connection
+                                     encountered an error.
+
         :rtype: dict
         """
         if not compatibility.is_integer(prefetch_count):
@@ -45,11 +63,19 @@ class Basic(object):
     def get(self, queue='', no_ack=False, to_dict=True):
         """Fetch a single message.
 
-        :param str queue:
+        :param str queue: Queue name
         :param bool no_ack: No acknowledgement needed
         :param bool to_dict: Should incoming messages be converted to a
                     dictionary before delivery.
-        :rtype: dict|None
+
+        :raises AMQPInvalidArgument: Invalid Parameters
+        :raises AMQPChannelError: Raises if the channel encountered an error.
+        :raises AMQPConnectionError: Raises if the connection
+                                     encountered an error.
+
+        :returns: Returns a single message, as long as there is a message in
+                  the queue. If no message is available, returns None.
+        :rtype: dict|Message|None
         """
         if not compatibility.is_string(queue):
             raise AMQPInvalidArgument('queue should be a string')
@@ -80,13 +106,20 @@ class Basic(object):
                 exclusive=False, no_ack=False, no_local=False, arguments=None):
         """Start a queue consumer.
 
-        :param function callback:
-        :param str queue:
-        :param str consumer_tag:
+        :param function callback: Message callback
+        :param str queue: Queue name
+        :param str consumer_tag: Consumer tag
         :param bool no_local: Do not deliver own messages
         :param bool no_ack: No acknowledgement needed
         :param bool exclusive: Request exclusive access
         :param dict arguments: Arguments for declaration
+
+        :raises AMQPInvalidArgument: Invalid Parameters
+        :raises AMQPChannelError: Raises if the channel encountered an error.
+        :raises AMQPConnectionError: Raises if the connection
+                                     encountered an error.
+
+        :returns: Consumer tag
         :rtype: str
         """
         if not compatibility.is_string(queue):
@@ -117,6 +150,12 @@ class Basic(object):
         """Cancel a queue consumer.
 
         :param str consumer_tag: Consumer tag
+
+        :raises AMQPInvalidArgument: Invalid Parameters
+        :raises AMQPChannelError: Raises if the channel encountered an error.
+        :raises AMQPConnectionError: Raises if the connection
+                                     encountered an error.
+
         :rtype: dict
         """
         if not compatibility.is_string(consumer_tag):
@@ -128,16 +167,21 @@ class Basic(object):
 
     def publish(self, body, routing_key, exchange='', properties=None,
                 mandatory=False, immediate=False):
-        """Publish Message.
+        """Publish a Message.
 
-        :param str|unicode body:
-        :param str routing_key:
-        :param str exchange:
-        :param dict properties:
-        :param bool mandatory:
-        :param bool immediate:
-        :rtype: bool|None
+        :param str|unicode body: Message payload
+        :param str routing_key: Message routing key
+        :param str exchange: The exchange to publish the message to
+        :param dict properties: Message properties
+        :param bool mandatory: Requires the message is published
+        :param bool immediate: Request immediate delivery
+
         :raises AMQPInvalidArgument: Invalid Parameters
+        :raises AMQPChannelError: Raises if the channel encountered an error.
+        :raises AMQPConnectionError: Raises if the connection
+                                     encountered an error.
+
+        :rtype: bool|None
         """
         self._validate_publish_parameters(body, exchange, immediate, mandatory,
                                           properties, routing_key)
@@ -165,6 +209,12 @@ class Basic(object):
 
         :param int/long delivery_tag: Server-assigned delivery tag
         :param bool multiple: Acknowledge multiple messages
+
+        :raises AMQPInvalidArgument: Invalid Parameters
+        :raises AMQPChannelError: Raises if the channel encountered an error.
+        :raises AMQPConnectionError: Raises if the connection
+                                     encountered an error.
+
         :return:
         """
         if delivery_tag is not None \
@@ -181,8 +231,14 @@ class Basic(object):
         """Negative Acknowledgement.
 
         :param int/long delivery_tag: Server-assigned delivery tag
-        :param bool multiple:
-        :param bool requeue:
+        :param bool multiple: Negative acknowledge multiple messages
+        :param bool requeue: Requeue message
+
+        :raises AMQPInvalidArgument: Invalid Parameters
+        :raises AMQPChannelError: Raises if the channel encountered an error.
+        :raises AMQPConnectionError: Raises if the connection
+                                     encountered an error.
+
         :return:
         """
         if delivery_tag is not None \
@@ -203,6 +259,12 @@ class Basic(object):
 
         :param int/long delivery_tag: Server-assigned delivery tag
         :param bool requeue: Requeue the message
+
+        :raises AMQPInvalidArgument: Invalid Parameters
+        :raises AMQPChannelError: Raises if the channel encountered an error.
+        :raises AMQPConnectionError: Raises if the connection
+                                     encountered an error.
+
         :return:
         """
         if delivery_tag is not None \

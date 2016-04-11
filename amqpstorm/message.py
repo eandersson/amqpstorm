@@ -10,7 +10,14 @@ from amqpstorm.exception import AMQPMessageError
 
 
 class Message(BaseMessage):
-    """AMQPStorm Message"""
+    """AMQPStorm Message
+
+        Usage:
+            channel = connection.channel()
+            message = Message.create(channel, 'hello world)
+            message.content_type = 'text/plain'
+            message.publish('my-queue')
+    """
     __slots__ = ['_auto_decode', '_decode_cache']
 
     def __init__(self, channel, auto_decode=True, **message):

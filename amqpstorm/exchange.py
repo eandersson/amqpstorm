@@ -11,14 +11,22 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Exchange(object):
-    """Channel.exchange"""
+    """Channel.exchange
+
+        Usage:
+            channel = connection.channel()
+            channel.exchange.declare(..)
+            channel.exchange.delete(..)
+            channel.exchange.bind(..)
+            channel.exchange.unbind(..)
+    """
 
     def __init__(self, channel):
         self._channel = channel
 
     def declare(self, exchange='', exchange_type='direct', passive=False,
                 durable=False, auto_delete=False, arguments=None):
-        """Declare exchange.
+        """Declare an Exchange.
 
         :param str exchange:
         :param str exchange_type:
@@ -26,6 +34,12 @@ class Exchange(object):
         :param bool durable:
         :param bool auto_delete:
         :param dict arguments:
+
+        :raises AMQPInvalidArgument: Invalid Parameters
+        :raises AMQPChannelError: Raises if the channel encountered an error.
+        :raises AMQPConnectionError: Raises if the connection
+                                     encountered an error.
+
         :rtype: dict
         """
         if not compatibility.is_string(exchange):
@@ -50,10 +64,16 @@ class Exchange(object):
         return self._channel.rpc_request(declare_frame)
 
     def delete(self, exchange='', if_unused=False):
-        """Delete exchange.
+        """Delete an Exchange.
 
         :param str exchange:
         :param bool if_unused:
+
+        :raises AMQPInvalidArgument: Invalid Parameters
+        :raises AMQPChannelError: Raises if the channel encountered an error.
+        :raises AMQPConnectionError: Raises if the connection
+                                     encountered an error.
+
         :rtype: dict
         """
         if not compatibility.is_string(exchange):
@@ -65,12 +85,18 @@ class Exchange(object):
 
     def bind(self, destination='', source='', routing_key='',
              arguments=None):
-        """Bind exchange.
+        """Bind an Exchange.
 
         :param str destination:
         :param str source:
         :param str routing_key:
         :param dict arguments:
+
+        :raises AMQPInvalidArgument: Invalid Parameters
+        :raises AMQPChannelError: Raises if the channel encountered an error.
+        :raises AMQPConnectionError: Raises if the connection
+                                     encountered an error.
+
         :rtype: dict
         """
         if not compatibility.is_string(destination):
@@ -90,12 +116,18 @@ class Exchange(object):
 
     def unbind(self, destination='', source='', routing_key='',
                arguments=None):
-        """Unbind exchange.
+        """Unbind an Exchange.
 
         :param str destination:
         :param str source:
         :param str routing_key:
         :param dict arguments:
+
+        :raises AMQPInvalidArgument: Invalid Parameters
+        :raises AMQPChannelError: Raises if the channel encountered an error.
+        :raises AMQPConnectionError: Raises if the connection
+                                     encountered an error.
+
         :rtype: dict
         """
         if not compatibility.is_string(destination):

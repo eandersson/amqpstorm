@@ -11,14 +11,23 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Queue(object):
-    """AMQPStorm Channel.queue"""
+    """AMQPStorm Channel.queue
+
+        Usage:
+            channel = connection.channel()
+            channel.queue.declare(..)
+            channel.queue.delete(..)
+            channel.queue.purge(..)
+            channel.queue.bind(..)
+            channel.queue.unbind(..)
+    """
 
     def __init__(self, channel):
         self._channel = channel
 
     def declare(self, queue='', passive=False, durable=False,
                 exclusive=False, auto_delete=False, arguments=None):
-        """Declare queue.
+        """Declare a Queue.
 
         :param str queue:
         :param bool passive:
@@ -26,6 +35,12 @@ class Queue(object):
         :param bool exclusive:
         :param bool auto_delete:
         :param dict arguments:
+
+        :raises AMQPInvalidArgument: Invalid Parameters
+        :raises AMQPChannelError: Raises if the channel encountered an error.
+        :raises AMQPConnectionError: Raises if the connection
+                                     encountered an error.
+
         :rtype: dict
         """
         if not compatibility.is_string(queue):
@@ -50,11 +65,17 @@ class Queue(object):
         return self._channel.rpc_request(declare_frame)
 
     def delete(self, queue='', if_unused=False, if_empty=False):
-        """Delete queue.
+        """Delete a Queue.
 
         :param str queue:
         :param bool if_unused: Delete only if unused
         :param bool if_empty: Delete only if empty
+
+        :raises AMQPInvalidArgument: Invalid Parameters
+        :raises AMQPChannelError: Raises if the channel encountered an error.
+        :raises AMQPConnectionError: Raises if the connection
+                                     encountered an error.
+
         :rtype: dict
         """
         if not compatibility.is_string(queue):
@@ -69,9 +90,15 @@ class Queue(object):
         return self._channel.rpc_request(delete_frame)
 
     def purge(self, queue=''):
-        """Purge queue.
+        """Purge a Queue.
 
         :param str queue:
+
+        :raises AMQPInvalidArgument: Invalid Parameters
+        :raises AMQPChannelError: Raises if the channel encountered an error.
+        :raises AMQPConnectionError: Raises if the connection
+                                     encountered an error.
+
         :rtype: dict
         """
         if not compatibility.is_string(queue):
@@ -82,12 +109,18 @@ class Queue(object):
         return self._channel.rpc_request(purge_frame)
 
     def bind(self, queue='', exchange='', routing_key='', arguments=None):
-        """Bind queue.
+        """Bind a Queue.
 
         :param str queue:
         :param str exchange:
         :param str routing_key:
         :param dict arguments:
+
+        :raises AMQPInvalidArgument: Invalid Parameters
+        :raises AMQPChannelError: Raises if the channel encountered an error.
+        :raises AMQPConnectionError: Raises if the connection
+                                     encountered an error.
+
         :rtype: dict
         """
         if not compatibility.is_string(queue):
@@ -106,12 +139,18 @@ class Queue(object):
         return self._channel.rpc_request(bind_frame)
 
     def unbind(self, queue='', exchange='', routing_key='', arguments=None):
-        """Unbind queue.
+        """Unbind a Queue.
 
         :param str queue:
         :param str exchange:
         :param str routing_key:
         :param dict arguments:
+
+        :raises AMQPInvalidArgument: Invalid Parameters
+        :raises AMQPChannelError: Raises if the channel encountered an error.
+        :raises AMQPConnectionError: Raises if the connection
+                                     encountered an error.
+
         :rtype: dict
         """
         if not compatibility.is_string(queue):

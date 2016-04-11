@@ -24,20 +24,26 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Connection(Stateful):
-    """AMQPStorm Connection"""
+    """AMQPStorm Connection
+
+        Create a new Connection.
+
+        Usage:
+            Connection('localhost', 'guest', guest', port=5672)
+            Connection('localhost', 'guest', guest', port=5672, heartbeat=60)
+    """
 
     def __init__(self, hostname, username, password, port=5672, **kwargs):
-        """Create a new instance of the Connection class.
-
-        :param str hostname:
-        :param str username:
-        :param str password:
-        :param int port:
-        :param str virtual_host:
+        """
+        :param str hostname: Hostname
+        :param str username: Username
+        :param str password: Password
+        :param int port: Server port
+        :param str virtual_host: Virtualhost
         :param int heartbeat: RabbitMQ Heartbeat interval
         :param int|float timeout: Socket timeout
         :param bool ssl: Enable SSL
-        :param dict ssl_options: SSL Kwargs
+        :param dict ssl_options: SSL kwargs (from ssl.wrap_socket)
         :param bool lazy: Lazy initialize the connection
         :return:
         """
@@ -91,7 +97,7 @@ class Connection(Stateful):
     def socket(self):
         """Returns an instance of the socket.
 
-        :return:
+        :rtype: socket
         """
         return self._io.socket
 
