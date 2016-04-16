@@ -9,6 +9,7 @@ from pamqp import specification as pamqp_spec
 
 from amqpstorm import compatibility
 from amqpstorm.base import FRAME_MAX
+from amqpstorm.base import Handler
 from amqpstorm.exception import AMQPChannelError
 from amqpstorm.exception import AMQPInvalidArgument
 from amqpstorm.exception import AMQPMessageError
@@ -17,11 +18,8 @@ from amqpstorm.message import Message
 LOGGER = logging.getLogger(__name__)
 
 
-class Basic(object):
+class Basic(Handler):
     """AMQP Channel.basic"""
-
-    def __init__(self, channel):
-        self._channel = channel
 
     def qos(self, prefetch_count=0, prefetch_size=0, global_=False):
         """Specify quality of service.

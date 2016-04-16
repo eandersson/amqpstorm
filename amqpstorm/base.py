@@ -297,3 +297,11 @@ class BaseMessage(object):
         :rtype: tuple
         """
         return self._body, self._channel, self._method, self._properties
+
+
+class Handler(object):
+    """Operations Handler (e.g. Queue, Exchange)"""
+    __slots__ = ['_channel']
+
+    def __init__(self, channel):
+        self._channel = channel

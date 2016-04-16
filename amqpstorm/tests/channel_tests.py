@@ -13,6 +13,9 @@ import amqpstorm
 from amqpstorm import exception
 from amqpstorm import Message
 from amqpstorm import Channel
+from amqpstorm.basic import Basic
+from amqpstorm.exchange import Exchange
+from amqpstorm.queue import Queue
 from amqpstorm.exception import *
 
 from amqpstorm.tests.utility import FakeConnection
@@ -44,6 +47,27 @@ class ChannelTests(unittest.TestCase):
         self.assertEqual(channel._inbound, [])
         self.assertEqual(channel._consumer_tags, [])
         self.assertEqual(channel._state, channel.CLOSED)
+
+    def test_channel_basic_handler(self):
+        channel = Channel(0, None, 360)
+
+        self.assertIsNone(channel._basic)
+        self.assertIsInstance(channel.basic, Basic)
+        self.assertIsNotNone(channel._basic)
+
+    def test_channel_exchange_handler(self):
+        channel = Channel(0, None, 360)
+
+        self.assertIsNone(channel._exchange)
+        self.assertIsInstance(channel.exchange, Exchange)
+        self.assertIsNotNone(channel._exchange)
+
+    def test_channel_queue_handler(self):
+        channel = Channel(0, None, 360)
+
+        self.assertIsNone(channel._queue)
+        self.assertIsInstance(channel.queue, Queue)
+        self.assertIsNotNone(channel._queue)
 
 
 class ChannelExceptionTests(unittest.TestCase):

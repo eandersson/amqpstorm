@@ -26,7 +26,7 @@ CONTENT_FRAME = ['Basic.Deliver', 'ContentHeader', 'ContentBody']
 
 
 class Channel(BaseChannel):
-    """AMQP Channel"""
+    """Connection.channel"""
 
     def __init__(self, channel_id, connection, rpc_timeout):
         super(Channel, self).__init__(channel_id)
@@ -59,9 +59,7 @@ class Channel(BaseChannel):
 
         :rtype: Basic
         """
-        if not self._basic:
-            self._basic = Basic(self)
-        return self._basic
+        return self._lazy_load_handler('_basic', Basic)
 
     @property
     def exchange(self):
@@ -69,9 +67,7 @@ class Channel(BaseChannel):
 
         :rtype: Exchange
         """
-        if not self._exchange:
-            self._exchange = Exchange(self)
-        return self._exchange
+        return self._lazy_load_handler('_exchange', Exchange)
 
     @property
     def queue(self):
@@ -79,9 +75,7 @@ class Channel(BaseChannel):
 
         :rtype: Queue
         """
-        if not self._queue:
-            self._queue = Queue(self)
-        return self._queue
+        return self._lazy_load_handler('_queue', Queue)
 
     def open(self):
         """Open Channel.
@@ -381,3 +375,16 @@ class Channel(BaseChannel):
                 break
             body += body_piece.value
         return body
+
+    def _lazy_load_handler(self, name, handler_class):
+        """Lazy load operations (e.g. Queue, Exchange)
+
+        :param name:
+        :param Handler handler_class: Handler (e.g. Queue)
+        :return:
+        """
+        handler = getattr(self, name)
+        if not handler:
+            handler = handler_class(self)
+            setattr(self, name, handler)
+        return handler

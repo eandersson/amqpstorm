@@ -5,16 +5,14 @@ import logging
 from pamqp.specification import Exchange as pamqp_exchange
 
 from amqpstorm import compatibility
+from amqpstorm.base import Handler
 from amqpstorm.exception import AMQPInvalidArgument
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Exchange(object):
+class Exchange(Handler):
     """AMQP Channel.exchange"""
-
-    def __init__(self, channel):
-        self._channel = channel
 
     def declare(self, exchange='', exchange_type='direct', passive=False,
                 durable=False, auto_delete=False, arguments=None):

@@ -5,16 +5,14 @@ import logging
 from pamqp.specification import Queue as pamqp_queue
 
 from amqpstorm import compatibility
+from amqpstorm.base import Handler
 from amqpstorm.exception import AMQPInvalidArgument
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Queue(object):
+class Queue(Handler):
     """AMQP Channel.queue"""
-
-    def __init__(self, channel):
-        self._channel = channel
 
     def declare(self, queue='', passive=False, durable=False,
                 exclusive=False, auto_delete=False, arguments=None):
