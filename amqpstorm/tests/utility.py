@@ -78,14 +78,15 @@ class FakeBasic(object):
 
 class FakePayload(object):
     """Fake Payload for Unit-Testing."""
-    __slots__ = ['name']
+    __slots__ = ['name', 'value']
 
     def __iter__(self):
         for attribute in self.__slots__:
             yield (attribute, getattr(self, attribute))
 
-    def __init__(self, name):
+    def __init__(self, name, value=''):
         self.name = name
+        self.value = value
 
 
 class FakeFrame(object):

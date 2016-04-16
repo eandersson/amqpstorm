@@ -131,7 +131,7 @@ class Connection(Stateful):
         self.set_state(self.CLOSED)
         LOGGER.debug('Connection Closed')
 
-    def channel(self, rpc_timeout=360):
+    def channel(self, rpc_timeout=120):
         """Open Channel.
 
         :param int rpc_timeout: Timeout before we give up waiting for an RPC

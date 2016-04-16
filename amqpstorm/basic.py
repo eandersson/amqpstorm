@@ -68,7 +68,8 @@ class Basic(Handler):
         elif not isinstance(no_ack, bool):
             raise AMQPInvalidArgument('no_ack should be a boolean')
         elif self._channel.consumer_tags:
-            raise AMQPChannelError('Cannot call \'get\' when set to consume')
+            raise AMQPChannelError("Cannot call 'get' when channel is "
+                                   "set to consume")
         get_frame = pamqp_spec.Basic.Get(queue=queue,
                                          no_ack=no_ack)
         with self._channel.lock and self._channel.rpc.lock:
@@ -324,14 +325,13 @@ class Basic(Handler):
         uuid_header = self._channel.rpc.register_request(['ContentHeader'])
         uuid_body = self._channel.rpc.register_request(['ContentBody'])
         self._channel.write_frame(get_frame)
-        get_frame = self._channel.rpc.get_request(uuid_get, True)
+        get_frame = self._channel.rpc.get_request(uuid_get, raw=True)
 
         if not isinstance(get_frame, pamqp_spec.Basic.GetOk):
             self._channel.rpc.remove(uuid_header)
             self._channel.rpc.remove(uuid_body)
             return None
-
-        content_header = self._channel.rpc.get_request(uuid_header, True)
+        content_header = self._channel.rpc.get_request(uuid_header, raw=True)
         body = self._get_content_body(uuid_body, content_header.body_size)
 
         return Message(channel=self._channel,
@@ -348,7 +348,7 @@ class Basic(Handler):
         confirm_uuid = self._channel.rpc.register_request(['Basic.Ack',
                                                            'Basic.Nack'])
         self._channel.write_frames(send_buffer)
-        result = self._channel.rpc.get_request(confirm_uuid, True)
+        result = self._channel.rpc.get_request(confirm_uuid, raw=True)
         self._channel.check_for_errors()
         if isinstance(result, pamqp_spec.Basic.Ack):
             return True
@@ -385,8 +385,8 @@ class Basic(Handler):
         """
         body = bytes()
         while len(body) < body_size:
-            body_piece = self._channel.rpc.get_request(uuid_body, True,
-                                                       auto_remove=False)
+            body_piece = self._channel.rpc.get_request(uuid_body, raw=True,
+                                                       multiple=True)
             if not body_piece:
                 break
             body += body_piece.value

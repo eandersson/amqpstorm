@@ -93,6 +93,96 @@ class PublishAndGetMessagesTest(unittest.TestCase):
         self.connection.close()
 
 
+class PublishAndGetLargeMessageTest(unittest.TestCase):
+    def setUp(self):
+        self.connection = Connection(HOST, USERNAME, PASSWORD)
+        self.channel = self.connection.channel()
+        self.channel.confirm_deliveries()
+        self.channel.queue.declare('test.basic.get_large')
+        self.channel.queue.purge('test.basic.get_large')
+
+    def test_publish_and_get_large_message(self):
+        try:
+            body = str(uuid.uuid4()) * 65536
+
+            # Publish a single large message
+            self.channel.basic.publish(body=body,
+                                       routing_key='test.basic.get_large')
+
+            payload = self.channel.basic.get('test.basic.get_large',
+                                             to_dict=False)
+            self.assertEqual(body, payload.body)
+        finally:
+            self.channel.queue.purge('test.basic.get_large')
+
+    def tearDown(self):
+        self.channel.queue.delete('test.basic.get_large')
+        self.channel.close()
+        self.connection.close()
+
+
+class PublishLargeMessagesAndConsumeTest(unittest.TestCase):
+    def setUp(self):
+        self.connection = Connection(HOST, USERNAME, PASSWORD)
+        self.channel = self.connection.channel()
+        self.channel.confirm_deliveries()
+        self.channel.queue.declare('test.basic.large_messages')
+        self.channel.queue.purge('test.basic.large_messages')
+
+    def test_publish_5_large_messages(self):
+        body = str(uuid.uuid4()) * 8192
+        messages_to_publish = 5
+
+        self.channel.basic.consume(queue='test.basic.large_messages',
+                                   no_ack=True)
+        # Publish 5 Messages.
+        for _ in range(messages_to_publish):
+            self.channel.basic.publish(body=body,
+                                       routing_key='test.basic.large_messages')
+
+        inbound_messages = []
+        for message in self.channel.build_inbound_messages(break_on_empty=True):
+            self.assertEqual(message.body, body)
+            inbound_messages.append(message)
+        self.assertEqual(len(inbound_messages), messages_to_publish)
+
+    def tearDown(self):
+        self.channel.queue.delete('test.basic.large_messages')
+        self.channel.close()
+        self.connection.close()
+
+
+class PublishLargeMessagesAndGetTest(unittest.TestCase):
+    def setUp(self):
+        self.connection = Connection(HOST, USERNAME, PASSWORD)
+        self.channel = self.connection.channel()
+        self.channel.confirm_deliveries()
+        self.channel.queue.declare('test.basic.large_messages')
+        self.channel.queue.purge('test.basic.large_messages')
+
+    def test_publish_5_large_messages(self):
+        body = str(uuid.uuid4()) * 8192
+        messages_to_publish = 5
+
+        # Publish 5 Messages.
+        for _ in range(messages_to_publish):
+            self.channel.basic.publish(body=body,
+                                       routing_key='test.basic.large_messages')
+
+        inbound_messages = []
+        for _ in range(messages_to_publish):
+            message = self.channel.basic.get('test.basic.large_messages',
+                                             no_ack=True, to_dict=False)
+            self.assertEqual(message.body, body)
+            inbound_messages.append(message)
+        self.assertEqual(len(inbound_messages), messages_to_publish)
+
+    def tearDown(self):
+        self.channel.queue.delete('test.basic.large_messages')
+        self.channel.close()
+        self.connection.close()
+
+
 class Publish50kTest(unittest.TestCase):
     def setUp(self):
         self.connection = Connection(HOST, USERNAME, PASSWORD)
@@ -102,7 +192,7 @@ class Publish50kTest(unittest.TestCase):
 
     def test_publish_50k_messages(self):
         body = str(uuid.uuid4())
-        # Publish 5 Messages.
+        # Publish 50k Messages.
         start_time = time.time()
         for _ in range(50000):
             self.channel.basic.publish(body=body,

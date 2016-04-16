@@ -5,13 +5,13 @@ See https://github.com/eandersson/amqpstorm for more information.
 """
 
 setup(name='AMQPStorm',
-      version='1.3.0',
+      version='1.3.1',
       description='Thread-safe Python RabbitMQ Client Library based on pamqp.',
       long_description=long_description,
       author='Erik Olof Gunnar Andersson',
       author_email='me@eandersson.net',
       include_package_data=True,
-      packages=['amqpstorm', 'amqpstorm.tests'],
+      packages=['amqpstorm', 'amqpstorm.tests', 'amqpstorm.tests.functional'],
       license='MIT License',
       url='http://github.com/eandersson/amqpstorm',
       install_requires=['pamqp>=1.6.1,<2.0'],

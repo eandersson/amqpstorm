@@ -111,8 +111,10 @@ class Rpc(object):
             return False
 
         uuid = self._request[frame_in.name]
-        self._response[uuid] = frame_in
-
+        if self._response[uuid]:
+            self._response[uuid].append(frame_in)
+        else:
+            self._response[uuid] = [frame_in]
         return True
 
     def register_request(self, valid_responses):
@@ -123,7 +125,7 @@ class Rpc(object):
         :return:
         """
         uuid = str(uuid4())
-        self._response[uuid] = None
+        self._response[uuid] = []
         for action in valid_responses:
             self._request[action] = uuid
         return uuid
@@ -156,31 +158,39 @@ class Rpc(object):
         if uuid in self._response:
             del self._response[uuid]
 
-    def get_request(self, uuid, raw=False, auto_remove=True):
+    def get_request(self, uuid, raw=False, multiple=False):
         """Get a RPC request.
 
         :param str uuid: Rpc Identifier
         :param bool raw: If enabled return the frame as is, else return
                          result as a dictionary.
-        :param bool auto_remove: Automatically remove Rpc response.
+        :param bool multiple: Are we expecting multiple frames.
         :return:
         """
         if uuid not in self._response:
             return
-
         self._wait_for_request(uuid)
-        frame = self._response.get(uuid, None)
-
-        self._response[uuid] = None
-        if auto_remove:
+        frame = self._get_response_frame(uuid)
+        if not multiple:
             self.remove(uuid)
-
         result = None
         if raw:
             result = frame
         elif frame is not None:
             result = dict(frame)
         return result
+
+    def _get_response_frame(self, uuid):
+        """Get a response frame.
+
+        :param str uuid: Rpc Identifier
+        :return:
+        """
+        frame = None
+        frames = self._response.get(uuid, None)
+        if frames:
+            frame = frames.pop(0)
+        return frame
 
     def _wait_for_request(self, uuid):
         """Wait for RPC request to arrive.
@@ -189,7 +199,7 @@ class Rpc(object):
         :return:
         """
         start_time = time.time()
-        while self._response[uuid] is None:
+        while not self._response[uuid]:
             self._adapter.check_for_errors()
             if time.time() - start_time > self._timeout:
                 self._raise_rpc_timeout_error(uuid)
