@@ -83,6 +83,12 @@ class Basic(object):
         """Redeliver unacknowledged messages.
 
         :param bool requeue: Requeue the messages
+
+        :raises AMQPInvalidArgument: Invalid Parameters
+        :raises AMQPChannelError: Raises if the channel encountered an error.
+        :raises AMQPConnectionError: Raises if the connection
+                                     encountered an error.
+
         :rtype: dict
         """
         if not isinstance(requeue, bool):

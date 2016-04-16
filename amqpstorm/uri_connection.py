@@ -1,6 +1,5 @@
 """AMQP-Storm Uri wrapper for Connection."""
 
-
 import logging
 
 try:
