@@ -20,17 +20,17 @@ Credits
 -------------
 Special thanks to gmr (Gavin M. Roy) for creating pamqp, and in addition amqp-storm is heavily influenced by his pika and rabbitpy libraries.
 
-.. |Version| image:: https://badge.fury.io/py/amqp-storm.svg?
-   :target: http://badge.fury.io/py/amqp-storm
+.. |Version| image:: https://badge.fury.io/py/amqpstorm.svg?
+   :target: http://badge.fury.io/py/amqpstorm
 
-.. |Downloads| image:: https://pypip.in/d/amqp-storm/badge.svg?
-   :target: https://pypi.python.org/pypi/amqp-storm
+.. |Downloads| image:: https://pypip.in/d/amqpstorm/badge.svg?
+   :target: https://pypi.python.org/pypi/amqpstorm
 
-.. |License| image:: https://pypip.in/license/amqp-storm/badge.svg?
-   :target: https://github.com/eandersson/amqp-storm/blob/master/LICENSE
+.. |License| image:: https://pypip.in/license/amqpstorm/badge.svg?
+   :target: https://github.com/eandersson/amqpstorm/blob/master/LICENSE
 
-.. |CodeClimate| image:: https://codeclimate.com/github/eandersson/amqp-storm/badges/gpa.svg
-   :target: https://codeclimate.com/github/eandersson/amqp-storm
+.. |CodeClimate| image:: https://codeclimate.com/github/eandersson/amqpstorm/badges/gpa.svg
+   :target: https://codeclimate.com/github/eandersson/amqpstorm
 
-.. |Travis| image:: https://travis-ci.org/eandersson/amqp-storm.svg
-    :target: https://travis-ci.org/eandersson/amqp-storm
+.. |Travis| image:: https://travis-ci.org/eandersson/amqpstorm.svg
+    :target: https://travis-ci.org/eandersson/amqpstorm

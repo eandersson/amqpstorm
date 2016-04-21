@@ -1,3 +1,6 @@
+"""
+Robust Consumer that will automatically re-connect on failure.
+"""
 import logging
 import time
 
