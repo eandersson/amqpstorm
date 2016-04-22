@@ -14,7 +14,12 @@ LOGGER = logging.getLogger()
 
 
 class ScalableConsumer(object):
-    def __init__(self, number_of_consumers=1, max_retries=None):
+    def __init__(self, hostname='127.0.0.1',
+                 username='guest', password='guest',
+                 number_of_consumers=1, max_retries=None):
+        self.hostname = hostname
+        self.username = username
+        self.password = password
         self.number_of_consumers = number_of_consumers
         self.max_retries = max_retries
         self._connection = None
@@ -26,7 +31,8 @@ class ScalableConsumer(object):
 
         :return:
         """
-        if not self._connection:
+        self._stopped.clear()
+        if not self._connection or self._connection.is_closed:
             self._create_connection()
         while not self._stopped.is_set():
             try:
@@ -51,7 +57,7 @@ class ScalableConsumer(object):
 
         :return:
         """
-        if self.number_of_consumers > 1:
+        if self.number_of_consumers > 0:
             self.number_of_consumers -= 1
 
     def stop(self):
@@ -59,8 +65,11 @@ class ScalableConsumer(object):
 
         :return:
         """
-        self.number_of_consumers = 0
+        while self._consumers:
+            consumer = self._consumers.pop()
+            consumer.stop()
         self._stopped.set()
+        self._connection.close()
 
     def _create_connection(self):
         """Create a connection.
@@ -73,7 +82,9 @@ class ScalableConsumer(object):
             if self._stopped.is_set():
                 break
             try:
-                self._connection = Connection('127.0.0.1', 'guest', 'guest')
+                self._connection = Connection(self.hostname,
+                                              self.username,
+                                              self.password)
                 break
             except amqpstorm.AMQPError as why:
                 LOGGER.warning(why)
@@ -153,6 +164,9 @@ class Consumer(object):
             self.active = True
             self.channel.start_consuming(to_tuple=False)
             if not self.channel.consumer_tags:
+                # Only close the channel if there is nothing consuming.
+                # This is to allow messages that are still being processed
+                # in __call__ to finish processing.
                 self.channel.close()
         except amqpstorm.AMQPError as why:
             if self.channel:
@@ -164,6 +178,7 @@ class Consumer(object):
     def stop(self):
         if self.channel:
             self.channel.stop_consuming()
+            self.channel.close()
 
     def __call__(self, message):
         """Process the payload.
