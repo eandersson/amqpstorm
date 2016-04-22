@@ -6,6 +6,7 @@ import time
 import threading
 
 import amqpstorm
+from amqpstorm import Message
 from amqpstorm import Connection
 
 logging.basicConfig(level=logging.DEBUG)
@@ -13,23 +14,32 @@ logging.basicConfig(level=logging.DEBUG)
 LOGGER = logging.getLogger()
 
 
-class ScalableConsumer(object):
+def fib(number):
+    if number == 0:
+        return 0
+    elif number == 1:
+        return 1
+    else:
+        return fib(number - 1) + fib(number - 2)
+
+
+class ScalableRpcServer(object):
     def __init__(self, hostname='127.0.0.1',
                  username='guest', password='guest',
-                 queue='simple_queue',
-                 number_of_consumers=1, max_retries=None):
+                 rpc_queue='rpc_queue',
+                 number_of_consumers=5, max_retries=None):
         self.hostname = hostname
         self.username = username
         self.password = password
-        self.queue = queue
+        self.rpc_queue = rpc_queue
         self.number_of_consumers = number_of_consumers
         self.max_retries = max_retries
         self._connection = None
         self._consumers = []
         self._stopped = threading.Event()
 
-    def start_consumers(self):
-        """Start the Consumers.
+    def start_server(self):
+        """Start the RPC Server.
 
         :return:
         """
@@ -109,7 +119,7 @@ class ScalableConsumer(object):
         consumer_to_start = \
             max(self.number_of_consumers - len(self._consumers), 0)
         for _ in range(consumer_to_start):
-            consumer = Consumer(self.queue)
+            consumer = Consumer(self.rpc_queue)
             self._start_consumer(consumer)
             self._consumers.append(consumer)
 
@@ -152,8 +162,8 @@ class ScalableConsumer(object):
 
 
 class Consumer(object):
-    def __init__(self, queue):
-        self.queue = queue
+    def __init__(self, rpc_queue):
+        self.rpc_queue = rpc_queue
         self.channel = None
         self.active = False
 
@@ -162,8 +172,8 @@ class Consumer(object):
         try:
             self.channel = connection.channel()
             self.channel.basic.qos(1)
-            self.channel.queue.declare(self.queue)
-            self.channel.basic.consume(self, self.queue, no_ack=False)
+            self.channel.queue.declare(self.rpc_queue)
+            self.channel.basic.consume(self, self.rpc_queue, no_ack=False)
             self.active = True
             self.channel.start_consuming(to_tuple=False)
             if not self.channel.consumer_tags:
@@ -184,15 +194,27 @@ class Consumer(object):
             self.channel.close()
 
     def __call__(self, message):
-        """Process the Payload.
+        """Process the RPC Payload.
 
         :param Message message:
         :return:
         """
-        print("Message:", message.body, threading.current_thread())
+        number = int(message.body)
+
+        print(" [.] fib(%s) (%s)" % (number, threading.current_thread()))
+
+        response = str(fib(number))
+
+        properties = {
+            'correlation_id': message.correlation_id
+        }
+
+        response = Message.create(message.channel, response, properties)
+        response.publish(message.reply_to)
+
         message.ack()
 
 
 if __name__ == '__main__':
-    CONSUMER = ScalableConsumer()
-    CONSUMER.start_consumers()
+    RPC_SERVER = ScalableRpcServer()
+    RPC_SERVER.start_server()
