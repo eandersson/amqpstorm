@@ -63,9 +63,10 @@ class IO(object):
         self._parameters = parameters
         self._on_read = on_read
         self._exceptions = None
-        self.socket = None
-        self.poller = None
         self.buffer = EMPTY_BUFFER
+        self.poller = None
+        self.socket = None
+        self.use_ssl = self._parameters['ssl']
 
     def open(self, exceptions):
         """Open Socket and establish a connection.
@@ -112,23 +113,26 @@ class IO(object):
         :param str frame_data:
         :return:
         """
-        total_bytes_written = 0
-        bytes_to_send = len(frame_data)
-        while total_bytes_written < bytes_to_send:
-            try:
-                bytes_written = \
-                    self.socket.send(frame_data[total_bytes_written:])
-                if bytes_written == 0:
-                    raise socket.error('connection/socket error')
-                total_bytes_written += bytes_written
-            except socket.timeout:
-                pass
-            except socket.error as why:
-                if why.args[0] == EWOULDBLOCK:
-                    continue
-                self._exceptions.append(AMQPConnectionError(why))
-                break
-        return total_bytes_written
+        self._lock.acquire()
+        try:
+            total_bytes_written = 0
+            bytes_to_send = len(frame_data)
+            while total_bytes_written < bytes_to_send:
+                try:
+                    bytes_written = \
+                        self.socket.send(frame_data[total_bytes_written:])
+                    if bytes_written == 0:
+                        raise socket.error('connection/socket error')
+                    total_bytes_written += bytes_written
+                except socket.timeout:
+                    pass
+                except socket.error as why:
+                    if why.args[0] == EWOULDBLOCK:
+                        continue
+                    self._exceptions.append(AMQPConnectionError(why))
+                    return
+        finally:
+            self._lock.release()
 
     def _get_socket_addresses(self):
         """Get Socket address information.
@@ -174,7 +178,7 @@ class IO(object):
         sock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 1)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
         sock.settimeout(self._parameters['timeout'] or None)
-        if self._parameters['ssl']:
+        if self.use_ssl:
             if not compatibility.SSL_SUPPORTED:
                 raise AMQPConnectionError('Python not compiled with support '
                                           'for TLSv1 or higher')
@@ -225,10 +229,26 @@ class IO(object):
         """
         result = EMPTY_BUFFER
         try:
-            result = self.socket.recv(FRAME_MAX)
+            result = self._read_from_socket()
         except socket.timeout:
             pass
+        except ssl.SSLError as why:
+            if why.args[0] == ssl.SSL_ERROR_WANT_READ:
+                return result
+            self._exceptions.append(AMQPConnectionError(why))
+            self._stopped.set()
         except socket.error as why:
             self._exceptions.append(AMQPConnectionError(why))
             self._stopped.set()
+        return result
+
+    def _read_from_socket(self):
+        """Read data from the socket.
+
+        :return:
+        """
+        if self.use_ssl:
+            result = self.socket.read(FRAME_MAX)
+        else:
+            result = self.socket.recv(FRAME_MAX)
         return result
