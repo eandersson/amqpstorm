@@ -2,17 +2,9 @@
 
 import logging
 
-try:
-    import urlparse
-except ImportError:
-    import urllib.parse as urlparse
-
-try:
-    import ssl
-except ImportError:
-    ssl = None
-
 from amqpstorm import compatibility
+from amqpstorm.compatibility import ssl
+from amqpstorm.compatibility import urlparse
 from amqpstorm.connection import Connection
 
 LOGGER = logging.getLogger(__name__)
@@ -35,8 +27,8 @@ class UriConnection(Connection):
         use_ssl = parsed_uri.scheme == 'https'
         hostname = parsed_uri.hostname or 'localhost'
         port = parsed_uri.port or 5672
-        username = parsed_uri.username or 'guest'
-        password = parsed_uri.password or 'guest'
+        username = urlparse.unquote(parsed_uri.username) or 'guest'
+        password = urlparse.unquote(parsed_uri.password) or 'guest'
         kwargs = self._parse_uri_options(parsed_uri, use_ssl, lazy)
         super(UriConnection, self).__init__(hostname, username,
                                             password, port,
@@ -70,6 +62,7 @@ class UriConnection(Connection):
         ssl_options = {}
         for key in ssl_kwargs:
             if key not in compatibility.SSL_OPTIONS:
+                LOGGER.warning('invalid ssl option: %s', key)
                 continue
             if 'ssl_version' in key:
                 value = self._get_ssl_version(ssl_kwargs[key][0])

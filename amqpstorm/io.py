@@ -11,12 +11,8 @@ from time import sleep
 from amqpstorm import compatibility
 from amqpstorm.base import FRAME_MAX
 from amqpstorm.base import IDLE_WAIT
+from amqpstorm.compatibility import ssl
 from amqpstorm.exception import AMQPConnectionError
-
-try:
-    import ssl
-except ImportError:
-    ssl = None
 
 EMPTY_BUFFER = bytes()
 LOGGER = logging.getLogger(__name__)
@@ -161,7 +157,7 @@ class IO(object):
             sock = self._create_socket(socket_family=address[0])
             try:
                 sock.connect(address[4])
-            except (socket.error, OSError):
+            except (IOError, OSError):
                 continue
             return sock
         raise AMQPConnectionError('Could not connect to %s:%d'
@@ -232,12 +228,7 @@ class IO(object):
             result = self._read_from_socket()
         except socket.timeout:
             pass
-        except ssl.SSLError as why:
-            if why.args[0] == ssl.SSL_ERROR_WANT_READ:
-                return result
-            self._exceptions.append(AMQPConnectionError(why))
-            self._stopped.set()
-        except socket.error as why:
+        except (IOError, OSError) as why:
             self._exceptions.append(AMQPConnectionError(why))
             self._stopped.set()
         return result

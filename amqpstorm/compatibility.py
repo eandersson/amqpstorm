@@ -7,6 +7,11 @@ try:
 except ImportError:
     ssl = None
 
+try:
+    import urlparse
+except ImportError:
+    import urllib.parse as urlparse
+
 PYTHON3 = sys.version_info >= (3, 0, 0)
 
 if PYTHON3:

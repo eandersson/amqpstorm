@@ -290,7 +290,7 @@ class Basic(Handler):
             raise AMQPInvalidArgument('routing_key should be a string')
         elif not compatibility.is_string(exchange):
             raise AMQPInvalidArgument('exchange should be a string')
-        elif properties and not isinstance(properties, dict):
+        elif properties is not None and not isinstance(properties, dict):
             raise AMQPInvalidArgument('properties should be a dict or None')
         elif not isinstance(mandatory, bool):
             raise AMQPInvalidArgument('mandatory should be a boolean')

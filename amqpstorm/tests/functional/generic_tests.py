@@ -29,7 +29,7 @@ class OpenCloseOpenCloseTest(unittest.TestCase):
     def setUp(self):
         self.connection = Connection(HOST, USERNAME, PASSWORD, lazy=True)
 
-    def test_open_close_loop(self):
+    def test_functional_open_close_loop(self):
         for _ in range(100):
             self.connection.open()
             self.channel = self.connection.channel()
@@ -73,7 +73,7 @@ class PublishAndGetMessagesTest(unittest.TestCase):
         self.channel.queue.declare('test.basic.get')
         self.channel.queue.purge('test.basic.get')
 
-    def test_publish_and_get_five_messages(self):
+    def test_functional_publish_and_get_five_messages(self):
         # Publish 5 Messages.
         for _ in range(5):
             self.channel.basic.publish(body=str(uuid.uuid4()),
@@ -101,7 +101,7 @@ class PublishAndGetLargeMessageTest(unittest.TestCase):
         self.channel.queue.declare('test.basic.get_large')
         self.channel.queue.purge('test.basic.get_large')
 
-    def test_publish_and_get_large_message(self):
+    def test_functional_publish_and_get_large_message(self):
         try:
             body = str(uuid.uuid4()) * 65536
 
@@ -129,7 +129,7 @@ class PublishLargeMessagesAndConsumeTest(unittest.TestCase):
         self.channel.queue.declare('test.basic.large_messages')
         self.channel.queue.purge('test.basic.large_messages')
 
-    def test_publish_5_large_messages(self):
+    def test_functional_publish_5_large_messages(self):
         body = str(uuid.uuid4()) * 8192
         messages_to_publish = 5
 
@@ -160,7 +160,7 @@ class PublishLargeMessagesAndGetTest(unittest.TestCase):
         self.channel.queue.declare('test.basic.large_messages')
         self.channel.queue.purge('test.basic.large_messages')
 
-    def test_publish_5_large_messages(self):
+    def test_functional_publish_5_large_messages(self):
         body = str(uuid.uuid4()) * 8192
         messages_to_publish = 5
 
@@ -190,7 +190,7 @@ class Publish50kTest(unittest.TestCase):
         self.channel.queue.declare('test.basic.50k')
         self.channel.queue.purge('test.basic.50k')
 
-    def test_publish_50k_messages(self):
+    def test_functional_publish_50k_messages(self):
         body = str(uuid.uuid4())
         # Publish 50k Messages.
         start_time = time.time()
@@ -221,7 +221,7 @@ class PublishWithPropertiesAndGetTest(unittest.TestCase):
         self.channel.queue.purge('test.basic.properties')
         self.channel.confirm_deliveries()
 
-    def test_publish_with_properties_and_get(self):
+    def test_functional_publish_with_properties_and_get(self):
         app_id = 'travis-ci'.encode('utf-8')
         properties = {
             'headers': {
@@ -286,7 +286,7 @@ class PublishMessageAndResend(unittest.TestCase):
         message.app_id = 'travis-ci'
         message.publish('test.basic.resend')
 
-    def test_publish_with_properties_and_get(self):
+    def test_functional_publish_with_properties_and_get(self):
         message = self.channel.basic.get('test.basic.resend',
                                          to_dict=False, no_ack=True)
 
@@ -339,7 +339,7 @@ class PublishAndConsumeMessagesTest(unittest.TestCase):
         self.channel.queue.purge('test.basic.consume')
         self.channel.confirm_deliveries()
 
-    def test_publish_and_consume_five_messages(self):
+    def test_functional_publish_and_consume_five_messages(self):
         for _ in range(5):
             self.channel.basic.publish(body=str(uuid.uuid4()),
                                        routing_key='test.basic.consume')
@@ -387,7 +387,7 @@ class GeneratorConsumeMessagesTest(unittest.TestCase):
         # Sleep for 0.5s to make sure RabbitMQ has time to catch up.
         time.sleep(0.5)
 
-    def test_generator_consume(self):
+    def test_functional_generator_consume(self):
         # Store and inbound messages.
         inbound_messages = []
         for message in \
@@ -426,7 +426,7 @@ class ConsumeAndRedeliverTest(unittest.TestCase):
         # Sleep for 0.5s to make sure RabbitMQ has time to catch up.
         time.sleep(0.5)
 
-    def test_consume_and_redeliver(self):
+    def test_functional_consume_and_redeliver(self):
         # Store and inbound messages.
         inbound_messages = []
 
@@ -463,7 +463,7 @@ class GetAndRedeliverTest(unittest.TestCase):
         # Sleep for 0.5s to make sure RabbitMQ has time to catch up.
         time.sleep(0.5)
 
-    def test_get_and_redeliver(self):
+    def test_functional_get_and_redeliver(self):
         message = self.channel.basic.get('test.get.redeliver', no_ack=False,
                                          to_dict=False)
         self.assertEqual(message.body, self.message)
@@ -482,7 +482,7 @@ class PublisherConfirmsTest(unittest.TestCase):
         self.channel.queue.purge('test.basic.confirm')
         self.channel.confirm_deliveries()
 
-    def test_publish_and_confirm(self):
+    def test_functional_publish_and_confirm(self):
         self.channel.basic.publish(body=str(uuid.uuid4()),
                                    routing_key='test.basic.confirm')
 
@@ -505,7 +505,7 @@ class PublisherConfirmFailsTest(unittest.TestCase):
         self.channel = self.connection.channel()
         self.channel.confirm_deliveries()
 
-    def test_publish_confirm_to_invalid_queue(self):
+    def test_functional_publish_confirm_to_invalid_queue(self):
         self.assertRaises(AMQPMessageError,
                           self.channel.basic.publish,
                           body=str(uuid.uuid4()),
@@ -518,82 +518,8 @@ class PublisherConfirmFailsTest(unittest.TestCase):
         self.connection.close()
 
 
-class QueueCreateTest(unittest.TestCase):
-    def setUp(self):
-        self.connection = Connection(HOST, USERNAME, PASSWORD)
-        self.channel = self.connection.channel()
-
-    def test_queue_create(self):
-        # Create the Queue.
-        self.channel.queue.declare('test.queue.create')
-
-        # Confirm that the Queue was declared.
-        self.channel.queue.declare('test.queue.create', passive=True)
-
-    def tearDown(self):
-        self.channel.queue.delete('test.queue.create')
-        self.channel.close()
-        self.connection.close()
-
-
-class QueueDeleteTest(unittest.TestCase):
-    def setUp(self):
-        self.connection = Connection(HOST, USERNAME, PASSWORD)
-        self.channel = self.connection.channel()
-        self.channel.queue.declare('test.queue.delete')
-
-    def test_queue_delete(self):
-        # Delete the Queue.
-        self.channel.queue.delete('test.queue.delete')
-
-        # Confirm that the Queue was deleted.
-        self.assertRaises(AMQPChannelError, self.channel.queue.declare,
-                          'test.queue.delete', passive=True)
-
-    def tearDown(self):
-        self.channel.close()
-        self.connection.close()
-
-
-class ExchangeCreateTest(unittest.TestCase):
-    def setUp(self):
-        self.connection = Connection(HOST, USERNAME, PASSWORD)
-        self.channel = self.connection.channel()
-
-    def test_exchange_create(self):
-        # Create the Exchange.
-        self.channel.exchange.declare('test.exchange.create')
-
-        # Confirm that the Exchange was declared.
-        self.channel.exchange.declare('test.exchange.create', passive=True)
-
-    def tearDown(self):
-        self.channel.exchange.delete('test.exchange.create')
-        self.channel.close()
-        self.connection.close()
-
-
-class ExchangeDeleteTest(unittest.TestCase):
-    def setUp(self):
-        self.connection = Connection(HOST, USERNAME, PASSWORD)
-        self.channel = self.connection.channel()
-        self.channel.exchange.declare('test.exchange.delete')
-
-    def test_exchange_delete(self):
-        # Delete the Exchange.
-        self.channel.exchange.delete('test.exchange.delete')
-
-        # Confirm that the Exchange was deleted.
-        self.assertRaises(AMQPChannelError, self.channel.exchange.declare,
-                          'test.exchange.delete', passive=True)
-
-    def tearDown(self):
-        self.channel.close()
-        self.connection.close()
-
-
 class UriConnectionTest(unittest.TestCase):
-    def test_uri_connection(self):
+    def test_functional_uri_connection(self):
         self.connection = UriConnection(URI)
         self.channel = self.connection.channel()
         self.assertTrue(self.connection.is_open)
@@ -607,7 +533,7 @@ class PublishFailAndFix(unittest.TestCase):
         self.channel = self.connection.channel()
         self.channel.confirm_deliveries()
 
-    def test_publish_and_confirm(self):
+    def test_functional_publish_and_confirm(self):
         try:
             self.channel.basic.publish(body=str(uuid.uuid4()),
                                        routing_key='test.publish.fail.and.fix',
@@ -641,7 +567,7 @@ class PublishAndFail(unittest.TestCase):
         self.channel.queue.declare('test.publish.and.fail')
         self.channel.confirm_deliveries()
 
-    def test_publish_and_confirm(self):
+    def test_functional_publish_and_confirm(self):
         message = Message.create(self.channel, 'hello world')
         self.assertRaises(AMQPChannelError, message.publish, 'hello_world',
                           exchange='fake_exchange', mandatory=True)

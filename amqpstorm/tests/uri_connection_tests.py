@@ -128,3 +128,12 @@ class UriConnectionTests(unittest.TestCase):
         self.assertEqual(ssl_options['ssl_version'], ssl.PROTOCOL_TLSv1)
         self.assertEqual(ssl_options['keyfile'], 'file.key')
         self.assertEqual(ssl_options['certfile'], 'file.crt')
+
+    def test_uri_invalid_ssl_options(self):
+        connection = \
+            UriConnection('amqp://guest:guest@localhost:5672/%2F', True)
+        ssl_kwargs = {
+            'unit_test': ['not_required'],
+        }
+        ssl_options = connection._parse_ssl_options(ssl_kwargs)
+        self.assertFalse(ssl_options)
