@@ -62,7 +62,8 @@ class ScalableRpcServer(object):
 
         :return:
         """
-        self.number_of_consumers += 1
+        if self.number_of_consumers <= 20:
+            self.number_of_consumers += 1
 
     def decrease_consumers(self):
         """Stop one consumer.
