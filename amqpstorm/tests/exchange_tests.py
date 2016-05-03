@@ -1,5 +1,4 @@
 import logging
-import uuid
 
 try:
     import unittest2 as unittest
@@ -15,6 +14,7 @@ from amqpstorm.tests.utility import FakeConnection
 logging.basicConfig(level=logging.DEBUG)
 
 
+class ExchangeExceptionTests(unittest.TestCase):
     def test_exchange_declare_invalid_parameter(self):
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(Channel.OPEN)
