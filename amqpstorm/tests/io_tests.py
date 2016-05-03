@@ -85,9 +85,9 @@ class IOTests(unittest.TestCase):
 
         self.assertTrue(io.use_ssl)
 
-        if compatibility.PYTHON3:
+        if hasattr(ssl, 'SSLObject'):
             io.socket = MagicMock(name='socket', spec=ssl.SSLObject)
-        else:
+        elif hasattr(ssl, 'SSLSocket'):
             io.socket = MagicMock(name='socket', spec=ssl.SSLSocket)
 
         io.socket.read.return_value = '12345'
