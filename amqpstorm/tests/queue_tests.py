@@ -57,6 +57,14 @@ class QueueExceptionTests(unittest.TestCase):
                                 'queue should be a string',
                                 queue.delete, None)
 
+        self.assertRaisesRegexp(exception.AMQPInvalidArgument,
+                                'if_unused should be a boolean',
+                                queue.delete, '', None)
+
+        self.assertRaisesRegexp(exception.AMQPInvalidArgument,
+                                'if_empty should be a boolean',
+                                queue.delete, '', True, None)
+
     def test_queue_purge_invalid_parameter(self):
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(Channel.OPEN)

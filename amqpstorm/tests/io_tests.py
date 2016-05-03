@@ -59,6 +59,28 @@ class IOTests(unittest.TestCase):
 
         self.assertEqual(io._receive(), '12345')
 
+    def test_io_simple_send_zero_bytes_sent(self):
+        connection = FakeConnection()
+
+        io = IO(connection.parameters)
+        io._exceptions = []
+        io.socket = MagicMock(name='socket', spec=socket.socket)
+        io.poller = MagicMock(name='poller', spec=amqpstorm.io.Poller)
+        io.socket.send.return_value = 0
+        io.write_to_socket('afasffa')
+
+        self.assertIsInstance(io._exceptions[0], AMQPConnectionError)
+
+    def test_io_default_ssl_version(self):
+        if hasattr(ssl, 'PROTOCOL_TLSv1_2'):
+            self.assertEqual(compatibility.DEFAULT_SSL_VERSION,
+                             ssl.PROTOCOL_TLSv1_2)
+        else:
+            self.assertEqual(compatibility.DEFAULT_SSL_VERSION,
+                             ssl.PROTOCOL_TLSv1)
+
+
+class IOExceptionTests(unittest.TestCase):
     def test_io_receive_raises_socket_error(self):
         connection = FakeConnection()
 
@@ -88,29 +110,6 @@ class IOTests(unittest.TestCase):
         io.write_to_socket('12345')
 
         self.assertIsInstance(io._exceptions[0], AMQPConnectionError)
-
-    def test_io_simple_send_zero_bytes_sent(self):
-        connection = FakeConnection()
-
-        io = IO(connection.parameters)
-        io._exceptions = []
-        io.socket = MagicMock(name='socket', spec=socket.socket)
-        io.poller = MagicMock(name='poller', spec=amqpstorm.io.Poller)
-        io.socket.send.return_value = 0
-        io.write_to_socket('afasffa')
-
-        self.assertIsInstance(io._exceptions[0], AMQPConnectionError)
-
-    def test_io_ssl_is_set(self):
-        self.assertIsNotNone(amqpstorm.io.ssl)
-
-    def test_io_default_ssl_version(self):
-        if hasattr(ssl, 'PROTOCOL_TLSv1_2'):
-            self.assertEqual(compatibility.DEFAULT_SSL_VERSION,
-                             ssl.PROTOCOL_TLSv1_2)
-        else:
-            self.assertEqual(compatibility.DEFAULT_SSL_VERSION,
-                             ssl.PROTOCOL_TLSv1)
 
     def test_io_ssl_connection_without_ssl_library(self):
         compatibility.SSL_SUPPORTED = False

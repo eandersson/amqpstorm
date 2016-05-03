@@ -26,6 +26,19 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 class ChannelTests(unittest.TestCase):
+    def test_channel_with_statement(self):
+        with Channel(0, None, 360) as con:
+            self.assertIsInstance(con, Channel)
+
+    def test_channel_with_statement_when_failing(self):
+        connection = FakeConnection()
+        try:
+            with Channel(0, connection, 360) as con:
+                con.exceptions.append(AMQPChannelError('error'))
+                con.check_for_errors()
+        except AMQPChannelError as why:
+            self.assertIsInstance(why, AMQPChannelError)
+
     def test_channel_id(self):
         channel = Channel(0, None, 360)
         self.assertEqual(int(channel), 0)

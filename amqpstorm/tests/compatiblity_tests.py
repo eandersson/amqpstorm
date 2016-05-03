@@ -84,3 +84,12 @@ class CompatibilityTests(unittest.TestCase):
     @unittest.skipIf(sys.version_info[0] == 2, 'Python 3.x test')
     def test_compatibility_python_3_x_range(self):
         self.assertEqual(compatibility.RANGE, range)
+
+    def test_compatibility_ssl_is_set(self):
+        self.assertIsNotNone(compatibility.ssl)
+
+    def test_compatibility_urlparse_is_set(self):
+        self.assertIsNotNone(compatibility.urlparse)
+
+    def test_compatibility_range_is_set(self):
+        self.assertIsNotNone(compatibility.RANGE)
