@@ -7,17 +7,17 @@ from amqpstorm.exception import AMQPInvalidArgument
 
 class FakeConnection(Stateful):
     """Fake Connection for Unit-Testing."""
-    frames_out = []
-    parameters = {
-        'hostname': 'localhost',
-        'port': 1234,
-        'heartbeat': 60,
-        'timeout': 30,
-        'ssl': False
-    }
 
     def __init__(self, state=3):
         super(FakeConnection, self).__init__()
+        self.frames_out = []
+        self.parameters = {
+            'hostname': 'localhost',
+            'port': 1234,
+            'heartbeat': 60,
+            'timeout': 30,
+            'ssl': False
+        }
         self.set_state(state)
 
     def write_frame(self, channel_id, frame_out):

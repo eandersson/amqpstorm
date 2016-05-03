@@ -28,9 +28,25 @@ class IOTests(unittest.TestCase):
 
         self.assertIsNone(io.socket)
 
+    def test_io_use_ssl_false(self):
+        connection = FakeConnection()
+        io = IO(connection.parameters)
+
+        self.assertFalse(io.use_ssl)
+
+    def test_io_use_ssl_true(self):
+        connection = FakeConnection()
+        connection.parameters['ssl'] = True
+        io = IO(connection.parameters)
+
+        self.assertTrue(io.use_ssl)
+
     def test_io_create_socket(self):
         connection = FakeConnection()
         io = IO(connection.parameters)
+
+        self.assertFalse(io.use_ssl)
+
         addresses = io._get_socket_addresses()
         sock_address_tuple = addresses[0]
         sock = io._create_socket(socket_family=sock_address_tuple[0])
@@ -54,8 +70,27 @@ class IOTests(unittest.TestCase):
     def test_io_simple_receive(self):
         connection = FakeConnection()
         io = IO(connection.parameters)
+
+        self.assertFalse(io.use_ssl)
+
         io.socket = MagicMock(name='socket', spec=socket.socket)
         io.socket.recv.return_value = '12345'
+
+        self.assertEqual(io._receive(), '12345')
+
+    def test_io_simple_ssl_receive(self):
+        connection = FakeConnection()
+        connection.parameters['ssl'] = True
+        io = IO(connection.parameters)
+
+        self.assertTrue(io.use_ssl)
+
+        if compatibility.PYTHON3:
+            io.socket = MagicMock(name='socket', spec=ssl.SSLObject)
+        else:
+            io.socket = MagicMock(name='socket', spec=ssl.SSLSocket)
+
+        io.socket.read.return_value = '12345'
 
         self.assertEqual(io._receive(), '12345')
 
