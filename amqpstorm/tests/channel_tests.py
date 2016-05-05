@@ -26,16 +26,22 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 class ChannelTests(unittest.TestCase):
-    def test_channel_with_statement(self):
-        with Channel(0, None, 360) as con:
-            self.assertIsInstance(con, Channel)
+    def test_channel_with_statement_when_closed(self):
+        with Channel(0, None, 360) as channel:
+            self.assertIsInstance(channel, Channel)
+
+    def test_channel_with_statement_when_open(self):
+        connection = FakeConnection(FakeConnection.CLOSED)
+        with Channel(0, connection, 360) as channel:
+            channel.set_state(channel.OPEN)
+            self.assertIsInstance(channel, Channel)
 
     def test_channel_with_statement_when_failing(self):
         connection = FakeConnection()
         try:
-            with Channel(0, connection, 360) as con:
-                con.exceptions.append(AMQPChannelError('error'))
-                con.check_for_errors()
+            with Channel(0, connection, 360) as channel:
+                channel.exceptions.append(AMQPChannelError('error'))
+                channel.check_for_errors()
         except AMQPChannelError as why:
             self.assertIsInstance(why, AMQPChannelError)
 
@@ -175,6 +181,10 @@ class ChannelExceptionTests(unittest.TestCase):
 
 
 class ChannelBuildMessageTests(unittest.TestCase):
+    def setUp(self):
+        self.logging_handler = MockLoggingHandler()
+        logging.root.addHandler(self.logging_handler)
+
     def test_channel_build_message(self):
         channel = Channel(0, None, 360)
 
@@ -190,7 +200,23 @@ class ChannelBuildMessageTests(unittest.TestCase):
 
         self.assertEqual(result._body, message)
 
-    def test_channel_build_out_of_order_message(self):
+    def test_channel_build_out_of_order_message_deliver(self):
+        channel = Channel(0, None, 360)
+
+        message = b'Hello World!'
+        message_len = len(message)
+
+        deliver = specification.Basic.Deliver()
+        header = ContentHeader(body_size=message_len)
+
+        channel._inbound = [deliver, deliver, header]
+        result = channel._build_message()
+
+        self.assertEqual(result, None)
+        self.assertIn("Received an out-of-order frame:",
+                      self.logging_handler.messages['warning'][0])
+
+    def test_channel_build_out_of_order_message_header(self):
         channel = Channel(0, None, 360)
 
         message = b'Hello World!'
@@ -200,10 +226,12 @@ class ChannelBuildMessageTests(unittest.TestCase):
         header = ContentHeader(body_size=message_len)
         body = ContentBody(value=message)
 
-        channel._inbound = [deliver, deliver, header, body]
+        channel._inbound = [header, deliver, header, body]
         result = channel._build_message()
 
         self.assertEqual(result, None)
+        self.assertIn("Received an out-of-order frame:",
+                      self.logging_handler.messages['warning'][0])
 
     def test_channel_build_message_body(self):
         channel = Channel(0, None, 360)
@@ -217,12 +245,25 @@ class ChannelBuildMessageTests(unittest.TestCase):
 
         self.assertEqual(message, result)
 
+    def test_channel_build_message_body_none(self):
+        channel = Channel(0, None, 360)
+
+        message = b'Hello World!'
+        message_len = len(message)
+
+        body = ContentBody(value=message)
+        channel._inbound = [None, body]
+        result = channel._build_message_body(message_len)
+
+        self.assertEqual(result, b'')
+
     def test_channel_build_empty_inbound_messages(self):
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(Channel.OPEN)
         result = None
         for message in channel.build_inbound_messages(break_on_empty=True):
             result = message
+            self.assertIsNotNone(result)
 
         self.assertIsNone(result)
 

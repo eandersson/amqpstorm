@@ -55,6 +55,14 @@ class QueueFunctionalTests(unittest.TestCase):
         self.assertEqual(self.channel.queue.bind(queue=queue,
                                                  exchange='amq.direct'), {})
 
+    def test_functional_queue_bind_no_queue(self):
+        queue = 'test_functional_queue_bind'
+        self.channel.queue.declare(queue,
+                                   passive=False,
+                                   durable=True, auto_delete=True)
+        self.assertEqual(self.channel.queue.bind(queue=queue,
+                                                 exchange='amq.direct'), {})
+
     def test_functional_queue_unbind(self):
         queue = 'test_functional_queue_unbind'
         self.channel.queue.declare(queue,

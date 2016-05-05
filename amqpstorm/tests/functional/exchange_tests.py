@@ -37,6 +37,21 @@ class ExchangeFunctionalTests(unittest.TestCase):
                           self.channel.exchange.declare,
                           'test_functional_exchange_delete', passive=True)
 
+    def test_functional_exchange_bind(self):
+        self.channel.exchange.declare('exchange1')
+        self.channel.exchange.declare('exchange2')
+
+        self.assertEqual(self.channel.exchange.bind('exchange1', 'exchange2',
+                                                    'routing_key'), {})
+
+    def test_functional_exchange_unbind(self):
+        self.channel.exchange.declare('exchange1')
+        self.channel.exchange.declare('exchange2')
+        self.channel.exchange.bind('exchange1', 'exchange2', 'routing_key')
+
+        self.assertEqual(self.channel.exchange.unbind('exchange1', 'exchange2',
+                                                      'routing_key'), {})
+
     def tearDown(self):
         self.channel.close()
         self.connection.close()

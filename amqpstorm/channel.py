@@ -345,13 +345,13 @@ class Channel(BaseChannel):
             if not isinstance(basic_deliver, pamqp_spec.Basic.Deliver):
                 LOGGER.warning('Received an out-of-order frame: %s was '
                                'expecting a Basic.Deliver frame',
-                               basic_deliver)
+                               type(basic_deliver))
                 return None
             content_header = self._inbound.pop(0)
             if not isinstance(content_header, ContentHeader):
                 LOGGER.warning('Received an out-of-order frame: %s was '
                                'expecting a ContentHeader frame',
-                               content_header)
+                               type(content_header))
                 return None
             body = self._build_message_body(content_header.body_size)
         message = Message(channel=self,

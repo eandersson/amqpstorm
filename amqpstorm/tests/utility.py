@@ -8,7 +8,7 @@ from amqpstorm.exception import AMQPInvalidArgument
 class FakeConnection(Stateful):
     """Fake Connection for Unit-Testing."""
 
-    def __init__(self, state=3):
+    def __init__(self, state=Stateful.OPEN):
         super(FakeConnection, self).__init__()
         self.frames_out = []
         self.parameters = {
@@ -47,42 +47,18 @@ class FakeBasic(object):
         self.channel = channel
 
     def ack(self, delivery_tag=None, multiple=False):
-        if delivery_tag is not None \
-                and not compatibility.is_integer(delivery_tag):
-            raise AMQPInvalidArgument('delivery_tag should be an integer '
-                                      'or None')
-        elif not isinstance(multiple, bool):
-            raise AMQPInvalidArgument('multiple should be a boolean')
         self.channel.result.append((delivery_tag, multiple))
 
     def nack(self, delivery_tag=None, multiple=False, requeue=True):
-        if delivery_tag is not None \
-                and not compatibility.is_integer(delivery_tag):
-            raise AMQPInvalidArgument('delivery_tag should be an integer '
-                                      'or None')
-        elif not isinstance(multiple, bool):
-            raise AMQPInvalidArgument('multiple should be a boolean')
-        elif not isinstance(requeue, bool):
-            raise AMQPInvalidArgument('requeue should be a boolean')
         self.channel.result.append((delivery_tag, multiple, requeue))
 
     def reject(self, delivery_tag=None, requeue=True):
-        if delivery_tag is not None \
-                and not compatibility.is_integer(delivery_tag):
-            raise AMQPInvalidArgument('delivery_tag should be an integer '
-                                      'or None')
-        elif not isinstance(requeue, bool):
-            raise AMQPInvalidArgument('requeue should be a boolean')
         self.channel.result.append((delivery_tag, requeue))
 
 
 class FakePayload(object):
     """Fake Payload for Unit-Testing."""
     __slots__ = ['name', 'value']
-
-    def __iter__(self):
-        for attribute in self.__slots__:
-            yield (attribute, getattr(self, attribute))
 
     def __init__(self, name, value=''):
         self.name = name
@@ -91,10 +67,11 @@ class FakePayload(object):
 
 class FakeFrame(object):
     """Fake Frame for Unit-Testing."""
-    _data_1 = 'hello world'
+    __slots__ = ['name', '_data_1']
 
     def __init__(self, name='FakeFrame'):
         self.name = name
+        self._data_1 = 'hello world'
 
     def __iter__(self):
         for attribute in ['_data_1']:

@@ -1,7 +1,10 @@
 import logging
+import select
 import socket
 import ssl
 
+from errno import EINTR
+from errno import EWOULDBLOCK
 from mock import MagicMock
 
 try:
@@ -11,6 +14,7 @@ except ImportError:
 
 import amqpstorm.io
 from amqpstorm.io import IO
+from amqpstorm.io import Poller
 from amqpstorm.exception import *
 from amqpstorm import compatibility
 
@@ -114,6 +118,18 @@ class IOTests(unittest.TestCase):
             self.assertEqual(compatibility.DEFAULT_SSL_VERSION,
                              ssl.PROTOCOL_TLSv1)
 
+    def test_io_sets_default_ssl_version(self):
+        connection = FakeConnection()
+        connection.parameters['ssl_options'] = {}
+
+        sock = MagicMock(name='socket', spec=socket.socket)
+        sock.fileno.return_value = 1
+
+        io = IO(connection.parameters)
+        self.assertRaises(Exception, io._ssl_wrap_socket, sock)
+        self.assertEqual(connection.parameters['ssl_options']['ssl_version'],
+                         compatibility.DEFAULT_SSL_VERSION)
+
 
 class IOExceptionTests(unittest.TestCase):
     def test_io_receive_raises_socket_error(self):
@@ -146,6 +162,44 @@ class IOExceptionTests(unittest.TestCase):
 
         self.assertIsInstance(io._exceptions[0], AMQPConnectionError)
 
+    def test_io_simple_send_with_recoverable_error(self):
+        connection = FakeConnection()
+        global raised
+        raised = False
+
+        def custom_raise(*args, **kwargs):
+            global raised
+            if raised:
+                return 1
+            raised = True
+            raise socket.error(EWOULDBLOCK)
+
+        io = IO(connection.parameters)
+        io._exceptions = []
+        io.socket = MagicMock(name='socket', spec=socket.socket)
+        io.poller = MagicMock(name='poller', spec=amqpstorm.io.Poller)
+        io.socket.send.side_effect = custom_raise
+        io.write_to_socket('12345')
+
+    def test_io_simple_send_with_timeout_error(self):
+        connection = FakeConnection()
+        global raised
+        raised = False
+
+        def custom_raise(*args, **kwargs):
+            global raised
+            if raised:
+                return 1
+            raised = True
+            raise socket.timeout()
+
+        io = IO(connection.parameters)
+        io._exceptions = []
+        io.socket = MagicMock(name='socket', spec=socket.socket)
+        io.poller = MagicMock(name='poller', spec=amqpstorm.io.Poller)
+        io.socket.send.side_effect = custom_raise
+        io.write_to_socket('12345')
+
     def test_io_ssl_connection_without_ssl_library(self):
         compatibility.SSL_SUPPORTED = False
         try:
@@ -175,3 +229,33 @@ class IOExceptionTests(unittest.TestCase):
                                     io.open, [])
         finally:
             compatibility.SSL_SUPPORTED = True
+
+    def test_io_poller_raises(self):
+        exceptions = []
+        tmp_select = select.select
+
+        def mock_select(*_):
+            raise select.error('unittest')
+
+        try:
+            amqpstorm.io.select.select = mock_select
+            poller = Poller(0, exceptions, 30)
+            self.assertFalse(poller.is_ready)
+            self.assertTrue(exceptions)
+        finally:
+            amqpstorm.io.select.select = tmp_select
+
+    def test_io_poller_eintr(self):
+        exceptions = []
+        tmp_select = select.select
+
+        def mock_select(*_):
+            raise select.error(EINTR)
+
+        try:
+            amqpstorm.io.select.select = mock_select
+            poller = Poller(0, exceptions, 30)
+            self.assertFalse(poller.is_ready)
+            self.assertFalse(exceptions)
+        finally:
+            amqpstorm.io.select.select = tmp_select

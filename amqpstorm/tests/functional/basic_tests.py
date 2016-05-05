@@ -49,6 +49,17 @@ class BasicFunctionalTests(unittest.TestCase):
         finally:
             self.channel.queue.delete(queue)
 
+    def test_functional_basic_recover(self):
+        payload = 'hello world'
+        queue = 'test_functional_basic_recover'
+        try:
+            self.channel.queue.declare(queue)
+            self.channel.basic.publish(payload, queue)
+
+            self.assertEqual(self.channel.basic.recover(requeue=True), {})
+        finally:
+            self.channel.queue.delete(queue)
+
     def test_functional_basic_ack(self):
         payload = 'hello world'
         queue = 'test_functional_basic_ack'

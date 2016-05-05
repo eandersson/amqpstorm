@@ -46,7 +46,7 @@ class Poller(object):
             return bool(ready)
         except select.error as why:
             if why.args[0] != EINTR:
-                self._exceptions(AMQPConnectionError(why))
+                self._exceptions.append(AMQPConnectionError(why))
         return False
 
 

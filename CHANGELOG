@@ -1,5 +1,8 @@
 # Changelog
 
+### Version 1.3.2
+- Fixed an unlikely bug in the Poller.
+
 ### Version 1.3.1
 - Fixed SSL bug that could trigger an exception when running multiple threads. [#14]
 

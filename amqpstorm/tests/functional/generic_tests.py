@@ -66,6 +66,37 @@ class OpenCloseOpenCloseTest(unittest.TestCase):
         self.connection.close()
 
 
+class OpenMultipleChannelTest(unittest.TestCase):
+    def setUp(self):
+        self.connection = Connection(HOST, USERNAME, PASSWORD, lazy=True)
+
+    def test_functional_open_multiple_channels(self):
+        self.connection.open()
+        self.assertIsNotNone(self.connection._io.socket)
+        self.assertIsNotNone(self.connection._io.poller)
+        self.assertTrue(self.connection.is_open)
+        for index in range(255):
+            channel = self.connection.channel()
+
+            # Verify that the Channel has been opened properly.
+            self.assertTrue(channel.is_open)
+            self.assertEqual(int(channel), index + 1)
+
+        self.connection.close()
+
+        time.sleep(0.1)
+
+        self.assertTrue(self.connection.is_closed)
+        self.assertIsNone(self.connection._io.socket)
+        self.assertIsNone(self.connection._io.poller)
+        self.assertEqual(threading.activeCount(), 1,
+                         msg='Current Active threads: %s'
+                             % threading._active)
+
+    def tearDown(self):
+        self.connection.close()
+
+
 class PublishAndGetMessagesTest(unittest.TestCase):
     def setUp(self):
         self.connection = Connection(HOST, USERNAME, PASSWORD)
