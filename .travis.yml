@@ -17,6 +17,6 @@ install:
   - if [[ $TRAVIS_PYTHON_VERSION == '3.2' ]]; then pip install coverage==3.7.1; fi
 script: nosetests -v -l DEBUG --logging-level=DEBUG --with-coverage --cover-package=amqpstorm
 after_success:
-  - codecov
+  - bash <(curl -s https://codecov.io/bash)
 services:
   - rabbitmq

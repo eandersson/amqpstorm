@@ -1,7 +1,7 @@
 # Changelog
 
 ### Version 1.3.1
-- Fixed SSL bug that could trigger an exceptions when running multiple threads. [#14]
+- Fixed SSL bug that could trigger an exception when running multiple threads. [#14]
 
 - Fixed bug when using channel.basic.get to retrieve large payloads.
 
