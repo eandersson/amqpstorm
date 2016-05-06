@@ -98,7 +98,7 @@ def try_utf8_decode(value):
     :param value:
     :return:
     """
-    if not is_string(value):
+    if not value or not is_string(value):
         return value
     elif PYTHON3 and not isinstance(value, bytes):
         return value
@@ -107,7 +107,7 @@ def try_utf8_decode(value):
 
     try:
         return value.decode('utf-8')
-    except (UnicodeEncodeError, AttributeError):
+    except UnicodeDecodeError:
         pass
 
     return value

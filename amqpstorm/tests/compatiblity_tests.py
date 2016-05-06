@@ -1,4 +1,5 @@
 import logging
+import ssl
 import sys
 
 try:
@@ -61,6 +62,14 @@ class CompatibilityTests(unittest.TestCase):
         x = bytes('hello world', 'utf-8')
         self.assertEqual(x.decode('utf-8'), compatibility.try_utf8_decode(x))
 
+    def test_compatibility_fail_silently_on_utf_16(self):
+        x = 'abc'.encode('utf-16')
+        self.assertEqual(compatibility.try_utf8_decode(x), x)
+
+    def test_compatibility_fail_silently_on_utf_32(self):
+        x = 'abc'.encode('utf-32')
+        self.assertEqual(compatibility.try_utf8_decode(x), x)
+
     def test_compatibility_try_utf8_decode_on_integer(self):
         x = 5
         self.assertEqual(x, compatibility.try_utf8_decode(x))
@@ -93,3 +102,17 @@ class CompatibilityTests(unittest.TestCase):
 
     def test_compatibility_range_is_set(self):
         self.assertIsNotNone(compatibility.RANGE)
+
+    def test_compatibility_patch_uri(self):
+        self.assertEqual(compatibility.patch_uri('amqps://'), 'https://')
+        self.assertEqual(compatibility.patch_uri('amqp://'), 'http://')
+
+
+class CompatibilitySslTests(unittest.TestCase):
+    def test_io_default_ssl_version(self):
+        if hasattr(ssl, 'PROTOCOL_TLSv1_2'):
+            self.assertEqual(compatibility.DEFAULT_SSL_VERSION,
+                             ssl.PROTOCOL_TLSv1_2)
+        else:
+            self.assertEqual(compatibility.DEFAULT_SSL_VERSION,
+                             ssl.PROTOCOL_TLSv1)

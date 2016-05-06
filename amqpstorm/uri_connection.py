@@ -21,6 +21,12 @@ class UriConnection(Connection):
     def __init__(self, uri, lazy=False):
         """
         :param str uri: AMQP Connection string
+
+        :raises TypeError: Raises on invalid uri.
+        :raises ValueError: Raises on invalid uri.
+        :raises AttributeError: Raises on invalid uri.
+        :raises AMQPConnectionError: Raises if a Connection cannot be
+                                     established.
         """
         uri = compatibility.patch_uri(uri)
         parsed_uri = urlparse.urlparse(uri)

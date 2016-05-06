@@ -38,6 +38,10 @@ class Connection(Stateful):
         :param bool ssl: Enable SSL
         :param dict ssl_options: SSL kwargs (from ssl.wrap_socket)
         :param bool lazy: Lazy initialize the connection
+
+        :raises AMQPConnectionError: Raises if a Connection cannot be
+                                     established.
+
         :return:
         """
         super(Connection, self).__init__()

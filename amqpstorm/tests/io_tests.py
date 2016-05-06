@@ -110,14 +110,6 @@ class IOTests(unittest.TestCase):
 
         self.assertIsInstance(io._exceptions[0], AMQPConnectionError)
 
-    def test_io_default_ssl_version(self):
-        if hasattr(ssl, 'PROTOCOL_TLSv1_2'):
-            self.assertEqual(compatibility.DEFAULT_SSL_VERSION,
-                             ssl.PROTOCOL_TLSv1_2)
-        else:
-            self.assertEqual(compatibility.DEFAULT_SSL_VERSION,
-                             ssl.PROTOCOL_TLSv1)
-
     def test_io_sets_default_ssl_version(self):
         connection = FakeConnection()
         connection.parameters['ssl_options'] = {}

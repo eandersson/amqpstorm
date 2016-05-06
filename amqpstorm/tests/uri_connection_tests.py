@@ -1,5 +1,6 @@
 import logging
 import ssl
+import sys
 
 try:
     import unittest2 as unittest
@@ -137,3 +138,34 @@ class UriConnectionTests(unittest.TestCase):
         }
         ssl_options = connection._parse_ssl_options(ssl_kwargs)
         self.assertFalse(ssl_options)
+
+
+class UriConnectionExceptionTests(unittest.TestCase):
+    """These tests are only so that we better understand when, and where
+        UriConnection fails.
+    """
+    @unittest.skipIf(sys.version_info[0] == 2, 'Python 3.x test')
+    def test_uri_raises_on_empty(self):
+        self.assertRaises(TypeError, UriConnection, '')
+        self.assertRaises(TypeError, UriConnection, b'')
+
+    @unittest.skipIf(sys.version_info[0] == 2, 'Python 3.x test')
+    def test_uri_raises_on_invalid_uri(self):
+        self.assertRaises(ValueError, UriConnection, 'amqp://a:b')
+        self.assertRaises(TypeError, UriConnection, 'amqp://a:')
+
+    @unittest.skipIf(sys.version_info[0] == 3, 'Python 2.x test')
+    def test_uri_raises_on_empty(self):
+        self.assertRaises(AttributeError, UriConnection, '')
+        self.assertRaises(AttributeError, UriConnection, b'')
+
+    @unittest.skipIf(sys.version_info[0] == 3, 'Python 2.x test')
+    def test_uri_raises_on_invalid_uri(self):
+        self.assertRaises(ValueError, UriConnection, 'amqp://a:b')
+        self.assertRaises((ValueError, AttributeError), UriConnection, 'amqp://a:')
+
+    def test_uri_raises_on_invalid_object(self):
+        self.assertRaises(AttributeError, UriConnection, None)
+        self.assertRaises(AttributeError, UriConnection, {})
+        self.assertRaises(AttributeError, UriConnection, [])
+        self.assertRaises(AttributeError, UriConnection, ())
