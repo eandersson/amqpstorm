@@ -267,7 +267,7 @@ class Connection(Stateful):
             pass
         except pamqp_spec.AMQPFrameError as why:
             LOGGER.error('AMQPFrameError: %r', why, exc_info=True)
-        except UnicodeDecodeError as why:
+        except (UnicodeDecodeError, ValueError) as why:
             LOGGER.error(why, exc_info=True)
             self.exceptions.append(AMQPConnectionError(why))
         return data_in, None, None

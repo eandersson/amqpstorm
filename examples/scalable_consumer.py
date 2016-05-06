@@ -128,7 +128,7 @@ class ScalableConsumer(object):
     def _start_consumer(self, consumer):
         """Start a consumer as a new Thread.
 
-        :param consumer:
+        :param Consumer consumer:
         :return:
         """
         thread = threading.Thread(target=consumer.start,
@@ -138,11 +138,11 @@ class ScalableConsumer(object):
         self._wait_for_consumer_to_start(consumer)
 
     @staticmethod
-    def _wait_for_consumer_to_start(consumer, timeout=1):
+    def _wait_for_consumer_to_start(consumer, timeout=30):
         """Wait to make sure the consumer has time to start.
 
-        :param consumer:
-        :param timeout:
+        :param Consumer consumer:
+        :param int timeout:
         :return:
         """
         start_time = time.time()

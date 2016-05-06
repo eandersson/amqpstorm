@@ -128,10 +128,55 @@ class ConnectionTests(unittest.TestCase):
             pamqp_frame.unmarshal = restore_func
 
     def test_connection_handle_unicode_error(self):
+        """This test covers an unlikely issue triggered by network corruption.
+
+            pamqp.decode._maybe_utf8 raises:
+                UnicodeDecodeError: 'utf8' codec can't
+                decode byte 0xc5 in position 1: invalid continuation byte
+
+            The goal here is not to fix issues caused by network corruption,
+            but rather to make sure that the exceptions raised when
+            connections do fail are always predictable.
+
+            Fail fast and reliably!
+
+        :return:
+        """
         connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
 
         def throw_error(_):
             raise UnicodeDecodeError(str(), bytes(), 1, 1, str())
+
+        restore_func = pamqp_frame.unmarshal
+        try:
+            pamqp_frame.unmarshal = throw_error
+
+            result = connection._handle_amqp_frame('error')
+
+            self.assertEqual(result[0], 'error')
+            self.assertIsNone(result[1])
+            self.assertIsNone(result[2])
+        finally:
+            pamqp_frame.unmarshal = restore_func
+
+    def test_connection_handle_value_error(self):
+        """This test covers an unlikely issue triggered by network corruption.
+
+            pamqp.decode._embedded_value raises:
+                ValueError: Unknown type: b'\x13'
+
+            The goal here is not to fix issues caused by network corruption,
+            but rather to make sure that the exceptions raised when
+            connections do fail are always predictable.
+
+            Fail fast and reliably!
+
+        :return:
+        """
+        connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
+
+        def throw_error(_):
+            raise ValueError("Unknown type: b'\x13'")
 
         restore_func = pamqp_frame.unmarshal
         try:
