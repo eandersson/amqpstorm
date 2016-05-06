@@ -232,7 +232,7 @@ class IOExceptionTests(unittest.TestCase):
 
     def test_io_poller_raises(self):
         exceptions = []
-        tmp_select = select.select
+        restore_func = select.select
 
         def mock_select(*_):
             raise select.error('unittest')
@@ -243,11 +243,11 @@ class IOExceptionTests(unittest.TestCase):
             self.assertFalse(poller.is_ready)
             self.assertTrue(exceptions)
         finally:
-            amqpstorm.io.select.select = tmp_select
+            amqpstorm.io.select.select = restore_func
 
     def test_io_poller_eintr(self):
         exceptions = []
-        tmp_select = select.select
+        restore_func = select.select
 
         def mock_select(*_):
             raise select.error(EINTR)
@@ -258,4 +258,4 @@ class IOExceptionTests(unittest.TestCase):
             self.assertFalse(poller.is_ready)
             self.assertFalse(exceptions)
         finally:
-            amqpstorm.io.select.select = tmp_select
+            amqpstorm.io.select.select = restore_func

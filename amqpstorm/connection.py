@@ -252,8 +252,7 @@ class Connection(Stateful):
 
         return buffer
 
-    @staticmethod
-    def _handle_amqp_frame(data_in):
+    def _handle_amqp_frame(self, data_in):
         """Unmarshal any incoming RabbitMQ frames and return the result.
 
         :param data_in: socket data
@@ -265,10 +264,13 @@ class Connection(Stateful):
             byte_count, channel_id, frame_in = pamqp_frame.unmarshal(data_in)
             return data_in[byte_count:], channel_id, frame_in
         except pamqp_exception.UnmarshalingException:
-            return data_in, None, None
+            pass
         except pamqp_spec.AMQPFrameError as why:
             LOGGER.error('AMQPFrameError: %r', why, exc_info=True)
-            return data_in, None, None
+        except UnicodeDecodeError as why:
+            LOGGER.error(why, exc_info=True)
+            self.exceptions.append(AMQPConnectionError(why))
+        return data_in, None, None
 
     def _close_channels(self):
         """Close any open channels.

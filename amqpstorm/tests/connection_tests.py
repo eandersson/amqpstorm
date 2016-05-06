@@ -127,6 +127,24 @@ class ConnectionTests(unittest.TestCase):
         finally:
             pamqp_frame.unmarshal = restore_func
 
+    def test_connection_handle_unicode_error(self):
+        connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
+
+        def throw_error(_):
+            raise UnicodeDecodeError(str(), bytes(), 1, 1, str())
+
+        restore_func = pamqp_frame.unmarshal
+        try:
+            pamqp_frame.unmarshal = throw_error
+
+            result = connection._handle_amqp_frame('error')
+
+            self.assertEqual(result[0], 'error')
+            self.assertIsNone(result[1])
+            self.assertIsNone(result[2])
+        finally:
+            pamqp_frame.unmarshal = restore_func
+
     def test_connection_wait_for_connection(self):
         connection = Connection('127.0.0.1', 'guest', 'guest', timeout=5,
                                 lazy=True)
