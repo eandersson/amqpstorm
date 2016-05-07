@@ -1,18 +1,18 @@
 # Changelog
 
 ### Version 1.3.2
-- Fixed an unlikely bug in the Poller.
+- Fixed a minor bug in the Poller error handling.
+- Fixed an issue where network corruption caused a connection error to throw the wrong exception.
 
 ### Version 1.3.1
-- Fixed SSL bug that could trigger an exception when running multiple threads. [#14]
-
-- Fixed bug when using channel.basic.get to retrieve large payloads.
-
-- Improved code documentation.
-
+- Fixed a SSL bug that could trigger an exception when running multiple threads. [#14]
+- Fixed a bug when using channel.basic.get to retrieve large payloads.
 - Reduced default RPC timeout from 360s to 120s.
 
 ### Version 1.3.0
+- Removed noisy logging.
+- Fixed Runtime exception caused by listener trying to join itself.
+- Channels are no longer closed after RabbitMQ throws a recoverable exception.
 - Added Error mapping based on the AMQP 0.9.1 specifications (when applicable).
     Introduced three new variables to the AMQP-Storm Exceptions.
         - error_code: This provides HTTP style error codes based on the AMQP Specification.
@@ -26,11 +26,3 @@
         except AMQPChannelError as why:
             if why.error_code == 312:
                 self.channel.queue.declare(queue_name)
-
-- Fixed Runtime exception caused by listener trying to join itself.
-
-- Channels are no longer closed after the Channel throws a recoverable exception.
-
-- Removed noisy logging.
-
-- Updated examples, and removed old examples.

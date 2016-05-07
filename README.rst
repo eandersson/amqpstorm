@@ -6,8 +6,9 @@ Thread-safe Python RabbitMQ Client Library based on pamqp.
 
 Introduction
 -------------
-AMQP-Storm is a library designed to be easy to use, stable and thread-safe.
+AMQP-Storm is a library designed to be consistent, stable and thread-safe.
 
+- 99%+ Unit-test coverage!
 - Supports Python 2.6, 2.7 and Python 3+.
 - When using a SSL connection, TLSv1 or higher is required.
 

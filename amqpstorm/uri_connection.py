@@ -25,8 +25,7 @@ class UriConnection(Connection):
         :raises TypeError: Raises on invalid uri.
         :raises ValueError: Raises on invalid uri.
         :raises AttributeError: Raises on invalid uri.
-        :raises AMQPConnectionError: Raises if a Connection cannot be
-                                     established.
+        :raises AMQPConnectionError: Raises on Connection error.
         """
         uri = compatibility.patch_uri(uri)
         parsed_uri = urlparse.urlparse(uri)
