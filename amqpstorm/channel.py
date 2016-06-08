@@ -339,7 +339,7 @@ class Channel(BaseChannel):
         :rtype: Message
         """
         with self.lock:
-            if len(self._inbound) < 3:
+            if len(self._inbound) < 2:
                 return None
             basic_deliver = self._inbound.pop(0)
             if not isinstance(basic_deliver, pamqp_spec.Basic.Deliver):

@@ -5,7 +5,7 @@ See https://github.com/eandersson/amqpstorm for more information.
 """
 
 setup(name='AMQPStorm',
-      version='1.3.2',
+      version='1.3.3',
       description='Thread-safe Python RabbitMQ Client Library based on pamqp.',
       long_description=long_description,
       author='Erik Olof Gunnar Andersson',
