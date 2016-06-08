@@ -124,6 +124,39 @@ class PublishAndGetMessagesTest(unittest.TestCase):
         self.connection.close()
 
 
+class PublishAndGetEmptyMessagesTest(unittest.TestCase):
+    def setUp(self):
+        self.queue_name = 'test.basic.get_empty'
+        self.connection = Connection(HOST, USERNAME, PASSWORD)
+        self.channel = self.connection.channel()
+        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.purge(self.queue_name)
+
+    def test_functional_publish_and_get_five_empty_messages(self):
+        # Publish 5 Messages.
+        for _ in range(5):
+            self.channel.basic.publish(body=b'',
+                                       routing_key=self.queue_name)
+
+        # Sleep for 0.5s to make sure RabbitMQ has time to catch up.
+        time.sleep(0.5)
+
+        # Get 5 messages.
+        inbound_messages = []
+        for _ in range(5):
+            payload = self.channel.basic.get(self.queue_name, to_dict=False)
+            self.assertIsInstance(payload, Message)
+            self.assertEqual(payload.body, b'')
+            inbound_messages.append(payload)
+
+        self.assertEqual(len(inbound_messages), 5)
+
+    def tearDown(self):
+        self.channel.queue.delete(self.queue_name)
+        self.channel.close()
+        self.connection.close()
+
+
 class PublishAndGetLargeMessageTest(unittest.TestCase):
     def setUp(self):
         self.connection = Connection(HOST, USERNAME, PASSWORD)
