@@ -50,8 +50,8 @@ class UriConnection(Connection):
         options = {
             'ssl': use_ssl,
             'virtual_host': urlparse.unquote(parsed_uri.path[1:]) or '/',
-            'heartbeat': int(kwargs.get('heartbeat', [60])[0]),
-            'timeout': int(kwargs.get('timeout', [30])[0]),
+            'heartbeat': int(kwargs.pop('heartbeat', [60])[0]),
+            'timeout': int(kwargs.pop('timeout', [30])[0]),
             'lazy': lazy
         }
         if compatibility.SSL_SUPPORTED and use_ssl:
@@ -67,7 +67,7 @@ class UriConnection(Connection):
         ssl_options = {}
         for key in ssl_kwargs:
             if key not in compatibility.SSL_OPTIONS:
-                LOGGER.warning('invalid ssl option: %s', key)
+                LOGGER.warning('invalid option: %s', key)
                 continue
             if 'ssl_version' in key:
                 value = self._get_ssl_version(ssl_kwargs[key][0])
