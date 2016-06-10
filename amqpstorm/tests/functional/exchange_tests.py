@@ -7,6 +7,7 @@ except ImportError:
 
 import amqpstorm
 from amqpstorm import Connection
+from amqpstorm.tests.utility import MockLoggingHandler
 
 HOST = '127.0.0.1'
 USERNAME = 'guest'
@@ -19,6 +20,8 @@ LOGGER = logging.getLogger(__name__)
 
 class ExchangeFunctionalTests(unittest.TestCase):
     def setUp(self):
+        self.logging_handler = MockLoggingHandler()
+        logging.root.addHandler(self.logging_handler)
         self.connection = Connection(HOST, USERNAME, PASSWORD)
         self.channel = self.connection.channel()
 
@@ -55,3 +58,6 @@ class ExchangeFunctionalTests(unittest.TestCase):
     def tearDown(self):
         self.channel.close()
         self.connection.close()
+        self.assertFalse(self.logging_handler.messages['warning'])
+        self.assertFalse(self.logging_handler.messages['error'])
+        self.assertFalse(self.logging_handler.messages['critical'])

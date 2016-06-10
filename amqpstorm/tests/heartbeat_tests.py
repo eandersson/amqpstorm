@@ -25,12 +25,6 @@ class HeartbeatTests(unittest.TestCase):
         self.assertEqual(heartbeat._interval, 61)
         self.assertEqual(heartbeat._threshold, 122)
 
-    def test_heartbeat_minimum_interval(self):
-        heartbeat = Heartbeat(0.1)
-
-        self.assertEqual(heartbeat._interval, 2)
-        self.assertEqual(heartbeat._threshold, 4)
-
     def test_heartbeat_start(self):
         heartbeat = Heartbeat(1)
         heartbeat.start([])
@@ -60,9 +54,9 @@ class HeartbeatTests(unittest.TestCase):
 
     def test_heartbeat_basic_raise_on_missed_heartbeats(self):
         exceptions = []
-        heartbeat = Heartbeat(1)
+        heartbeat = Heartbeat(0.01)
         heartbeat.start(exceptions)
-        time.sleep(6)
+        time.sleep(5)
         self.assertGreater(len(heartbeat._exceptions), 0)
 
     def test_heartbeat_raise_when_check_for_life_when_exceptions_not_set(self):

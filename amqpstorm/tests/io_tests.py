@@ -120,6 +120,47 @@ class IOTests(unittest.TestCase):
         self.assertEqual(connection.parameters['ssl_options']['ssl_version'],
                          compatibility.DEFAULT_SSL_VERSION)
 
+    def test_io_has_ipv6(self):
+        restore_func = socket.getaddrinfo
+
+        def mock_getaddrinfo(hostname, port, family):
+            return [hostname, port, family]
+
+        try:
+            amqpstorm.io.socket.getaddrinfo = mock_getaddrinfo
+            connection = FakeConnection()
+            connection.parameters['hostname'] = 'localhost'
+            connection.parameters['port'] = 1234
+            parameters = connection.parameters
+            io = IO(parameters)
+
+            result = io._get_socket_addresses()
+            self.assertEqual(result[2], socket.AF_UNSPEC)
+        finally:
+            amqpstorm.io.socket.getaddrinfo = restore_func
+
+    def test_io_has_ipv6_is_false(self):
+        restore_func = socket.getaddrinfo
+        restore_has_ipv6 = amqpstorm.io.socket.has_ipv6
+
+        def mock_getaddrinfo(hostname, port, family):
+            return [hostname, port, family]
+
+        try:
+            amqpstorm.io.socket.getaddrinfo = mock_getaddrinfo
+            amqpstorm.io.socket.has_ipv6 = False
+            connection = FakeConnection()
+            connection.parameters['hostname'] = 'localhost'
+            connection.parameters['port'] = 1234
+            parameters = connection.parameters
+            io = IO(parameters)
+
+            result = io._get_socket_addresses()
+            self.assertEqual(result[2], socket.AF_INET)
+        finally:
+            amqpstorm.io.socket.getaddrinfo = restore_func
+            amqpstorm.io.socket.has_ipv6 = restore_has_ipv6
+
 
 class IOExceptionTests(unittest.TestCase):
     def test_io_receive_raises_socket_error(self):
@@ -219,6 +260,25 @@ class IOExceptionTests(unittest.TestCase):
                                     io.open, [])
         finally:
             compatibility.SSL_SUPPORTED = True
+
+    def test_io_raises_gaierror(self):
+        restore_func = socket.getaddrinfo
+
+        def mock_getaddrinfo(*_):
+            raise socket.gaierror('Could not connect to localhost:1234')
+
+        try:
+            amqpstorm.io.socket.getaddrinfo = mock_getaddrinfo
+            connection = FakeConnection()
+            connection.parameters['hostname'] = 'localhost'
+            connection.parameters['port'] = 1234
+            parameters = connection.parameters
+            io = IO(parameters)
+            self.assertRaisesRegexp(AMQPConnectionError,
+                                    'Could not connect to localhost:1234',
+                                    io._get_socket_addresses)
+        finally:
+            amqpstorm.io.socket.getaddrinfo = restore_func
 
     def test_io_poller_raises(self):
         exceptions = []

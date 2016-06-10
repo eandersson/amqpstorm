@@ -13,8 +13,6 @@ class Heartbeat(object):
     """AMQP Internal Heartbeat Checker"""
 
     def __init__(self, interval):
-        if interval < 1:
-            interval = 1
         self._lock = threading.Lock()
         self._stopped = threading.Event()
         self._timer = None

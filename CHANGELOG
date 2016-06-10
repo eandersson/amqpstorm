@@ -1,6 +1,7 @@
 # Changelog
 
 ### Version 1.3.4
+- Dropped Python 3.2 Support.
 - Fixed incorrect SSL warning when adding heartbeat or timeout to uri string (#18) - Thanks Adam Mills.
 
 ### Version 1.3.3

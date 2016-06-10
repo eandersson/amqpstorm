@@ -4,7 +4,6 @@ import logging
 from time import sleep
 
 from pamqp import specification as pamqp_spec
-
 from pamqp.header import ContentHeader
 
 from amqpstorm import compatibility
@@ -341,24 +340,37 @@ class Channel(BaseChannel):
         with self.lock:
             if len(self._inbound) < 2:
                 return None
-            basic_deliver = self._inbound.pop(0)
-            if not isinstance(basic_deliver, pamqp_spec.Basic.Deliver):
-                LOGGER.warning('Received an out-of-order frame: %s was '
-                               'expecting a Basic.Deliver frame',
-                               type(basic_deliver))
+            result = self._build_message_headers()
+            if not result:
                 return None
-            content_header = self._inbound.pop(0)
-            if not isinstance(content_header, ContentHeader):
-                LOGGER.warning('Received an out-of-order frame: %s was '
-                               'expecting a ContentHeader frame',
-                               type(content_header))
-                return None
+            basic_deliver, content_header = result
             body = self._build_message_body(content_header.body_size)
+
         message = Message(channel=self,
                           body=body,
                           method=dict(basic_deliver),
                           properties=dict(content_header.properties))
         return message
+
+    def _build_message_headers(self):
+        """Fetch Message Headers (Deliver & Header Frames).
+
+        :rtype: tuple|None
+        """
+        basic_deliver = self._inbound.pop(0)
+        if not isinstance(basic_deliver, pamqp_spec.Basic.Deliver):
+            LOGGER.warning('Received an out-of-order frame: %s was '
+                           'expecting a Basic.Deliver frame',
+                           type(basic_deliver))
+            return None
+        content_header = self._inbound.pop(0)
+        if not isinstance(content_header, ContentHeader):
+            LOGGER.warning('Received an out-of-order frame: %s was '
+                           'expecting a ContentHeader frame',
+                           type(content_header))
+            return None
+
+        return basic_deliver, content_header
 
     def _build_message_body(self, body_size):
         """Build the Message body from the inbound queue.
@@ -371,7 +383,7 @@ class Channel(BaseChannel):
                 sleep(IDLE_WAIT)
                 continue
             body_piece = self._inbound.pop(0)
-            if not body_piece:
+            if not body_piece.value:
                 break
             body += body_piece.value
         return body
