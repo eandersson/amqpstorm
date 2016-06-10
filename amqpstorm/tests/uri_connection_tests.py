@@ -170,25 +170,26 @@ class UriConnectionExceptionTests(unittest.TestCase):
     """These tests are only so that we better understand when, and where
         UriConnection fails.
     """
-    @unittest.skipIf(sys.version_info[0] == 2, 'Python 3.x test')
-    def test_uri_raises_on_empty(self):
+    @unittest.skipIf(sys.version_info < (3, 3), 'Python 3.x test')
+    def test_uri_py3_raises_on_empty(self):
         self.assertRaises(TypeError, UriConnection, '')
         self.assertRaises(TypeError, UriConnection, b'')
 
-    @unittest.skipIf(sys.version_info[0] == 2, 'Python 3.x test')
-    def test_uri_raises_on_invalid_uri(self):
+    @unittest.skipIf(sys.version_info < (3, 3), 'Python 3.x test')
+    def test_uri_py3_raises_on_invalid_uri(self):
         self.assertRaises(ValueError, UriConnection, 'amqp://a:b')
         self.assertRaises(TypeError, UriConnection, 'amqp://a:')
 
     @unittest.skipIf(sys.version_info[0] == 3, 'Python 2.x test')
-    def test_uri_raises_on_empty(self):
+    def test_uri_py2_raises_on_empty(self):
         self.assertRaises(AttributeError, UriConnection, '')
         self.assertRaises(AttributeError, UriConnection, b'')
 
     @unittest.skipIf(sys.version_info[0] == 3, 'Python 2.x test')
-    def test_uri_raises_on_invalid_uri(self):
+    def test_uri_py2_raises_on_invalid_uri(self):
         self.assertRaises(ValueError, UriConnection, 'amqp://a:b')
-        self.assertRaises((ValueError, AttributeError), UriConnection, 'amqp://a:')
+        self.assertRaises((ValueError, AttributeError),
+                          UriConnection, 'amqp://a:')
 
     def test_uri_raises_on_invalid_object(self):
         self.assertRaises(AttributeError, UriConnection, None)

@@ -57,8 +57,6 @@ class IOTests(unittest.TestCase):
 
         if hasattr(socket, 'socket'):
             self.assertIsInstance(sock, socket.socket)
-        elif hasattr(socket, '_socketobject'):
-            self.assertIsInstance(sock, socket._socketobject)
 
     def test_io_get_socket_address(self):
         connection = FakeConnection()
