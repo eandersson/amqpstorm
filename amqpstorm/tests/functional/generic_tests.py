@@ -800,3 +800,40 @@ class TraditionalPublishAndConsumeMessagesTest(unittest.TestCase):
         self.channel.queue.delete('test.basic.consume')
         self.channel.close()
         self.connection.close()
+
+
+class TraditionalGeneratorConsumeMessagesTest(unittest.TestCase):
+    def setUp(self):
+        self.connection = Connection(HOST, USERNAME, PASSWORD)
+        self.channel = self.connection.channel()
+        self.channel.queue.declare('test.basic.generator')
+        self.channel.queue.purge('test.basic.generator')
+        self.channel.confirm_deliveries()
+        for _ in range(5):
+            self.channel.basic.publish(body=str(uuid.uuid4()),
+                                       routing_key='test.basic.generator')
+        self.channel.basic.consume(queue='test.basic.generator',
+                                   no_ack=True)
+        # Sleep for 0.5s to make sure RabbitMQ has time to catch up.
+        time.sleep(0.5)
+
+    def test_functional_generator_consume(self):
+        # Store and inbound messages.
+        inbound_messages = []
+        for message in \
+                self.channel.build_inbound_messages(break_on_empty=True,
+                                                    to_tuple=True):
+            self.assertIsInstance(message, tuple)
+            self.assertIsInstance(message[0], bytes)
+            self.assertIsInstance(message[1], Channel)
+            self.assertIsInstance(message[2], dict)
+            self.assertIsInstance(message[3], dict)
+            inbound_messages.append(message)
+
+        # Make sure all five messages were downloaded.
+        self.assertEqual(len(inbound_messages), 5)
+
+    def tearDown(self):
+        self.channel.queue.delete('test.basic.generator')
+        self.channel.close()
+        self.connection.close()
