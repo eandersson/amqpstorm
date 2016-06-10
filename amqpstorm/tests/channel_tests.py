@@ -260,12 +260,11 @@ class ChannelBuildMessageTests(unittest.TestCase):
     def test_channel_build_empty_inbound_messages(self):
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(Channel.OPEN)
-        result = None
-        for message in channel.build_inbound_messages(break_on_empty=True):
-            result = message
-            self.assertIsNotNone(result)
-
-        self.assertIsNone(result)
+        generator = channel.build_inbound_messages(break_on_empty=True)
+        if hasattr(generator, 'next'):
+            self.assertRaises(StopIteration, generator.next)
+        else:
+            self.assertRaises(StopIteration, generator.__next__)
 
     def test_channel_build_inbound_messages(self):
         channel = Channel(0, FakeConnection(), 360)
