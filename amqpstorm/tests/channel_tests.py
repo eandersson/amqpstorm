@@ -179,6 +179,21 @@ class ChannelExceptionTests(unittest.TestCase):
 
         channel.check_for_errors()
 
+    def test_channel_build_inbound_raises(self):
+        channel = Channel(0, FakeConnection(), 360)
+        channel.set_state(Channel.OPEN)
+
+        def mock_build_message():
+            channel.exceptions.append(AMQPChannelError())
+
+        channel._build_message = mock_build_message
+
+        try:
+            for _ in channel.build_inbound_messages(break_on_empty=False):
+                pass
+        except AMQPChannelError as why:
+            self.assertIsInstance(why, AMQPChannelError)
+
 
 class ChannelBuildMessageTests(unittest.TestCase):
     def setUp(self):
@@ -233,6 +248,43 @@ class ChannelBuildMessageTests(unittest.TestCase):
         self.assertIn("Received an out-of-order frame:",
                       self.logging_handler.messages['warning'][0])
 
+    def test_channel_build_message_headers(self):
+        channel = Channel(0, None, 360)
+
+        deliver = specification.Basic.Deliver()
+        header = ContentHeader(body_size=10)
+
+        channel._inbound = [deliver, header]
+        result = channel._build_message_headers()
+        self.assertIsInstance(result[0], specification.Basic.Deliver)
+        self.assertIsInstance(result[1], ContentHeader)
+        self.assertEqual(result[1].body_size, 10)
+
+    def test_channel_build_message_headers_out_of_order(self):
+        channel = Channel(0, None, 360)
+
+        deliver = specification.Basic.Deliver()
+        header = ContentHeader(body_size=10)
+
+        channel._inbound = [header, deliver]
+        result = channel._build_message_headers()
+        self.assertEqual(result, None)
+        self.assertIn("Received an out-of-order frame:",
+                      self.logging_handler.messages['warning'][0])
+
+        self.logging_handler.messages['warning'] = []
+
+        channel._inbound = [deliver, deliver]
+        result = channel._build_message_headers()
+        self.assertEqual(result, None)
+        self.assertIn("Received an out-of-order frame:",
+                      self.logging_handler.messages['warning'][0])
+
+    def test_channel_build_message_headers_empty(self):
+        channel = Channel(0, None, 360)
+        channel._inbound = []
+        self.assertRaises(IndexError, channel._build_message_headers)
+
     def test_channel_build_message_body(self):
         channel = Channel(0, None, 360)
 
@@ -245,14 +297,14 @@ class ChannelBuildMessageTests(unittest.TestCase):
 
         self.assertEqual(message, result)
 
-    def test_channel_build_message_body_none(self):
+    def test_channel_build_message_body_break_on_none_value(self):
         channel = Channel(0, None, 360)
 
         message = b'Hello World!'
         message_len = len(message)
 
-        body = ContentBody(value=message)
-        channel._inbound = [None, body]
+        body = ContentBody(value=None)
+        channel._inbound = [body]
         result = channel._build_message_body(message_len)
 
         self.assertEqual(result, b'')

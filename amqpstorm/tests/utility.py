@@ -1,14 +1,12 @@
 import logging
 
-from amqpstorm import compatibility
 from amqpstorm.base import Stateful
-from amqpstorm.exception import AMQPInvalidArgument
 
 
 class FakeConnection(Stateful):
     """Fake Connection for Unit-Testing."""
 
-    def __init__(self, state=Stateful.OPEN):
+    def __init__(self, state=Stateful.OPEN, on_write=None):
         super(FakeConnection, self).__init__()
         self.frames_out = []
         self.parameters = {
@@ -19,11 +17,16 @@ class FakeConnection(Stateful):
             'ssl': False
         }
         self.set_state(state)
+        self.on_write = on_write
 
     def write_frame(self, channel_id, frame_out):
+        if self.on_write:
+            self.on_write(channel_id, frame_out)
         self.frames_out.append((channel_id, frame_out))
 
     def write_frames(self, channel_id, frames_out):
+        if self.on_write:
+            self.on_write(channel_id, frames_out)
         self.frames_out.append((channel_id, frames_out))
 
 

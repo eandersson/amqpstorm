@@ -61,6 +61,7 @@ class Basic(Handler):
 
         :returns: Returns a single message, as long as there is a message in
                   the queue. If no message is available, returns None.
+
         :rtype: dict|Message|None
         """
         if not compatibility.is_string(queue):
@@ -128,16 +129,10 @@ class Basic(Handler):
         elif arguments is not None and not isinstance(arguments, dict):
             raise AMQPInvalidArgument('arguments should be a dict or None')
         self._channel.consumer_callback = callback
-        consume_frame = pamqp_spec.Basic.Consume(queue=queue,
-                                                 consumer_tag=consumer_tag,
-                                                 exclusive=exclusive,
-                                                 no_local=no_local,
-                                                 no_ack=no_ack,
-                                                 arguments=arguments)
-        result = self._channel.rpc_request(consume_frame)
-        consumer_tag = result['consumer_tag']
-        self._channel.add_consumer_tag(consumer_tag)
-        return consumer_tag
+        consume_rpc_result = self._consume_rpc_request(arguments, consumer_tag,
+                                                       exclusive, no_ack,
+                                                       no_local, queue)
+        return self._consume_add_and_get_tag(consume_rpc_result)
 
     def cancel(self, consumer_tag=''):
         """Cancel a queue consumer.
@@ -270,6 +265,38 @@ class Basic(Handler):
                                                requeue=requeue)
         self._channel.write_frame(reject_frame)
 
+    def _consume_add_and_get_tag(self, consume_rpc_result):
+        """Add the tag to the channel and return it.
+
+        :param dict consume_rpc_result:
+
+        :rtype: str
+        """
+        consumer_tag = consume_rpc_result['consumer_tag']
+        self._channel.add_consumer_tag(consumer_tag)
+        return consumer_tag
+
+    def _consume_rpc_request(self, arguments, consumer_tag, exclusive, no_ack,
+                             no_local, queue):
+        """Create a Consume Frame and execute a RPC request.
+
+        :param str queue: Queue name
+        :param str consumer_tag: Consumer tag
+        :param bool no_local: Do not deliver own messages
+        :param bool no_ack: No acknowledgement needed
+        :param bool exclusive: Request exclusive access
+        :param dict arguments: Arguments for declaration
+
+        :rtype: dict
+        """
+        consume_frame = pamqp_spec.Basic.Consume(queue=queue,
+                                                 consumer_tag=consumer_tag,
+                                                 exclusive=exclusive,
+                                                 no_local=no_local,
+                                                 no_ack=no_ack,
+                                                 arguments=arguments)
+        return self._channel.rpc_request(consume_frame)
+
     @staticmethod
     def _validate_publish_parameters(body, exchange, immediate, mandatory,
                                      properties, routing_key):
@@ -282,6 +309,7 @@ class Basic(Handler):
         :param bool mandatory:
         :param bool immediate:
         :raises  AMQPInvalidArgument: Invalid Parameters
+
         :return:
         """
         if not compatibility.is_string(body):
@@ -303,21 +331,23 @@ class Basic(Handler):
 
         :param str|unicode body:
         :param dict properties:
+
         :return:
         """
+        if 'content_encoding' not in properties:
+            properties['content_encoding'] = 'utf-8'
+        encoding = properties['content_encoding']
         if compatibility.is_unicode(body):
-            if 'content_encoding' not in properties:
-                properties['content_encoding'] = 'utf-8'
-            encoding = properties['content_encoding']
             body = body.encode(encoding)
         elif compatibility.PYTHON3 and isinstance(body, str):
-            body = bytes(body, encoding='utf-8')
+            body = bytes(body, encoding=encoding)
         return body
 
     def _get_message(self, get_frame):
         """Get and return a message using a Basic.Get frame.
 
         :param Basic.Get get_frame:
+
         :rtype: Message
         """
         uuid_get = \
@@ -343,6 +373,7 @@ class Basic(Handler):
         """Confirm that message was published successfully.
 
         :param list send_buffer:
+
         :rtype: bool
         """
         confirm_uuid = self._channel.rpc.register_request(['Basic.Ack',
@@ -352,11 +383,7 @@ class Basic(Handler):
         self._channel.check_for_errors()
         if isinstance(result, pamqp_spec.Basic.Ack):
             return True
-        elif isinstance(result, pamqp_spec.Basic.Nack):
-            return False
-        else:
-            raise AMQPMessageError('Unexpected Error: %s - %s'
-                                   % (result, dict(result)))
+        return False
 
     @staticmethod
     def _create_content_body(body):
@@ -366,6 +393,7 @@ class Basic(Handler):
             https://github.com/gmr/rabbitpy
 
         :param str body:
+
         :rtype: collections.Iterable
         """
         frames = int(math.ceil(len(body) / float(FRAME_MAX)))
@@ -381,13 +409,14 @@ class Basic(Handler):
 
         :param str uuid_body: Rpc Identifier.
         :param int body_size: Content Size.
+
         :rtype: str
         """
         body = bytes()
         while len(body) < body_size:
             body_piece = self._channel.rpc.get_request(uuid_body, raw=True,
                                                        multiple=True)
-            if not body_piece:
+            if not body_piece.value:
                 break
             body += body_piece.value
         self._channel.rpc.remove(uuid_body)

@@ -674,3 +674,129 @@ class PublishAndFail(unittest.TestCase):
         self.channel.queue.delete('test.publish.and.fail')
         self.channel.close()
         self.connection.close()
+
+
+class TraditionalStartStopConsumeTest(unittest.TestCase):
+    def setUp(self):
+        self.connection = Connection(HOST, USERNAME, PASSWORD)
+        self.channel = self.connection.channel()
+        self.channel.queue.declare('test.basic.consume')
+        self.channel.queue.purge('test.basic.consume')
+        self.channel.confirm_deliveries()
+
+    def test_functional_start_stop_consumer_tuple(self):
+        for _ in range(5):
+            self.channel.basic.publish(body=str(uuid.uuid4()),
+                                       routing_key='test.basic.consume')
+
+        # Store and inbound messages.
+        inbound_messages = []
+
+        def on_message(body, channel, method, properties):
+            self.assertIsInstance(body, (bytes, str))
+            self.assertIsInstance(channel, Channel)
+            self.assertIsInstance(properties, dict)
+            self.assertIsInstance(method, dict)
+            inbound_messages.append(body)
+            if len(inbound_messages) >= 5:
+                channel.stop_consuming()
+
+        self.channel.basic.consume(callback=on_message,
+                                   queue='test.basic.consume',
+                                   no_ack=True)
+
+        # Sleep for 0.5s to make sure RabbitMQ has time to catch up.
+        time.sleep(0.5)
+
+        self.channel.start_consuming(to_tuple=True)
+
+        # Make sure all five messages were downloaded.
+        self.assertEqual(len(inbound_messages), 5)
+
+    def tearDown(self):
+        self.channel.queue.delete('test.basic.consume')
+        self.channel.close()
+        self.connection.close()
+
+class StartStopConsumeTest(unittest.TestCase):
+    def setUp(self):
+        self.connection = Connection(HOST, USERNAME, PASSWORD)
+        self.channel = self.connection.channel()
+        self.channel.queue.declare('test.basic.consume')
+        self.channel.queue.purge('test.basic.consume')
+        self.channel.confirm_deliveries()
+
+    def test_functional_start_stop_consumer(self):
+        for _ in range(5):
+            self.channel.basic.publish(body=str(uuid.uuid4()),
+                                       routing_key='test.basic.consume')
+
+        # Store and inbound messages.
+        inbound_messages = []
+
+        def on_message(message):
+            self.assertIsInstance(message.body, (bytes, str))
+            self.assertIsInstance(message.channel, Channel)
+            self.assertIsInstance(message.properties, dict)
+            self.assertIsInstance(message.method, dict)
+            inbound_messages.append(message)
+            if len(inbound_messages) >= 5:
+                message.channel.stop_consuming()
+
+        self.channel.basic.consume(callback=on_message,
+                                   queue='test.basic.consume',
+                                   no_ack=True)
+
+        # Sleep for 0.5s to make sure RabbitMQ has time to catch up.
+        time.sleep(0.5)
+
+        self.channel.start_consuming(to_tuple=False)
+
+        # Make sure all five messages were downloaded.
+        self.assertEqual(len(inbound_messages), 5)
+
+    def tearDown(self):
+        self.channel.queue.delete('test.basic.consume')
+        self.channel.close()
+        self.connection.close()
+
+
+class TraditionalPublishAndConsumeMessagesTest(unittest.TestCase):
+    def setUp(self):
+        self.connection = Connection(HOST, USERNAME, PASSWORD)
+        self.channel = self.connection.channel()
+        self.channel.queue.declare('test.basic.consume')
+        self.channel.queue.purge('test.basic.consume')
+        self.channel.confirm_deliveries()
+
+    def test_functional_publish_and_consume_five_messages_tuple(self):
+        for _ in range(5):
+            self.channel.basic.publish(body=str(uuid.uuid4()),
+                                       routing_key='test.basic.consume')
+
+        # Store and inbound messages.
+        inbound_messages = []
+
+        def on_message(body, channel, method, properties):
+            self.assertIsInstance(body, (bytes, str))
+            self.assertIsInstance(channel, Channel)
+            self.assertIsInstance(properties, dict)
+            self.assertIsInstance(method, dict)
+            inbound_messages.append(body)
+
+        self.channel.basic.consume(callback=on_message,
+                                   queue='test.basic.consume',
+                                   no_ack=True)
+
+        # Sleep for 0.5s to make sure RabbitMQ has time to catch up.
+        time.sleep(0.5)
+
+        self.channel.process_data_events(to_tuple=True)
+
+        # Make sure all five messages were downloaded.
+        self.assertEqual(len(inbound_messages), 5)
+
+    def tearDown(self):
+        self.channel.queue.delete('test.basic.consume')
+        self.channel.close()
+        self.connection.close()

@@ -1,5 +1,7 @@
+# -*- coding: utf-8 -*-
 import logging
 import uuid
+import sys
 
 try:
     import unittest2 as unittest
@@ -13,7 +15,6 @@ from pamqp.specification import Basic as spec_basic
 from amqpstorm import exception
 from amqpstorm.channel import Basic
 from amqpstorm.channel import Channel
-
 from amqpstorm.tests.utility import FakeConnection
 
 logging.basicConfig(level=logging.DEBUG)
@@ -58,6 +59,34 @@ class BasicTests(unittest.TestCase):
         self.assertTrue(basic_publish.mandatory)
         self.assertIn('key', dict(content_header.properties)['headers'])
 
+    def test_basic_publish_confirms_ack(self):
+        message = str(uuid.uuid4())
+
+        def on_publish_return_ack(*_):
+            channel.rpc.on_frame(spec_basic.Ack())
+
+        connection = FakeConnection(on_write=on_publish_return_ack)
+        channel = Channel(9, connection, 1)
+        channel.confirming_deliveries = True
+        channel.set_state(Channel.OPEN)
+        basic = Basic(channel)
+        self.assertTrue(basic.publish(body=message,
+                                      routing_key='unittest'))
+
+    def test_basic_publish_confirms_nack(self):
+        message = str(uuid.uuid4())
+
+        def on_publish_return_nack(*_):
+            channel.rpc.on_frame(spec_basic.Nack())
+
+        connection = FakeConnection(on_write=on_publish_return_nack)
+        channel = Channel(9, connection, 1)
+        channel.confirming_deliveries = True
+        channel.set_state(Channel.OPEN)
+        basic = Basic(channel)
+        self.assertFalse(basic.publish(body=message,
+                                       routing_key='unittest'))
+
     def test_basic_return(self):
         basic = Basic(None)
 
@@ -98,15 +127,65 @@ class BasicTests(unittest.TestCase):
         self.assertEqual(basic._get_content_body(uuid, len(message)),
                          message)
 
-    def test_basic_get_content_body_timeout_error(self):
-        message = b'Hello World!'
-        body = ContentBody(value=message)
-        channel = Channel(0, FakeConnection(), 0.0001)
+    def test_basic_get_content_body_break_on_none_value(self):
+        body = ContentBody(value=None)
+        channel = Channel(0, FakeConnection(), 360)
         channel.set_state(Channel.OPEN)
         basic = Basic(channel)
         uuid = channel.rpc.register_request([body.name])
-        self.assertRaises(exception.AMQPChannelError, basic._get_content_body,
-                          uuid, len(message))
+        channel.rpc.on_frame(body)
+        self.assertEqual(basic._get_content_body(uuid, 10), b'')
+
+    @unittest.skipIf(sys.version_info[0] == 2, 'No bytes decoding in Python 2')
+    def test_basic_py3_utf_8_payload(self):
+        message = 'Hellå World!'
+        basic = Basic(None)
+        payload = basic._handle_utf8_payload(message, {})
+        self.assertEqual(payload, b'Hell\xc3\xa5 World!')
+
+    @unittest.skipIf(sys.version_info[0] == 3, 'No unicode obj in Python 3')
+    def test_basic_py2_utf_8_payload(self):
+        message = u'Hellå World!'
+        basic = Basic(None)
+        properties = {}
+        payload = basic._handle_utf8_payload(message, properties)
+        self.assertEqual(payload, 'Hell\xc3\xa5 World!')
+
+    def test_basic_content_not_in_properties(self):
+        message = 'Hello World!'
+        basic = Basic(None)
+        properties = {}
+        basic._handle_utf8_payload(message, properties)
+        self.assertEqual(properties['content_encoding'], 'utf-8')
+
+    def test_basic_consume_add_tag(self):
+        tag = 'unittest'
+        channel = Channel(0, None, 1)
+        basic = Basic(channel)
+        self.assertEqual(basic._consume_add_and_get_tag({'consumer_tag': tag}),
+                         tag)
+        self.assertEqual(channel.consumer_tags[0], tag)
+
+    def test_basic_consume_rpc(self):
+        tag = 'unittest'
+
+        def on_publish_return_ack(_, frame):
+            self.assertIsInstance(frame, spec_basic.Consume)
+            self.assertEqual(frame.arguments, {})
+            self.assertEqual(frame.consumer_tag, tag)
+            self.assertEqual(frame.exclusive, True)
+            self.assertEqual(frame.no_ack, True)
+            self.assertEqual(frame.exclusive, True)
+            self.assertEqual(frame.queue, '')
+            channel.rpc.on_frame(spec_basic.ConsumeOk(tag))
+
+        connection = FakeConnection(on_write=on_publish_return_ack)
+        channel = Channel(9, connection, 1)
+        channel.set_state(channel.OPEN)
+        basic = Basic(channel)
+        self.assertEqual(
+            basic._consume_rpc_request({}, tag, True, True, True, ''),
+            {'consumer_tag': 'unittest'})
 
 
 class BasicExceptionTests(unittest.TestCase):
@@ -269,3 +348,42 @@ class BasicExceptionTests(unittest.TestCase):
         self.assertRaisesRegexp(exception.AMQPInvalidArgument,
                                 'requeue should be a boolean',
                                 basic.reject, 1, None)
+
+    def test_basic_get_content_body_timeout_error(self):
+        message = b'Hello World!'
+        body = ContentBody(value=message)
+        channel = Channel(0, FakeConnection(), 0.0001)
+        channel.set_state(Channel.OPEN)
+        basic = Basic(channel)
+        uuid = channel.rpc.register_request([body.name])
+        self.assertRaises(exception.AMQPChannelError, basic._get_content_body,
+                          uuid, len(message))
+
+    def test_basic_publish_confirms_raises_on_timeout(self):
+        message = str(uuid.uuid4())
+
+        connection = FakeConnection()
+        channel = Channel(9, connection, 0.01)
+        channel.confirming_deliveries = True
+        channel.set_state(Channel.OPEN)
+        basic = Basic(channel)
+        self.assertRaisesRegexp(exception.AMQPChannelError,
+                                "rpc requests",
+                                basic.publish, body=message,
+                                routing_key='unittest')
+
+    def test_basic_publish_confirms_raises_on_invalid_frame(self):
+        message = str(uuid.uuid4())
+
+        def on_publish_return_invalid_frame(*_):
+            channel.rpc.on_frame(spec_basic.Cancel())
+
+        connection = FakeConnection(on_write=on_publish_return_invalid_frame)
+        channel = Channel(9, connection, 0.01)
+        channel.confirming_deliveries = True
+        channel.set_state(Channel.OPEN)
+        basic = Basic(channel)
+        self.assertRaisesRegexp(exception.AMQPChannelError,
+                                "rpc requests",
+                                basic.publish, body=message,
+                                routing_key='unittest')

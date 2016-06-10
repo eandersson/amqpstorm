@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import logging
 import ssl
 import sys
@@ -36,7 +37,7 @@ class CompatibilityTests(unittest.TestCase):
 
     @unittest.skipIf(sys.version_info[0] == 3, 'No unicode obj in Python 3')
     def test_compatibility_unicode_string(self):
-        x = unicode('')
+        x = u'å'
         self.assertTrue(compatibility.is_string(x))
 
     def test_compatibility_is_not_string(self):
@@ -45,7 +46,7 @@ class CompatibilityTests(unittest.TestCase):
 
     @unittest.skipIf(sys.version_info[0] == 3, 'No unicode obj in Python 3')
     def test_compatibility_is_unicode(self):
-        x = unicode('')
+        x = u'å'
         self.assertTrue(compatibility.is_unicode(x))
 
     def test_compatibility_is_not_unicode(self):

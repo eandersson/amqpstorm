@@ -33,6 +33,7 @@ class Message(BaseMessage):
         :param Channel channel: AMQP-Storm Channel
         :param bytes|str|unicode body: Message body
         :param dict properties: Message properties
+
         :rtype: Message
         """
         properties = properties or {}
@@ -96,6 +97,11 @@ class Message(BaseMessage):
     def ack(self):
         """Acknowledge Message.
 
+        :raises AMQPInvalidArgument: Invalid Parameters
+        :raises AMQPChannelError: Raises if the channel encountered an error.
+        :raises AMQPConnectionError: Raises if the connection
+                                     encountered an error.
+
         :return:
         """
         if not self._method:
@@ -105,6 +111,11 @@ class Message(BaseMessage):
 
     def nack(self, requeue=True):
         """Negative Acknowledgement.
+
+        :raises AMQPInvalidArgument: Invalid Parameters
+        :raises AMQPChannelError: Raises if the channel encountered an error.
+        :raises AMQPConnectionError: Raises if the connection
+                                     encountered an error.
 
         :param bool requeue:
         """
@@ -116,6 +127,11 @@ class Message(BaseMessage):
 
     def reject(self, requeue=True):
         """Reject Message.
+
+        :raises AMQPInvalidArgument: Invalid Parameters
+        :raises AMQPChannelError: Raises if the channel encountered an error.
+        :raises AMQPConnectionError: Raises if the connection
+                                     encountered an error.
 
         :param bool requeue: Requeue the message
         """
@@ -129,10 +145,18 @@ class Message(BaseMessage):
                 immediate=False):
         """Publish Message.
 
-        :param str routing_key:
-        :param str exchange:
-        :param bool mandatory:
-        :param bool immediate:
+        :param str routing_key: Message routing key
+        :param str exchange: The exchange to publish the message to
+        :param dict properties: Message properties
+        :param bool mandatory: Requires the message is published
+        :param bool immediate: Request immediate delivery
+
+        :raises AMQPInvalidArgument: Invalid Parameters
+        :raises AMQPChannelError: Raises if the channel encountered an error.
+        :raises AMQPConnectionError: Raises if the connection
+                                     encountered an error.
+
+        :rtype: bool|None
         """
         return self._channel.basic.publish(body=self._body,
                                            routing_key=routing_key,
