@@ -188,11 +188,11 @@ class ChannelExceptionTests(unittest.TestCase):
 
         channel._build_message = mock_build_message
 
-        try:
-            for _ in channel.build_inbound_messages(break_on_empty=False):
-                pass
-        except AMQPChannelError as why:
-            self.assertIsInstance(why, AMQPChannelError)
+        generator = channel.build_inbound_messages(break_on_empty=False)
+        if hasattr(generator, 'next'):
+            self.assertRaises(AMQPChannelError, generator.next)
+        else:
+            self.assertRaises(AMQPChannelError, generator.__next__)
 
 
 class ChannelBuildMessageTests(unittest.TestCase):
