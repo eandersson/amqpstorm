@@ -9,7 +9,7 @@ from pamqp.header import ContentHeader
 from amqpstorm import compatibility
 from amqpstorm.base import BaseChannel
 from amqpstorm.base import IDLE_WAIT
-from amqpstorm.base import Rpc
+from amqpstorm.rpc import Rpc
 from amqpstorm.basic import Basic
 from amqpstorm.exception import AMQPChannelError
 from amqpstorm.exception import AMQPConnectionError

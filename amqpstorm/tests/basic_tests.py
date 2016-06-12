@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 import logging
-import uuid
+import random
+import string
 import sys
+import uuid
 
 try:
     import unittest2 as unittest
@@ -15,6 +17,7 @@ from pamqp.specification import Basic as spec_basic
 from amqpstorm import exception
 from amqpstorm.channel import Basic
 from amqpstorm.channel import Channel
+from amqpstorm.compatibility import RANGE
 from amqpstorm.tests.utility import FakeConnection
 
 logging.basicConfig(level=logging.DEBUG)
@@ -87,7 +90,7 @@ class BasicTests(unittest.TestCase):
         self.assertFalse(basic.publish(body=message,
                                        routing_key='unittest'))
 
-    def test_basic_return(self):
+    def test_basic_create_content_body(self):
         basic = Basic(None)
 
         message = b'Hello World!'
@@ -98,7 +101,24 @@ class BasicTests(unittest.TestCase):
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].value, message)
 
-    def test_basic_return_long_string(self):
+    def test_basic_create_content_body_growing(self):
+        basic = Basic(None)
+        long_string = ''.join(random.choice(string.ascii_letters)
+                              for _ in RANGE(32768))
+
+        for index in RANGE(32768):
+            results = []
+            message = long_string[:index + 1]
+            for frame in basic._create_content_body(message):
+                results.append(frame)
+
+            # Rebuild the string
+            result_body = ''
+            for frame in results:
+                result_body += frame.value
+            self.assertEqual(result_body, message)
+
+    def test_basic_create_content_body_long_string(self):
         basic = Basic(None)
 
         message = b'Hello World!' * 80960
