@@ -2,9 +2,9 @@ import logging
 import select
 import socket
 import ssl
-
 from errno import EINTR
 from errno import EWOULDBLOCK
+
 from mock import MagicMock
 
 try:
@@ -57,6 +57,23 @@ class IOTests(unittest.TestCase):
 
         if hasattr(socket, 'socket'):
             self.assertIsInstance(sock, socket.socket)
+
+    def test_io_create_ssl_socket(self):
+        connection = FakeConnection()
+        connection.parameters['ssl'] = True
+        io = IO(connection.parameters)
+
+        self.assertTrue(io.use_ssl)
+
+        addresses = io._get_socket_addresses()
+        sock_address_tuple = addresses[0]
+        sock = io._create_socket(socket_family=sock_address_tuple[0])
+
+        if hasattr(socket, 'socket'):
+            self.assertIsInstance(sock, socket.socket)
+        if hasattr(ssl, 'SSLSocket'):
+            self.assertIsInstance(sock, ssl.SSLSocket)
+        self.assertTrue(connection.parameters['ssl_options']['ssl_version'])
 
     def test_io_get_socket_address(self):
         connection = FakeConnection()

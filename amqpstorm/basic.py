@@ -12,7 +12,6 @@ from amqpstorm.base import FRAME_MAX
 from amqpstorm.base import Handler
 from amqpstorm.exception import AMQPChannelError
 from amqpstorm.exception import AMQPInvalidArgument
-from amqpstorm.exception import AMQPMessageError
 from amqpstorm.message import Message
 
 LOGGER = logging.getLogger(__name__)
@@ -400,8 +399,9 @@ class Basic(Handler):
         for offset in compatibility.RANGE(0, frames):
             start_frame = FRAME_MAX * offset
             end_frame = start_frame + FRAME_MAX
-            if end_frame > len(body):
-                end_frame = len(body)
+            body_len = len(body)
+            if end_frame > body_len:
+                end_frame = body_len
             yield pamqp_body.ContentBody(body[start_frame:end_frame])
 
     def _get_content_body(self, uuid_body, body_size):

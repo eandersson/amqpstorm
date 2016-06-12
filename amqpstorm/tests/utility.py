@@ -14,7 +14,8 @@ class FakeConnection(Stateful):
             'port': 1234,
             'heartbeat': 60,
             'timeout': 30,
-            'ssl': False
+            'ssl': False,
+            'ssl_options': {}
         }
         self.set_state(state)
         self.on_write = on_write

@@ -170,6 +170,7 @@ class UriConnectionExceptionTests(unittest.TestCase):
     """These tests are only so that we better understand when, and where
         UriConnection fails.
     """
+
     @unittest.skipIf(sys.version_info < (3, 3), 'Python 3.x test')
     def test_uri_py3_raises_on_empty(self):
         self.assertRaises(TypeError, UriConnection, '')

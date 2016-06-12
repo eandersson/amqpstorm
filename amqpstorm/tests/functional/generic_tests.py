@@ -718,6 +718,7 @@ class TraditionalStartStopConsumeTest(unittest.TestCase):
         self.channel.close()
         self.connection.close()
 
+
 class StartStopConsumeTest(unittest.TestCase):
     def setUp(self):
         self.connection = Connection(HOST, USERNAME, PASSWORD)
