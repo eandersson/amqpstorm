@@ -39,8 +39,7 @@ class Channel0(object):
         """
         LOGGER.debug('Frame Received: %s', frame_in.name)
         if frame_in.name == 'Heartbeat':
-            self._connection.heartbeat.register_heartbeat()
-            self._write_frame(Heartbeat())
+            self.send_heartbeat()
         elif frame_in.name == 'Connection.Start':
             self.server_properties = frame_in.server_properties
             self._send_start_ok_frame(frame_in)
@@ -62,6 +61,13 @@ class Channel0(object):
             LOGGER.info('Connection is no longer blocked by remote server')
         else:
             LOGGER.error('[Channel0] Unhandled Frame: %s', frame_in.name)
+
+    def send_heartbeat(self):
+        """Send Heartbeat frame.
+
+        :return:
+        """
+        self._write_frame(Heartbeat())
 
     def send_close_connection_frame(self):
         """Send Connection Close frame.
@@ -107,6 +113,7 @@ class Channel0(object):
         :return:
         """
         self._connection.write_frame(0, frame_out)
+        LOGGER.debug('Frame Sent: %s', frame_out.name)
 
     def _send_start_ok_frame(self, frame_in):
         """Send Start OK frame.

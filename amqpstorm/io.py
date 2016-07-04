@@ -53,13 +53,14 @@ class Poller(object):
 class IO(object):
     """AMQP Connection.io"""
 
-    def __init__(self, parameters, on_read=None):
-        self._inbound_thread = None
-        self._lock = threading.Lock()
-        self._stopped = threading.Event()
-        self._parameters = parameters
-        self._on_read = on_read
+    def __init__(self, parameters, on_read=None, on_write=None):
         self._exceptions = None
+        self._lock = threading.Lock()
+        self._inbound_thread = None
+        self._on_read = on_read
+        self._on_write = on_write
+        self._running = threading.Event()
+        self._parameters = parameters
         self.buffer = EMPTY_BUFFER
         self.poller = None
         self.socket = None
@@ -76,7 +77,7 @@ class IO(object):
         self._lock.acquire()
         try:
             self.buffer = EMPTY_BUFFER
-            self._stopped = threading.Event()
+            self._running.set()
             self._exceptions = exceptions
             sock_addresses = self._get_socket_addresses()
             self.socket = self._find_address_and_connect(sock_addresses)
@@ -93,7 +94,7 @@ class IO(object):
         """
         self._lock.acquire()
         try:
-            self._stopped.set()
+            self._running.clear()
             if self._inbound_thread:
                 self._inbound_thread.join()
             self._inbound_thread = None
@@ -110,12 +111,16 @@ class IO(object):
         :param str frame_data:
         :return:
         """
+        if self._on_write:
+            self._on_write()
         self._lock.acquire()
         try:
             total_bytes_written = 0
             bytes_to_send = len(frame_data)
             while total_bytes_written < bytes_to_send:
                 try:
+                    if not self.socket:
+                        raise socket.error('connection/socket error')
                     bytes_written = \
                         self.socket.send(frame_data[total_bytes_written:])
                     if bytes_written == 0:
@@ -210,7 +215,7 @@ class IO(object):
 
         :return:
         """
-        while not self._stopped.is_set():
+        while self._running.is_set():
             if self.poller.is_ready:
                 self.buffer += self._receive()
                 self.buffer = self._on_read(self.buffer)
@@ -231,7 +236,7 @@ class IO(object):
             pass
         except (IOError, OSError) as why:
             self._exceptions.append(AMQPConnectionError(why))
-            self._stopped.set()
+            self._running.clear()
         return result
 
     def _read_from_socket(self):

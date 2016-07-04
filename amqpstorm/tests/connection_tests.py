@@ -253,11 +253,11 @@ class ConnectionTests(unittest.TestCase):
         connection.heartbeat.start(connection.exceptions)
         connection.exceptions.append(AMQPConnectionError('error'))
 
-        self.assertFalse(connection.heartbeat._stopped.is_set())
+        self.assertTrue(connection.heartbeat._running.is_set())
 
         self.assertRaises(AMQPConnectionError, connection.check_for_errors)
 
-        self.assertTrue(connection.heartbeat._stopped.is_set())
+        self.assertFalse(connection.heartbeat._running.is_set())
 
 
 class ConnectionParameterTests(unittest.TestCase):

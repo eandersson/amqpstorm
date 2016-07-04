@@ -56,9 +56,12 @@ class Connection(Stateful):
             'ssl_options': kwargs.get('ssl_options', {})
         }
         self._validate_parameters()
-        self.heartbeat = Heartbeat(self.parameters['heartbeat'])
-        self._io = IO(self.parameters, on_read=self._read_buffer)
         self._channel0 = Channel0(self)
+        self.heartbeat = Heartbeat(self.parameters['heartbeat'],
+                                   self._channel0.send_heartbeat)
+        self._io = IO(self.parameters, on_read=self._read_buffer,
+                      on_write=self.heartbeat.register_write)
+
         self._channels = {}
         if not kwargs.get('lazy', False):
             self.open()
@@ -247,7 +250,7 @@ class Connection(Stateful):
             if frame_in is None:
                 break
 
-            self.heartbeat.register_beat()
+            self.heartbeat.register_read()
             if channel_id == 0:
                 self._channel0.on_frame(frame_in)
             else:
@@ -270,7 +273,7 @@ class Connection(Stateful):
             pass
         except pamqp_spec.AMQPFrameError as why:
             LOGGER.error('AMQPFrameError: %r', why, exc_info=True)
-        except (UnicodeDecodeError, ValueError) as why:
+        except ValueError as why:
             LOGGER.error(why, exc_info=True)
             self.exceptions.append(AMQPConnectionError(why))
         return data_in, None, None
