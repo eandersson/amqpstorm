@@ -115,7 +115,7 @@ class UriConnectionTests(unittest.TestCase):
 
     def test_uri_get_invalid_ssl_version(self):
         connection = \
-            UriConnection('amqp://guest:guest@localhost:5672/%2F', True)
+            UriConnection('amqps://guest:guest@localhost:5672/%2F', True)
         self.assertEqual(connection._get_ssl_version('protocol_test'),
                          ssl.PROTOCOL_TLSv1)
         self.assertIn("ssl_options: ssl_version 'protocol_test' not found "

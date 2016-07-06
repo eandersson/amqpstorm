@@ -26,6 +26,10 @@ CONTENT_FRAME = ['Basic.Deliver', 'ContentHeader', 'ContentBody']
 
 class Channel(BaseChannel):
     """Connection.channel"""
+    __slots__ = [
+        'confirming_deliveries', 'consumer_callback', 'rpc', '_basic',
+        '_connection', '_exchange', '_inbound', '_queue'
+    ]
 
     def __init__(self, channel_id, connection, rpc_timeout):
         super(Channel, self).__init__(channel_id)
@@ -34,9 +38,9 @@ class Channel(BaseChannel):
         self.consumer_callback = None
         self._inbound = []
         self._connection = connection
-        self._basic = None
-        self._exchange = None
-        self._queue = None
+        self._basic = Basic(self)
+        self._exchange = Exchange(self)
+        self._queue = Queue(self)
 
     def __enter__(self):
         return self
@@ -58,7 +62,7 @@ class Channel(BaseChannel):
 
         :rtype: Basic
         """
-        return self._lazy_load_handler('_basic', Basic)
+        return self._basic
 
     @property
     def exchange(self):
@@ -66,7 +70,7 @@ class Channel(BaseChannel):
 
         :rtype: Exchange
         """
-        return self._lazy_load_handler('_exchange', Exchange)
+        return self._exchange
 
     @property
     def queue(self):
@@ -74,7 +78,7 @@ class Channel(BaseChannel):
 
         :rtype: Queue
         """
-        return self._lazy_load_handler('_queue', Queue)
+        return self._queue
 
     def open(self):
         """Open Channel.
@@ -340,10 +344,10 @@ class Channel(BaseChannel):
         with self.lock:
             if len(self._inbound) < 2:
                 return None
-            result = self._build_message_headers()
-            if not result:
+            headers = self._build_message_headers()
+            if not headers:
                 return None
-            basic_deliver, content_header = result
+            basic_deliver, content_header = headers
             body = self._build_message_body(content_header.body_size)
 
         message = Message(channel=self,
@@ -387,16 +391,3 @@ class Channel(BaseChannel):
                 break
             body += body_piece.value
         return body
-
-    def _lazy_load_handler(self, name, handler_class):
-        """Lazy load operations (e.g. Queue, Exchange)
-
-        :param name:
-        :param Handler handler_class: Handler (e.g. Queue)
-        :return:
-        """
-        handler = getattr(self, name)
-        if not handler:
-            handler = handler_class(self)
-            setattr(self, name, handler)
-        return handler

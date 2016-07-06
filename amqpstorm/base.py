@@ -1,13 +1,20 @@
 """AMQP-Storm Base."""
 
+import locale
 import threading
 
+AUTH_MECHANISM = 'PLAIN'
 IDLE_WAIT = 0.01
 FRAME_MAX = 131072
+MAX_CHANNELS = 65535
+LOCALE = locale.getdefaultlocale()[0] or 'en_US'
 
 
 class Stateful(object):
     """Stateful"""
+    __slots__ = [
+        '_exceptions', '_lock', '_state'
+    ]
     CLOSED = 0
     CLOSING = 1
     OPENING = 2
@@ -81,6 +88,9 @@ class Stateful(object):
 
 class BaseChannel(Stateful):
     """AMQP BaseChannel"""
+    __slots__ = [
+        '_channel_id', '_consumer_tags'
+    ]
 
     def __init__(self, channel_id):
         super(BaseChannel, self).__init__()
@@ -129,7 +139,9 @@ class BaseChannel(Stateful):
 
 class BaseMessage(object):
     """AMQP BaseMessage"""
-    __slots__ = ['_body', '_channel', '_method', '_properties']
+    __slots__ = [
+        '_body', '_channel', '_method', '_properties'
+    ]
 
     def __init__(self, channel, **message):
         """
@@ -169,7 +181,9 @@ class BaseMessage(object):
 
 class Handler(object):
     """Operations Handler (e.g. Queue, Exchange)"""
-    __slots__ = ['_channel']
+    __slots__ = [
+        '_channel'
+    ]
 
     def __init__(self, channel):
         self._channel = channel

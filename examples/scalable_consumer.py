@@ -9,7 +9,6 @@ import amqpstorm
 from amqpstorm import Connection
 
 logging.basicConfig(level=logging.DEBUG)
-
 LOGGER = logging.getLogger()
 
 
@@ -40,10 +39,14 @@ class ScalableConsumer(object):
             try:
                 # Check our connection for errors.
                 self._connection.check_for_errors()
+                if not self._connection.is_open:
+                    raise amqpstorm.AMQPConnectionError('connection closed')
                 self._update_consumers()
-            except amqpstorm.AMQPError:
+            except amqpstorm.AMQPError as why:
                 # If an error occurs, re-connect and let update_consumers
                 # re-open the channels.
+                LOGGER.warning(why)
+                self._stop_consumers()
                 self._create_connection()
             time.sleep(1)
 
@@ -108,7 +111,7 @@ class ScalableConsumer(object):
         """
         # Do we need to start more consumers.
         consumer_to_start = \
-            max(self.number_of_consumers - len(self._consumers), 0)
+            min(max(self.number_of_consumers - len(self._consumers), 0), 2)
         for _ in range(consumer_to_start):
             consumer = Consumer(self.queue)
             self._start_consumer(consumer)
@@ -119,9 +122,18 @@ class ScalableConsumer(object):
             if consumer.active:
                 continue
             self._start_consumer(consumer)
+            break
 
         # Do we have any overflow of consumers.
-        while len(self._consumers) > self.number_of_consumers:
+        self._stop_consumers(self.number_of_consumers)
+
+    def _stop_consumers(self, number_of_consumers=0):
+        """Stop a specific number of consumers.
+
+        :param number_of_consumers:
+        :return:
+        """
+        while len(self._consumers) > number_of_consumers:
             consumer = self._consumers.pop()
             consumer.stop()
 
@@ -135,21 +147,6 @@ class ScalableConsumer(object):
                                   args=(self._connection,))
         thread.daemon = True
         thread.start()
-        self._wait_for_consumer_to_start(consumer)
-
-    @staticmethod
-    def _wait_for_consumer_to_start(consumer, timeout=30):
-        """Wait to make sure the consumer has time to start.
-
-        :param Consumer consumer:
-        :param int timeout:
-        :return:
-        """
-        start_time = time.time()
-        while not consumer.active:
-            if time.time() - start_time > timeout:
-                break
-            time.sleep(0.1)
 
 
 class Consumer(object):
@@ -161,27 +158,24 @@ class Consumer(object):
     def start(self, connection):
         self.channel = None
         try:
-            self.channel = connection.channel()
+            self.active = True
+            self.channel = connection.channel(rpc_timeout=10)
             self.channel.basic.qos(1)
             self.channel.queue.declare(self.queue)
             self.channel.basic.consume(self, self.queue, no_ack=False)
-            self.active = True
             self.channel.start_consuming(to_tuple=False)
             if not self.channel.consumer_tags:
                 # Only close the channel if there is nothing consuming.
                 # This is to allow messages that are still being processed
                 # in __call__ to finish processing.
                 self.channel.close()
-        except amqpstorm.AMQPError as why:
-            if self.channel:
-                self.channel.close()
-            LOGGER.info(why)
+        except amqpstorm.AMQPError:
+            pass
         finally:
             self.active = False
 
     def stop(self):
         if self.channel:
-            self.channel.stop_consuming()
             self.channel.close()
 
     def __call__(self, message):

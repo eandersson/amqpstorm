@@ -53,22 +53,21 @@ class Poller(object):
 class IO(object):
     """AMQP Connection.io"""
 
-    def __init__(self, parameters, on_read=None):
-        self._inbound_thread = None
+    def __init__(self, parameters, exceptions=None, on_read=None):
+        self._exceptions = exceptions
         self._lock = threading.Lock()
-        self._stopped = threading.Event()
-        self._parameters = parameters
+        self._inbound_thread = None
         self._on_read = on_read
-        self._exceptions = None
+        self._running = threading.Event()
+        self._parameters = parameters
         self.buffer = EMPTY_BUFFER
         self.poller = None
         self.socket = None
         self.use_ssl = self._parameters['ssl']
 
-    def open(self, exceptions):
+    def open(self):
         """Open Socket and establish a connection.
 
-        :param list exceptions:
         :raises AMQPConnectionError: If a connection cannot be established on
                                      the specified address, raise an exception.
         :return:
@@ -76,8 +75,7 @@ class IO(object):
         self._lock.acquire()
         try:
             self.buffer = EMPTY_BUFFER
-            self._stopped = threading.Event()
-            self._exceptions = exceptions
+            self._running.set()
             sock_addresses = self._get_socket_addresses()
             self.socket = self._find_address_and_connect(sock_addresses)
             self.poller = Poller(self.socket.fileno(), self._exceptions,
@@ -93,7 +91,7 @@ class IO(object):
         """
         self._lock.acquire()
         try:
-            self._stopped.set()
+            self._running.clear()
             if self._inbound_thread:
                 self._inbound_thread.join()
             self._inbound_thread = None
@@ -116,6 +114,8 @@ class IO(object):
             bytes_to_send = len(frame_data)
             while total_bytes_written < bytes_to_send:
                 try:
+                    if not self.socket:
+                        raise socket.error('connection/socket error')
                     bytes_written = \
                         self.socket.send(frame_data[total_bytes_written:])
                     if bytes_written == 0:
@@ -210,7 +210,7 @@ class IO(object):
 
         :return:
         """
-        while not self._stopped.is_set():
+        while self._running.is_set():
             if self.poller.is_ready:
                 self.buffer += self._receive()
                 self.buffer = self._on_read(self.buffer)
@@ -231,7 +231,7 @@ class IO(object):
             pass
         except (IOError, OSError) as why:
             self._exceptions.append(AMQPConnectionError(why))
-            self._stopped.set()
+            self._running.clear()
         return result
 
     def _read_from_socket(self):

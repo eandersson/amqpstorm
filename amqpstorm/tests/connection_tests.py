@@ -209,7 +209,7 @@ class ConnectionTests(unittest.TestCase):
         self.assertTrue(connection.is_open)
 
     def test_connection_wait_for_connection_raises_on_timeout(self):
-        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=1,
+        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
                                 lazy=True)
         connection.set_state(connection.OPENING)
         io = IO(connection.parameters, [])
@@ -253,11 +253,11 @@ class ConnectionTests(unittest.TestCase):
         connection.heartbeat.start(connection.exceptions)
         connection.exceptions.append(AMQPConnectionError('error'))
 
-        self.assertFalse(connection.heartbeat._stopped.is_set())
+        self.assertTrue(connection.heartbeat._running.is_set())
 
         self.assertRaises(AMQPConnectionError, connection.check_for_errors)
 
-        self.assertTrue(connection.heartbeat._stopped.is_set())
+        self.assertFalse(connection.heartbeat._running.is_set())
 
 
 class ConnectionParameterTests(unittest.TestCase):

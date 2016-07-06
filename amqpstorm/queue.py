@@ -13,6 +13,7 @@ LOGGER = logging.getLogger(__name__)
 
 class Queue(Handler):
     """AMQP Channel.queue"""
+    __slots__ = []
 
     def declare(self, queue='', passive=False, durable=False,
                 exclusive=False, auto_delete=False, arguments=None):

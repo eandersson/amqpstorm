@@ -11,7 +11,9 @@ from amqpstorm.exception import AMQPMessageError
 
 class Message(BaseMessage):
     """AMQP Message"""
-    __slots__ = ['_auto_decode', '_decode_cache']
+    __slots__ = [
+        '_auto_decode', '_decode_cache'
+    ]
 
     def __init__(self, channel, auto_decode=True, **message):
         """

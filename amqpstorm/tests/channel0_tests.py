@@ -1,5 +1,4 @@
 import logging
-import time
 import platform
 
 try:
@@ -97,6 +96,16 @@ class Channel0Tests(unittest.TestCase):
         self.assertEqual(channel_id, 0)
         self.assertIsInstance(frame_out, Connection.TuneOk)
 
+    def test_channel0_send_heartbeat_frame(self):
+        connection = FakeConnection()
+        channel = Channel0(connection)
+        channel.send_heartbeat()
+
+        self.assertNotEqual(connection.frames_out, [])
+        channel_id, frame_out = connection.frames_out.pop()
+        self.assertEqual(channel_id, 0)
+        self.assertIsInstance(frame_out, Heartbeat)
+
     def test_channel0_send_close_connection_frame(self):
         connection = FakeConnection()
         channel = Channel0(connection)
@@ -149,6 +158,17 @@ class Channel0FrameTests(unittest.TestCase):
                                 'Connection was closed by remote server: ',
                                 connection.check_for_errors)
 
+    def test_channel0_heartbeat(self):
+        connection = amqpstorm.Connection('localhost', 'guest', 'guest',
+                                          lazy=True)
+        channel = Channel0(connection)
+
+        self.assertEqual(connection.heartbeat._writes_since_check, 0)
+
+        channel.on_frame(Heartbeat())
+
+        self.assertEqual(connection.heartbeat._writes_since_check, 1)
+
     def test_channel0_is_blocked(self):
         connection = amqpstorm.Connection('localhost', 'guest', 'guest',
                                           lazy=True)
@@ -176,30 +196,6 @@ class Channel0FrameTests(unittest.TestCase):
         self.assertFalse(channel.is_blocked)
         self.assertEqual(self.logging_handler.messages['info'][0],
                          'Connection is no longer blocked by remote server')
-
-    def test_channel0_on_hearbeat_registers_heartbeat(self):
-        connection = amqpstorm.Connection('localhost', 'guest', 'guest',
-                                          lazy=True)
-        last_heartbeat = connection.heartbeat._last_heartbeat
-        start_time = time.time()
-        channel = Channel0(connection)
-
-        time.sleep(0.1)
-
-        def fake(*_):
-            pass
-
-        # Don't try to write to socket during test.
-        channel._write_frame = fake
-
-        # As the heartbeat timer was never started, it should be 0.
-        self.assertEqual(connection.heartbeat._last_heartbeat, 0.0)
-
-        channel.on_frame(Heartbeat())
-
-        self.assertNotEqual(connection.heartbeat._last_heartbeat,
-                            last_heartbeat)
-        self.assertGreater(connection.heartbeat._last_heartbeat, start_time)
 
     def test_channel0_unhandled_frame(self):
         connection = amqpstorm.Connection('localhost', 'guest', 'guest',

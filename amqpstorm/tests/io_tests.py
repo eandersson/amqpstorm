@@ -212,14 +212,12 @@ class IOExceptionTests(unittest.TestCase):
 
     def test_io_simple_send_with_recoverable_error(self):
         connection = FakeConnection()
-        global raised
-        raised = False
+        self.raised = False
 
         def custom_raise(*args, **kwargs):
-            global raised
-            if raised:
+            if self.raised:
                 return 1
-            raised = True
+            self.raised = True
             raise socket.error(EWOULDBLOCK)
 
         io = IO(connection.parameters)
@@ -229,16 +227,17 @@ class IOExceptionTests(unittest.TestCase):
         io.socket.send.side_effect = custom_raise
         io.write_to_socket('12345')
 
+        self.assertTrue(self.raised)
+        self.assertFalse(io._exceptions)
+
     def test_io_simple_send_with_timeout_error(self):
         connection = FakeConnection()
-        global raised
-        raised = False
+        self.raised = False
 
         def custom_raise(*args, **kwargs):
-            global raised
-            if raised:
+            if self.raised:
                 return 1
-            raised = True
+            self.raised = True
             raise socket.timeout()
 
         io = IO(connection.parameters)
@@ -247,6 +246,19 @@ class IOExceptionTests(unittest.TestCase):
         io.poller = MagicMock(name='poller', spec=amqpstorm.io.Poller)
         io.socket.send.side_effect = custom_raise
         io.write_to_socket('12345')
+
+        self.assertTrue(self.raised)
+        self.assertFalse(io._exceptions)
+
+    def test_io_simple_send_with_io_error(self):
+        connection = FakeConnection()
+
+        io = IO(connection.parameters)
+        io._exceptions = []
+        io.socket = None
+        io.write_to_socket('12345')
+
+        self.assertTrue(io._exceptions)
 
     def test_io_ssl_connection_without_ssl_library(self):
         compatibility.SSL_SUPPORTED = False
@@ -260,7 +272,7 @@ class IOExceptionTests(unittest.TestCase):
             self.assertRaisesRegexp(AMQPConnectionError,
                                     'Python not compiled with '
                                     'support for TLSv1 or higher',
-                                    io.open, [])
+                                    io.open)
         finally:
             compatibility.SSL_SUPPORTED = True
 
@@ -274,7 +286,7 @@ class IOExceptionTests(unittest.TestCase):
             io = IO(parameters)
             self.assertRaisesRegexp(AMQPConnectionError,
                                     'Could not connect to localhost:1234',
-                                    io.open, [])
+                                    io.open)
         finally:
             compatibility.SSL_SUPPORTED = True
 
