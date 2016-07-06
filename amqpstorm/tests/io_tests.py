@@ -272,7 +272,7 @@ class IOExceptionTests(unittest.TestCase):
             self.assertRaisesRegexp(AMQPConnectionError,
                                     'Python not compiled with '
                                     'support for TLSv1 or higher',
-                                    io.open, [])
+                                    io.open)
         finally:
             compatibility.SSL_SUPPORTED = True
 
@@ -286,7 +286,7 @@ class IOExceptionTests(unittest.TestCase):
             io = IO(parameters)
             self.assertRaisesRegexp(AMQPConnectionError,
                                     'Could not connect to localhost:1234',
-                                    io.open, [])
+                                    io.open)
         finally:
             compatibility.SSL_SUPPORTED = True
 

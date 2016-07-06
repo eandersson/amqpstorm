@@ -1,6 +1,5 @@
 """AMQP-Storm Connection.Channel0."""
 
-import locale
 import logging
 import platform
 
@@ -9,15 +8,16 @@ from pamqp.heartbeat import Heartbeat
 from pamqp.specification import Connection as pamqp_connection
 
 from amqpstorm import __version__
+from amqpstorm.base import AUTH_MECHANISM
 from amqpstorm.base import FRAME_MAX
+from amqpstorm.base import LOCALE
+from amqpstorm.base import MAX_CHANNELS
 from amqpstorm.base import Stateful
 from amqpstorm.exception import AMQPConnectionError
 from amqpstorm.compatibility import try_utf8_decode
 
-AUTH_MECHANISM = 'PLAIN'
-LOCALE = locale.getdefaultlocale()[0] or 'en_US'
+
 LOGGER = logging.getLogger(__name__)
-MAX_CHANNELS = 65535
 
 
 class Channel0(object):
@@ -118,7 +118,7 @@ class Channel0(object):
     def _send_start_ok_frame(self, frame_in):
         """Send Start OK frame.
 
-        :param pamqp_spec.Frame frame_out: Amqp frame.
+        :param pamqp_spec.Connection.StartOk frame_in: Amqp frame.
         :return:
         """
         if 'PLAIN' not in try_utf8_decode(frame_in.mechanisms):

@@ -13,6 +13,7 @@ LOGGER = logging.getLogger(__name__)
 
 class Exchange(Handler):
     """AMQP Channel.exchange"""
+    __slots__ = []
 
     def declare(self, exchange='', exchange_type='direct', passive=False,
                 durable=False, auto_delete=False, arguments=None):

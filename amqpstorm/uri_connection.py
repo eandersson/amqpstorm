@@ -17,6 +17,7 @@ class UriConnection(Connection):
             UriConnect('amqp://guest:guest@localhost:5672/%2F?heartbeat=60')
             UriConnect('amqps://guest:guest@localhost:5671/%2F?heartbeat=60')
     """
+    __slots__ = []
 
     def __init__(self, uri, lazy=False):
         """

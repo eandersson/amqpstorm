@@ -25,6 +25,9 @@ LOGGER = logging.getLogger(__name__)
 
 class Connection(Stateful):
     """AMQP Connection"""
+    __slots__ = [
+        'heartbeat', 'parameters', '_channel0', '_channels', '_io'
+    ]
 
     def __init__(self, hostname, username, password, port=5672, **kwargs):
         """
@@ -56,13 +59,12 @@ class Connection(Stateful):
             'ssl_options': kwargs.get('ssl_options', {})
         }
         self._validate_parameters()
+        self._io = IO(self.parameters, exceptions=self._exceptions,
+                      on_read=self._read_buffer)
         self._channel0 = Channel0(self)
+        self._channels = {}
         self.heartbeat = Heartbeat(self.parameters['heartbeat'],
                                    self._channel0.send_heartbeat)
-        self._io = IO(self.parameters, on_read=self._read_buffer,
-                      on_write=self.heartbeat.register_write)
-
-        self._channels = {}
         if not kwargs.get('lazy', False):
             self.open()
 
@@ -119,7 +121,7 @@ class Connection(Stateful):
         LOGGER.debug('Connection Opening')
         self.set_state(self.OPENING)
         self._exceptions = []
-        self._io.open(self._exceptions)
+        self._io.open()
         self._send_handshake()
         self._wait_for_connection_to_open()
         self.heartbeat.start(self._exceptions)
@@ -183,6 +185,7 @@ class Connection(Stateful):
         :return:
         """
         frame_data = pamqp_frame.marshal(frame_out, channel_id)
+        self.heartbeat.register_write()
         self._io.write_to_socket(frame_data)
 
     def write_frames(self, channel_id, multiple_frames):
@@ -195,6 +198,7 @@ class Connection(Stateful):
         frame_data = EMPTY_BUFFER
         for single_frame in multiple_frames:
             frame_data += pamqp_frame.marshal(single_frame, channel_id)
+        self.heartbeat.register_write()
         self._io.write_to_socket(frame_data)
 
     def _validate_parameters(self):

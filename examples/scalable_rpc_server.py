@@ -178,7 +178,7 @@ class Consumer(object):
                 # This is to allow messages that are still being processed
                 # in __call__ to finish processing.
                 self.channel.close()
-        except amqpstorm.AMQPError as why:
+        except amqpstorm.AMQPError:
             pass
         finally:
             self.active = False

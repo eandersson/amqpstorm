@@ -110,7 +110,7 @@ class CompatibilityTests(unittest.TestCase):
 
 
 class CompatibilitySslTests(unittest.TestCase):
-    def test_io_default_ssl_version(self):
+    def test_compatibility_default_ssl_version(self):
         if hasattr(ssl, 'PROTOCOL_TLSv1_2'):
             self.assertEqual(compatibility.DEFAULT_SSL_VERSION,
                              ssl.PROTOCOL_TLSv1_2)

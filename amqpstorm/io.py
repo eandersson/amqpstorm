@@ -53,12 +53,11 @@ class Poller(object):
 class IO(object):
     """AMQP Connection.io"""
 
-    def __init__(self, parameters, on_read=None, on_write=None):
-        self._exceptions = None
+    def __init__(self, parameters, exceptions=None, on_read=None):
+        self._exceptions = exceptions
         self._lock = threading.Lock()
         self._inbound_thread = None
         self._on_read = on_read
-        self._on_write = on_write
         self._running = threading.Event()
         self._parameters = parameters
         self.buffer = EMPTY_BUFFER
@@ -66,10 +65,9 @@ class IO(object):
         self.socket = None
         self.use_ssl = self._parameters['ssl']
 
-    def open(self, exceptions):
+    def open(self):
         """Open Socket and establish a connection.
 
-        :param list exceptions:
         :raises AMQPConnectionError: If a connection cannot be established on
                                      the specified address, raise an exception.
         :return:
@@ -78,7 +76,6 @@ class IO(object):
         try:
             self.buffer = EMPTY_BUFFER
             self._running.set()
-            self._exceptions = exceptions
             sock_addresses = self._get_socket_addresses()
             self.socket = self._find_address_and_connect(sock_addresses)
             self.poller = Poller(self.socket.fileno(), self._exceptions,
@@ -111,8 +108,6 @@ class IO(object):
         :param str frame_data:
         :return:
         """
-        if self._on_write:
-            self._on_write()
         self._lock.acquire()
         try:
             total_bytes_written = 0

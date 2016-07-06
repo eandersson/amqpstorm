@@ -209,7 +209,7 @@ class ConnectionTests(unittest.TestCase):
         self.assertTrue(connection.is_open)
 
     def test_connection_wait_for_connection_raises_on_timeout(self):
-        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=1,
+        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
                                 lazy=True)
         connection.set_state(connection.OPENING)
         io = IO(connection.parameters, [])

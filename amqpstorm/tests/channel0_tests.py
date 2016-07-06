@@ -1,5 +1,4 @@
 import logging
-import time
 import platform
 
 try:
@@ -97,6 +96,16 @@ class Channel0Tests(unittest.TestCase):
         self.assertEqual(channel_id, 0)
         self.assertIsInstance(frame_out, Connection.TuneOk)
 
+    def test_channel0_send_heartbeat_frame(self):
+        connection = FakeConnection()
+        channel = Channel0(connection)
+        channel.send_heartbeat()
+
+        self.assertNotEqual(connection.frames_out, [])
+        channel_id, frame_out = connection.frames_out.pop()
+        self.assertEqual(channel_id, 0)
+        self.assertIsInstance(frame_out, Heartbeat)
+
     def test_channel0_send_close_connection_frame(self):
         connection = FakeConnection()
         channel = Channel0(connection)
@@ -148,6 +157,17 @@ class Channel0FrameTests(unittest.TestCase):
         self.assertRaisesRegexp(AMQPConnectionError,
                                 'Connection was closed by remote server: ',
                                 connection.check_for_errors)
+
+    def test_channel0_heartbeat(self):
+        connection = amqpstorm.Connection('localhost', 'guest', 'guest',
+                                          lazy=True)
+        channel = Channel0(connection)
+
+        self.assertEqual(connection.heartbeat._writes_since_check, 0)
+
+        channel.on_frame(Heartbeat())
+
+        self.assertEqual(connection.heartbeat._writes_since_check, 1)
 
     def test_channel0_is_blocked(self):
         connection = amqpstorm.Connection('localhost', 'guest', 'guest',

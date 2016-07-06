@@ -12,6 +12,7 @@ class Heartbeat(object):
     """AMQP Internal Heartbeat Checker"""
 
     def __init__(self, interval, send_heartbeat=None):
+        self.send_heartbeat = send_heartbeat
         self._lock = threading.Lock()
         self._running = threading.Event()
         self._timer = None
@@ -20,7 +21,6 @@ class Heartbeat(object):
         self._writes_since_check = 0
         self._interval = interval
         self._threshold = 0
-        self.send_heartbeat = send_heartbeat
 
     def register_read(self):
         """Register that a frame has been received.
@@ -67,12 +67,13 @@ class Heartbeat(object):
             First check if any data has been sent, if not send a heartbeat.
 
             If we have not received a heartbeat, or any data what so ever
-            we should raise an exception so that we can close the connection.
+            within two intervals, we need to raise an exception so
+            that we can close the connection.
 
             RabbitMQ may not necessarily send heartbeats if the connection
             is busy, so we only raise if no frame has been received.
 
-        :return:
+        :rtype: bool
         """
         if not self._running.is_set():
             return False
@@ -90,7 +91,7 @@ class Heartbeat(object):
                     if self._exceptions is None:
                         raise why
                     self._exceptions.append(why)
-                    return
+                    return False
             else:
                 self._threshold = 0
         finally:

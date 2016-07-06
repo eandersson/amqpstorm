@@ -1,4 +1,6 @@
 import logging
+import threading
+import mock
 
 try:
     import unittest2 as unittest
@@ -17,7 +19,6 @@ from amqpstorm.basic import Basic
 from amqpstorm.exchange import Exchange
 from amqpstorm.queue import Queue
 from amqpstorm.exception import *
-
 from amqpstorm.tests.utility import FakeConnection
 from amqpstorm.tests.utility import FakeFrame
 from amqpstorm.tests.utility import MockLoggingHandler
@@ -70,23 +71,17 @@ class ChannelTests(unittest.TestCase):
     def test_channel_basic_handler(self):
         channel = Channel(0, None, 360)
 
-        self.assertIsNone(channel._basic)
         self.assertIsInstance(channel.basic, Basic)
-        self.assertIsNotNone(channel._basic)
 
     def test_channel_exchange_handler(self):
         channel = Channel(0, None, 360)
 
-        self.assertIsNone(channel._exchange)
         self.assertIsInstance(channel.exchange, Exchange)
-        self.assertIsNotNone(channel._exchange)
 
     def test_channel_queue_handler(self):
         channel = Channel(0, None, 360)
 
-        self.assertIsNone(channel._queue)
         self.assertIsInstance(channel.queue, Queue)
-        self.assertIsNotNone(channel._queue)
 
 
 class ChannelExceptionTests(unittest.TestCase):
@@ -183,16 +178,32 @@ class ChannelExceptionTests(unittest.TestCase):
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(Channel.OPEN)
 
-        def mock_build_message():
-            channel.exceptions.append(AMQPChannelError())
+        with mock.patch('amqpstorm.Channel._build_message',
+                        side_effect=AMQPChannelError()):
+            generator = channel.build_inbound_messages(break_on_empty=False)
+            if hasattr(generator, 'next'):
+                self.assertRaises(AMQPChannelError, generator.next)
+            else:
+                self.assertRaises(AMQPChannelError, generator.__next__)
 
-        channel._build_message = mock_build_message
+    def test_channel_build_inbound_rases_in_loop(self):
+        channel = Channel(0, FakeConnection(), 360)
+        channel.set_state(Channel.OPEN)
+        self.first = True
 
-        generator = channel.build_inbound_messages(break_on_empty=False)
-        if hasattr(generator, 'next'):
-            self.assertRaises(AMQPChannelError, generator.next)
-        else:
-            self.assertRaises(AMQPChannelError, generator.__next__)
+        def raise_after_one():
+            if not self.first:
+                channel.exceptions.append(AMQPChannelError())
+            self.first = False
+            return None
+
+        with mock.patch('amqpstorm.Channel._build_message',
+                        side_effect=raise_after_one):
+            generator = channel.build_inbound_messages(break_on_empty=False)
+            if hasattr(generator, 'next'):
+                self.assertRaises(AMQPChannelError, generator.next)
+            else:
+                self.assertRaises(AMQPChannelError, generator.__next__)
 
 
 class ChannelBuildMessageTests(unittest.TestCase):
@@ -284,6 +295,22 @@ class ChannelBuildMessageTests(unittest.TestCase):
         channel = Channel(0, None, 360)
         channel._inbound = []
         self.assertRaises(IndexError, channel._build_message_headers)
+
+    def test_channel_build_message_empty_and_then_break(self):
+        """Start building a message with an empty inbound queue,
+            and send an empty ContentBody that should be ignored.
+
+        :return:
+        """
+        channel = Channel(0, None, 360)
+        channel._inbound = []
+
+        def add_inbound():
+            channel._inbound.append(ContentBody())
+
+        threading.Timer(function=add_inbound, interval=0.5).start()
+
+        self.assertFalse(channel._build_message_body(128))
 
     def test_channel_build_message_body(self):
         channel = Channel(0, None, 360)
