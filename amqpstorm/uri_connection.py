@@ -33,8 +33,8 @@ class UriConnection(Connection):
         use_ssl = parsed_uri.scheme == 'https'
         hostname = parsed_uri.hostname or 'localhost'
         port = parsed_uri.port or 5672
-        username = urlparse.unquote(parsed_uri.username) or 'guest'
-        password = urlparse.unquote(parsed_uri.password) or 'guest'
+        username = urlparse.unquote(parsed_uri.username or 'guest')
+        password = urlparse.unquote(parsed_uri.password or 'guest')
         kwargs = self._parse_uri_options(parsed_uri, use_ssl)
         super(UriConnection, self).__init__(hostname, username,
                                             password, port,
