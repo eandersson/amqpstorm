@@ -109,6 +109,22 @@ class CompatibilityTests(unittest.TestCase):
         self.assertEqual(compatibility.patch_uri('amqp://'), 'http://')
 
 
+class SslTLSv1_2(object):
+    PROTOCOL_TLSv1_2 = 5
+
+
+class SslTLSv1_1(object):
+    PROTOCOL_TLSv1_1 = 4
+
+
+class SslTLSv1(object):
+    PROTOCOL_TLSv1 = 3
+
+
+class SslTLSNone(object):
+    pass
+
+
 class CompatibilitySslTests(unittest.TestCase):
     def test_compatibility_default_ssl_version(self):
         if hasattr(ssl, 'PROTOCOL_TLSv1_2'):
@@ -117,3 +133,43 @@ class CompatibilitySslTests(unittest.TestCase):
         else:
             self.assertEqual(compatibility.DEFAULT_SSL_VERSION,
                              ssl.PROTOCOL_TLSv1)
+
+    def test_compatibility_default_ssl_none(self):
+        restore_func = compatibility.ssl
+        try:
+            compatibility.ssl = None
+            self.assertIsNone(compatibility.get_default_ssl_version())
+        finally:
+            compatibility.ssl = restore_func
+
+    def test_compatibility_default_tls_1_2(self):
+        restore_func = compatibility.ssl
+        try:
+            compatibility.ssl = SslTLSv1_2
+            self.assertEqual(compatibility.get_default_ssl_version(), 5)
+        finally:
+            compatibility.ssl = restore_func
+
+    def test_compatibility_default_tls_1_1(self):
+        restore_func = compatibility.ssl
+        try:
+            compatibility.ssl = SslTLSv1_1
+            self.assertEqual(compatibility.get_default_ssl_version(), 4)
+        finally:
+            compatibility.ssl = restore_func
+
+    def test_compatibility_default_tls_1(self):
+        restore_func = compatibility.ssl
+        try:
+            compatibility.ssl = SslTLSv1
+            self.assertEqual(compatibility.get_default_ssl_version(), 3)
+        finally:
+            compatibility.ssl = restore_func
+
+    def test_compatibility_default_tls_not_available(self):
+        restore_func = compatibility.ssl
+        try:
+            compatibility.ssl = SslTLSNone
+            self.assertIsNone(compatibility.get_default_ssl_version())
+        finally:
+            compatibility.ssl = restore_func

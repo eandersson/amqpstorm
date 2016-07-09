@@ -21,8 +21,6 @@ else:
 
 SSL_CERT_MAP = {}
 SSL_VERSIONS = {}
-DEFAULT_SSL_VERSION = None
-SSL_SUPPORTED = True if ssl else False
 SSL_OPTIONS = [
     'keyfile',
     'certfile',
@@ -31,16 +29,21 @@ SSL_OPTIONS = [
     'ca_certs'
 ]
 
-if SSL_SUPPORTED:
-    if hasattr(ssl, 'PROTOCOL_TLSv1_2'):
-        DEFAULT_SSL_VERSION = ssl.PROTOCOL_TLSv1_2
-    elif hasattr(ssl, 'PROTOCOL_TLSv1_1'):
-        DEFAULT_SSL_VERSION = ssl.PROTOCOL_TLSv1_1
-    elif hasattr(ssl, 'PROTOCOL_TLSv1'):
-        DEFAULT_SSL_VERSION = ssl.PROTOCOL_TLSv1
-    else:
-        SSL_SUPPORTED = False
 
+def get_default_ssl_version():
+    if not ssl:
+        return None
+    elif hasattr(ssl, 'PROTOCOL_TLSv1_2'):
+        return ssl.PROTOCOL_TLSv1_2
+    elif hasattr(ssl, 'PROTOCOL_TLSv1_1'):
+        return ssl.PROTOCOL_TLSv1_1
+    elif hasattr(ssl, 'PROTOCOL_TLSv1'):
+        return ssl.PROTOCOL_TLSv1
+    return None
+
+DEFAULT_SSL_VERSION = get_default_ssl_version()
+SSL_SUPPORTED = DEFAULT_SSL_VERSION is not None
+if SSL_SUPPORTED:
     if hasattr(ssl, 'PROTOCOL_TLSv1_2'):
         SSL_VERSIONS['protocol_tlsv1_2'] = ssl.PROTOCOL_TLSv1_2
     if hasattr(ssl, 'PROTOCOL_TLSv1_1'):
