@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
+import imp
 import ssl
 import sys
 
@@ -126,7 +127,9 @@ class SslTLSNone(object):
 
 
 class CompatibilitySslTests(unittest.TestCase):
+    @unittest.skipIf('ssl' not in sys.modules, 'no ssl support')
     def test_compatibility_default_ssl_version(self):
+        self.assertTrue(compatibility.SSL_SUPPORTED)
         if hasattr(ssl, 'PROTOCOL_TLSv1_2'):
             self.assertEqual(compatibility.DEFAULT_SSL_VERSION,
                              ssl.PROTOCOL_TLSv1_2)
@@ -173,3 +176,17 @@ class CompatibilitySslTests(unittest.TestCase):
             self.assertIsNone(compatibility.get_default_ssl_version())
         finally:
             compatibility.ssl = restore_func
+
+    def test_compatibility_ssl_not_defined(self):
+        restore_func = sys.modules['ssl']
+        try:
+            sys.modules['ssl'] = None
+            imp.reload(compatibility)
+            self.assertIsNone(compatibility.ssl)
+            self.assertIsNone(compatibility.DEFAULT_SSL_VERSION)
+            self.assertFalse(compatibility.SSL_SUPPORTED)
+            self.assertFalse(compatibility.SSL_CERT_MAP)
+            self.assertFalse(compatibility.SSL_VERSIONS)
+        finally:
+            sys.modules['ssl'] = restore_func
+            imp.reload(compatibility)
