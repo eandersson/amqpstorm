@@ -1,3 +1,4 @@
+import imp
 import logging
 import ssl
 import sys
@@ -197,12 +198,16 @@ class UriConnectionExceptionTests(unittest.TestCase):
                       self.logging_handler.messages['warning'][0])
 
     def test_uri_ssl_not_supported(self):
-        compatibility.SSL_SUPPORTED = False
+        restore_func = sys.modules['ssl']
         try:
+            sys.modules['ssl'] = None
+            imp.reload(compatibility)
+            self.assertIsNone(compatibility.ssl)
             self.assertRaisesRegexp(AMQPConnectionError,
                                     'Python not compiled with '
                                     'support for TLSv1 or higher',
                                     UriConnection,
                                     'amqps://localhost:5672/%2F')
         finally:
-            compatibility.SSL_SUPPORTED = True
+            sys.modules['ssl'] = restore_func
+            imp.reload(compatibility)

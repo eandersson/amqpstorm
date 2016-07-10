@@ -1,4 +1,6 @@
+import imp
 import logging
+import sys
 import threading
 import time
 import uuid
@@ -14,6 +16,8 @@ from amqpstorm import Connection
 from amqpstorm import UriConnection
 from amqpstorm import AMQPMessageError
 from amqpstorm import AMQPChannelError
+from amqpstorm import AMQPConnectionError
+from amqpstorm import compatibility
 
 HOST = '127.0.0.1'
 USERNAME = 'guest'
@@ -838,3 +842,20 @@ class TraditionalGeneratorConsumeMessagesTest(unittest.TestCase):
         self.channel.queue.delete('test.basic.generator')
         self.channel.close()
         self.connection.close()
+
+
+class ConnectionWithoutSSLSupportTest(unittest.TestCase):
+    def test_functional_ssl_connection_without_ssl(self):
+        restore_func = sys.modules['ssl']
+        try:
+            sys.modules['ssl'] = None
+            imp.reload(compatibility)
+            self.assertIsNone(compatibility.ssl)
+            self.assertRaisesRegexp(AMQPConnectionError,
+                                    'Python not compiled with '
+                                    'support for TLSv1 or higher',
+                                    Connection, HOST, USERNAME,
+                                    PASSWORD, ssl=True)
+        finally:
+            sys.modules['ssl'] = restore_func
+            imp.reload(compatibility)
