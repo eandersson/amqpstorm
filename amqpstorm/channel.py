@@ -9,8 +9,8 @@ from pamqp.header import ContentHeader
 from amqpstorm import compatibility
 from amqpstorm.base import BaseChannel
 from amqpstorm.base import IDLE_WAIT
-from amqpstorm.rpc import Rpc
 from amqpstorm.basic import Basic
+from amqpstorm.compatibility import try_utf8_decode
 from amqpstorm.exception import AMQPChannelError
 from amqpstorm.exception import AMQPConnectionError
 from amqpstorm.exception import AMQPInvalidArgument
@@ -18,7 +18,7 @@ from amqpstorm.exception import AMQPMessageError
 from amqpstorm.exchange import Exchange
 from amqpstorm.message import Message
 from amqpstorm.queue import Queue
-from amqpstorm.compatibility import try_utf8_decode
+from amqpstorm.rpc import Rpc
 
 LOGGER = logging.getLogger(__name__)
 CONTENT_FRAME = ['Basic.Deliver', 'ContentHeader', 'ContentBody']

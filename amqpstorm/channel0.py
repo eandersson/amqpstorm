@@ -13,9 +13,8 @@ from amqpstorm.base import FRAME_MAX
 from amqpstorm.base import LOCALE
 from amqpstorm.base import MAX_CHANNELS
 from amqpstorm.base import Stateful
-from amqpstorm.exception import AMQPConnectionError
 from amqpstorm.compatibility import try_utf8_decode
-
+from amqpstorm.exception import AMQPConnectionError
 
 LOGGER = logging.getLogger(__name__)
 
@@ -32,7 +31,7 @@ class Channel0(object):
         self._heartbeat = self.parameters['heartbeat']
 
     def on_frame(self, frame_in):
-        """Handle frame sent to channel 0.
+        """Handle frames sent to Channel0.
 
         :param frame_in: Amqp frame.
         :return:
@@ -107,7 +106,7 @@ class Channel0(object):
         self._connection.set_state(state)
 
     def _write_frame(self, frame_out):
-        """Write a pamqp frame from channel0.
+        """Write a pamqp frame from Channel0.
 
         :param frame_out: Amqp frame.
         :return:
@@ -164,7 +163,7 @@ class Channel0(object):
 
     @staticmethod
     def _client_properties():
-        """AMQP Library Properties.
+        """AMQPStorm Client Properties.
 
         :rtype: dict
         """

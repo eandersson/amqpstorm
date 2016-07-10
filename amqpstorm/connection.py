@@ -88,7 +88,7 @@ class Connection(Stateful):
 
     @property
     def server_properties(self):
-        """Returns the RabbitMQ Server properties.
+        """Returns the RabbitMQ Server Properties.
 
         :rtype: dict
         """
@@ -96,7 +96,7 @@ class Connection(Stateful):
 
     @property
     def socket(self):
-        """Returns an instance of the socket.
+        """Returns an instance of the Socket used by the Connection.
 
         :rtype: socket
         """
@@ -104,7 +104,7 @@ class Connection(Stateful):
 
     @property
     def fileno(self):
-        """Socket Fileno.
+        """Returns the Socket File number.
 
         :return:
         """
@@ -139,7 +139,7 @@ class Connection(Stateful):
         self.set_state(self.CLOSED)
         LOGGER.debug('Connection Closed')
 
-    def channel(self, rpc_timeout=120):
+    def channel(self, rpc_timeout=60):
         """Open Channel.
 
         :param int rpc_timeout: Timeout before we give up waiting for an RPC
@@ -165,7 +165,7 @@ class Connection(Stateful):
         return self._channels[channel_id]
 
     def check_for_errors(self):
-        """Check connection for errors.
+        """Check Connection for errors.
 
         :raises AMQPConnectionError: Raises if the connection
                                      encountered an error.
@@ -178,7 +178,7 @@ class Connection(Stateful):
         raise self.exceptions[0]
 
     def write_frame(self, channel_id, frame_out):
-        """Marshal and write an outgoing pamqp frame to the socket.
+        """Marshal and write an outgoing pamqp frame to the Socket.
 
         :param int channel_id:
         :param pamqp_spec.Frame frame_out: Amqp frame.
@@ -189,7 +189,7 @@ class Connection(Stateful):
         self._io.write_to_socket(frame_data)
 
     def write_frames(self, channel_id, multiple_frames):
-        """Marshal and write multiple outgoing pamqp frames to the socket.
+        """Marshal and write multiple outgoing pamqp frames to the Socket.
 
         :param int channel_id:
         :param list multiple_frames: Amqp frames.
@@ -222,14 +222,14 @@ class Connection(Stateful):
             raise AMQPInvalidArgument('heartbeat should be an integer')
 
     def _send_handshake(self):
-        """Send RabbitMQ Handshake.
+        """Send a RabbitMQ Handshake.
 
         :return:
         """
         self._io.write_to_socket(pamqp_header.ProtocolHeader().marshal())
 
     def _wait_for_connection_to_open(self):
-        """Wait for the connection to fully open.
+        """Wait for the Connection to fully open.
 
         :return:
         """
@@ -242,10 +242,10 @@ class Connection(Stateful):
             sleep(IDLE_WAIT)
 
     def _read_buffer(self, buffer):
-        """Process the socket buffer, and direct the data to the correct
+        """Process the socket buffer, and direct the data to the appropriate
         channel.
 
-        :return:
+        :rtype: bytes
         """
         while buffer:
             buffer, channel_id, frame_in = \
@@ -263,7 +263,7 @@ class Connection(Stateful):
         return buffer
 
     def _handle_amqp_frame(self, data_in):
-        """Unmarshal any incoming RabbitMQ frames and return the result.
+        """Unmarshal a incoming RabbitMQ frame and return the result.
 
         :param data_in: socket data
         :return: buffer, channel_id, frame

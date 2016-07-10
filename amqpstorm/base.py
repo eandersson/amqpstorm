@@ -27,6 +27,10 @@ class Stateful(object):
 
     @property
     def lock(self):
+        """Threading lock.
+
+        :return:
+        """
         return self._lock
 
     def set_state(self, state):

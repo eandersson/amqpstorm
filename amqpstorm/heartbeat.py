@@ -62,16 +62,14 @@ class Heartbeat(object):
         self._timer = None
 
     def _check_for_life_signs(self):
-        """Check if we have any sign of life.
+        """Check Connection for life signs.
 
-            First check if any data has been sent, if not send a heartbeat.
+            First check if any data has been sent, if not send a heartbeat
+            to the remote server.
 
-            If we have not received a heartbeat, or any data what so ever
-            within two intervals, we need to raise an exception so
-            that we can close the connection.
-
-            RabbitMQ may not necessarily send heartbeats if the connection
-            is busy, so we only raise if no frame has been received.
+            If we have not received any data what so ever within two
+            intervals, we need to raise an exception so that we can
+            close the connection.
 
         :rtype: bool
         """
@@ -102,7 +100,7 @@ class Heartbeat(object):
         return True
 
     def _start_new_timer(self):
-        """Create a timer that will check for life signs on our connection.
+        """Create a timer that will check for life signs on our Connection.
 
         :return:
         """

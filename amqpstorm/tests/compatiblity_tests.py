@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-import logging
 import imp
+import logging
 import ssl
 import sys
 
@@ -127,7 +127,8 @@ class SslTLSNone(object):
 
 
 class CompatibilitySslTests(unittest.TestCase):
-    @unittest.skipIf('ssl' not in sys.modules, 'no ssl support')
+    @unittest.skipIf('ssl' not in sys.modules, 'Python not compiled '
+                                               'with SSL support')
     def test_compatibility_default_ssl_version(self):
         self.assertTrue(compatibility.SSL_SUPPORTED)
         if hasattr(ssl, 'PROTOCOL_TLSv1_2'):

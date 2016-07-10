@@ -150,9 +150,11 @@ class IO(object):
         """Find and connect to the appropriate address.
 
         :param addresses:
+
         :raises AMQPConnectionError: If no appropriate address can be found,
                                      raise an exception.
-        :return:
+
+        :rtype: socket.socket
         """
         for address in addresses:
             sock = self._create_socket(socket_family=address[0])
@@ -169,7 +171,7 @@ class IO(object):
         """Create Socket.
 
         :param int family:
-        :return:
+        :rtype: socket.socket
         """
         sock = socket.socket(socket_family, socket.SOCK_STREAM, 0)
         sock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 1)
@@ -183,7 +185,7 @@ class IO(object):
         return sock
 
     def _ssl_wrap_socket(self, sock):
-        """Wrap SSLSocket around the socket.
+        """Wrap SSLSocket around the Socket.
 
         :param socket sock:
         :rtype: SSLSocket
@@ -222,7 +224,7 @@ class IO(object):
             If an error is thrown, handle it and return an empty string.
 
         :return: buffer
-        :rtype: str
+        :rtype: bytes
         """
         result = EMPTY_BUFFER
         try:
@@ -237,7 +239,7 @@ class IO(object):
     def _read_from_socket(self):
         """Read data from the socket.
 
-        :return:
+        :rtype: bytes
         """
         if self.use_ssl:
             result = self.socket.read(FRAME_MAX)

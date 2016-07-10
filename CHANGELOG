@@ -1,9 +1,11 @@
 # Changelog
 
 ### Version 1.4.0
+- 100% Unit-test Coverage!
 - All classes are now slotted.
 - New improved Heartbeat Monitor.
     - If no data has been sent within the Heartbeat interval, the client will now send a Heartbeat to the server. - Thanks David Schneider.
+- Reduced default RPC timeout from 120s to 60s.
 
 ### Version 1.3.4
 - Dropped Python 3.2 Support.

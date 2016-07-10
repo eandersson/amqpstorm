@@ -6,6 +6,7 @@ from amqpstorm import compatibility
 from amqpstorm.compatibility import ssl
 from amqpstorm.compatibility import urlparse
 from amqpstorm.connection import Connection
+from amqpstorm.exception import AMQPConnectionError
 
 LOGGER = logging.getLogger(__name__)
 
@@ -55,12 +56,15 @@ class UriConnection(Connection):
             'heartbeat': int(kwargs.pop('heartbeat', [60])[0]),
             'timeout': int(kwargs.pop('timeout', [30])[0])
         }
-        if compatibility.SSL_SUPPORTED and use_ssl:
+        if use_ssl:
+            if not compatibility.SSL_SUPPORTED:
+                raise AMQPConnectionError('Python not compiled with support '
+                                          'for TLSv1 or higher')
             options['ssl_options'] = self._parse_ssl_options(kwargs)
         return options
 
     def _parse_ssl_options(self, ssl_kwargs):
-        """Parse SSL Options.
+        """Parse TLS Options.
 
         :param ssl_kwargs:
         :rtype: dict
@@ -80,10 +84,10 @@ class UriConnection(Connection):
         return ssl_options
 
     def _get_ssl_version(self, value):
-        """Get the SSL Version.
+        """Get the TLS Version.
 
         :param str value:
-        :return: SSL Version
+        :return: TLS Version
         """
         return self._get_ssl_attribute(value, compatibility.SSL_VERSIONS,
                                        ssl.PROTOCOL_TLSv1,
@@ -91,10 +95,10 @@ class UriConnection(Connection):
                                        'found falling back to PROTOCOL_TLSv1.')
 
     def _get_ssl_validation(self, value):
-        """Get the SSL Validation option.
+        """Get the TLS Validation option.
 
         :param str value:
-        :return: SSL Certificate Options
+        :return: TLS Certificate Options
         """
         return self._get_ssl_attribute(value, compatibility.SSL_CERT_MAP,
                                        ssl.CERT_NONE,
@@ -103,7 +107,7 @@ class UriConnection(Connection):
 
     @staticmethod
     def _get_ssl_attribute(value, mapping, default_value, warning_message):
-        """Get the SSL attribute based on the mapping.
+        """Get the TLS attribute based on the compatibility mapping.
 
             If no valid attribute can be found, fall-back on default and
             display a warning.

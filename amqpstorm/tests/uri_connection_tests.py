@@ -8,6 +8,8 @@ except ImportError:
     import unittest
 
 from amqpstorm import UriConnection
+from amqpstorm import compatibility
+from amqpstorm.exception import AMQPConnectionError
 
 from amqpstorm.tests.utility import MockLoggingHandler
 
@@ -193,3 +195,14 @@ class UriConnectionExceptionTests(unittest.TestCase):
         self.assertIn("ssl_options: cert_reqs 'cert_test' not found "
                       "falling back to CERT_NONE.",
                       self.logging_handler.messages['warning'][0])
+
+    def test_uri_ssl_not_supported(self):
+        compatibility.SSL_SUPPORTED = False
+        try:
+            self.assertRaisesRegexp(AMQPConnectionError,
+                                    'Python not compiled with '
+                                    'support for TLSv1 or higher',
+                                    UriConnection,
+                                    'amqps://localhost:5672/%2F')
+        finally:
+            compatibility.SSL_SUPPORTED = True

@@ -1,5 +1,6 @@
 import logging
 import threading
+
 import mock
 
 try:

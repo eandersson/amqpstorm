@@ -45,6 +45,7 @@ def get_default_ssl_version():
         return ssl.PROTOCOL_TLSv1
     return None
 
+
 DEFAULT_SSL_VERSION = get_default_ssl_version()
 SSL_SUPPORTED = DEFAULT_SSL_VERSION is not None
 if SSL_SUPPORTED:
@@ -89,7 +90,7 @@ def is_integer(obj):
 def is_unicode(obj):
     """Is this a unicode string.
 
-        This always returns False if running on Python 3.
+        This always returns False if running Python 3.x.
 
     :param object obj:
     :rtype: bool
