@@ -52,12 +52,9 @@ class Channel0(object):
         elif frame_in.name == 'Connection.CloseOk':
             self._close_connection_ok()
         elif frame_in.name == 'Connection.Blocked':
-            self.is_blocked = True
-            LOGGER.warning('Connection is blocked by remote server: %s',
-                           try_utf8_decode(frame_in.reason))
+            self._blocked_connection(frame_in)
         elif frame_in.name == 'Connection.Unblocked':
-            self.is_blocked = False
-            LOGGER.info('Connection is no longer blocked by remote server')
+            self._unblocked_connection()
         else:
             LOGGER.error('[Channel0] Unhandled Frame: %s', frame_in.name)
 
@@ -91,11 +88,29 @@ class Channel0(object):
             self._connection.exceptions.append(exception)
 
     def _close_connection_ok(self):
-        """Connection CloseOk.
+        """Connection CloseOk frame received.
 
         :return:
         """
         self._set_connection_state(Stateful.CLOSED)
+
+    def _blocked_connection(self, frame_in):
+        """Connection is Blocked.
+
+        :param frame_in:
+        :return:
+        """
+        self.is_blocked = True
+        LOGGER.warning('Connection is blocked by remote server: %s',
+                       try_utf8_decode(frame_in.reason))
+
+    def _unblocked_connection(self):
+        """Connection is Unblocked.
+
+        :return:
+        """
+        self.is_blocked = False
+        LOGGER.info('Connection is no longer blocked by remote server')
 
     def _set_connection_state(self, state):
         """Set Connection state.
