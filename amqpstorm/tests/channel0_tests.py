@@ -162,12 +162,7 @@ class Channel0FrameTests(unittest.TestCase):
         connection = amqpstorm.Connection('localhost', 'guest', 'guest',
                                           lazy=True)
         channel = Channel0(connection)
-
-        self.assertEqual(connection.heartbeat._writes_since_check, 0)
-
         channel.on_frame(Heartbeat())
-
-        self.assertEqual(connection.heartbeat._writes_since_check, 1)
 
     def test_channel0_is_blocked(self):
         connection = amqpstorm.Connection('localhost', 'guest', 'guest',

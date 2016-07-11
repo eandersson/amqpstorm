@@ -38,7 +38,7 @@ class Channel0(object):
         """
         LOGGER.debug('Frame Received: %s', frame_in.name)
         if frame_in.name == 'Heartbeat':
-            self.send_heartbeat()
+            return
         elif frame_in.name == 'Connection.Start':
             self.server_properties = frame_in.server_properties
             self._send_start_ok_frame(frame_in)
