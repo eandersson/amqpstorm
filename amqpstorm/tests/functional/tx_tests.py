@@ -66,10 +66,10 @@ class TxFunctionalTests(unittest.TestCase):
             self.channel.queue.delete(queue)
 
     def test_functional_tx_commit_without_select(self):
-        self.assertRaisesRegex(AMQPChannelError,
-                               'Channel 1 was closed by remote server: '
-                               'PRECONDITION_FAILED - channel is not '
-                               'transactional', self.channel.tx.commit)
+        self.assertRaisesRegexp(AMQPChannelError,
+                                'Channel 1 was closed by remote server: '
+                                'PRECONDITION_FAILED - channel is not '
+                                'transactional', self.channel.tx.commit)
 
     def test_functional_tx_rollback(self):
         self.channel.tx.select()
@@ -105,10 +105,10 @@ class TxFunctionalTests(unittest.TestCase):
             self.channel.queue.delete(queue)
 
     def test_functional_tx_rollback_without_select(self):
-        self.assertRaisesRegex(AMQPChannelError,
-                               'Channel 1 was closed by remote server: '
-                               'PRECONDITION_FAILED - channel is not '
-                               'transactional', self.channel.tx.rollback)
+        self.assertRaisesRegexp(AMQPChannelError,
+                                'Channel 1 was closed by remote server: '
+                                'PRECONDITION_FAILED - channel is not '
+                                'transactional', self.channel.tx.rollback)
 
     def tearDown(self):
         self.channel.close()
