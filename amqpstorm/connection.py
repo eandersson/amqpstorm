@@ -72,9 +72,9 @@ class Connection(Stateful):
         return self
 
     def __exit__(self, exception_type, exception_value, _):
-        if exception_value:
+        if exception_type:
             message = 'Closing connection due to an unhandled exception: %s'
-            LOGGER.warning(message, exception_type)
+            LOGGER.warning(message, exception_value)
         self.close()
 
     @property

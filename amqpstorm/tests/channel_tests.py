@@ -28,6 +28,10 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 class ChannelTests(unittest.TestCase):
+    def setUp(self):
+        self.logging_handler = MockLoggingHandler()
+        logging.root.addHandler(self.logging_handler)
+
     def test_channel_with_statement_when_closed(self):
         with Channel(0, None, 360) as channel:
             self.assertIsInstance(channel, Channel)
@@ -46,6 +50,10 @@ class ChannelTests(unittest.TestCase):
                 channel.check_for_errors()
         except AMQPChannelError as why:
             self.assertIsInstance(why, AMQPChannelError)
+
+        self.assertEqual(self.logging_handler.messages['warning'][0],
+                         'Closing channel due to an unhandled exception: '
+                         'error')
 
     def test_channel_id(self):
         channel = Channel(0, None, 360)

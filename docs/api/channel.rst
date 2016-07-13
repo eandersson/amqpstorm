@@ -2,7 +2,7 @@ Channel
 -----------------
 
 .. autoclass:: amqpstorm.Channel
-    :members: basic, exchange, queue, close, confirm_deliveries, start_consuming, stop_consuming, process_data_events, build_inbound_messages, check_for_errors
+    :members: basic, exchange, queue, tx, close, confirm_deliveries, start_consuming, stop_consuming, process_data_events, build_inbound_messages, check_for_errors
 
 .. autoclass:: amqpstorm.basic.Basic
     :members:
@@ -13,3 +13,5 @@ Channel
 .. autoclass:: amqpstorm.queue.Queue
     :members:
 
+.. autoclass:: amqpstorm.tx.Tx
+    :members:

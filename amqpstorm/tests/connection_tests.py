@@ -19,11 +19,16 @@ from pamqp import specification as pamqp_spec
 from pamqp import frame as pamqp_frame
 
 from amqpstorm.tests.utility import FakeChannel
+from amqpstorm.tests.utility import MockLoggingHandler
 
 logging.basicConfig(level=logging.DEBUG)
 
 
 class ConnectionTests(unittest.TestCase):
+    def setUp(self):
+        self.logging_handler = MockLoggingHandler()
+        logging.root.addHandler(self.logging_handler)
+
     def test_connection_with_statement(self):
         with Connection('127.0.0.1', 'guest', 'guest', lazy=True) as con:
             self.assertIsInstance(con, Connection)
@@ -35,6 +40,10 @@ class ConnectionTests(unittest.TestCase):
                 con.check_for_errors()
         except AMQPConnectionError as why:
             self.assertIsInstance(why, AMQPConnectionError)
+
+        self.assertEqual(self.logging_handler.messages['warning'][0],
+                         'Closing connection due to an unhandled exception: '
+                         'error')
 
     def test_connection_server_is_blocked_default_value(self):
         connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)

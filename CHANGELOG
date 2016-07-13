@@ -1,5 +1,9 @@
 # Changelog
 
+### Version 1.4.2
+- Added support for Channel.Tx (Server local transactions).
+- Fixed incorrect log line for the Connection and Channel context manager.
+
 ### Version 1.4.1
 - Heartbeats are now only sent when there is no outgoing traffic - Thanks Tom.
 

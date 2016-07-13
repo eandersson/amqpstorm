@@ -19,6 +19,7 @@ from amqpstorm.exchange import Exchange
 from amqpstorm.message import Message
 from amqpstorm.queue import Queue
 from amqpstorm.rpc import Rpc
+from amqpstorm.tx import Tx
 
 LOGGER = logging.getLogger(__name__)
 CONTENT_FRAME = ['Basic.Deliver', 'ContentHeader', 'ContentBody']
@@ -28,7 +29,7 @@ class Channel(BaseChannel):
     """Connection.channel"""
     __slots__ = [
         'confirming_deliveries', 'consumer_callback', 'rpc', '_basic',
-        '_connection', '_exchange', '_inbound', '_queue'
+        '_connection', '_exchange', '_inbound', '_queue', '_tx'
     ]
 
     def __init__(self, channel_id, connection, rpc_timeout):
@@ -41,14 +42,15 @@ class Channel(BaseChannel):
         self._basic = Basic(self)
         self._exchange = Exchange(self)
         self._queue = Queue(self)
+        self._tx = Tx(self)
 
     def __enter__(self):
         return self
 
     def __exit__(self, exception_type, exception_value, _):
-        if exception_value:
+        if exception_type:
             LOGGER.warning('Closing channel due to an unhandled exception: %s',
-                           exception_type)
+                           exception_value)
         if not self.is_open:
             return
         self.close()
@@ -79,6 +81,14 @@ class Channel(BaseChannel):
         :rtype: Queue
         """
         return self._queue
+
+    @property
+    def tx(self):
+        """RabbitMQ Tx Operations.
+
+        :rtype: Tx
+        """
+        return self._tx
 
     def open(self):
         """Open Channel.
