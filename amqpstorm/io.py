@@ -175,7 +175,6 @@ class IO(object):
         """
         sock = socket.socket(socket_family, socket.SOCK_STREAM, 0)
         sock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 1)
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
         sock.settimeout(self._parameters['timeout'] or None)
         if self.use_ssl:
             if not compatibility.SSL_SUPPORTED:
