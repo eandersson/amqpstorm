@@ -25,6 +25,16 @@ class HeartbeatTests(unittest.TestCase):
         self.assertIsNotNone(heartbeat._timer)
         heartbeat.stop()
 
+    def test_heartbeat_disabled(self):
+        heartbeat = Heartbeat(0)
+
+        self.assertFalse(heartbeat._running.is_set())
+
+        heartbeat.start([])
+
+        self.assertFalse(heartbeat._running.is_set())
+        self.assertIsNone(heartbeat._timer)
+
     def test_heartbeat_stop(self):
         heartbeat = Heartbeat(1)
 

@@ -2,6 +2,7 @@
 
 ### Version 1.4.2
 - Added support for Channel.Tx (Server local transactions).
+- Added support for Heartbeat interval 0 (disabled).
 - Fixed incorrect log line for the Connection and Channel context manager.
 
 ### Version 1.4.1

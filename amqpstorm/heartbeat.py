@@ -42,13 +42,15 @@ class Heartbeat(object):
         :param list exceptions:
         :return:
         """
-        LOGGER.debug('Heartbeat Checker Started')
+        if not self._interval:
+            return
         with self._lock:
             self._running.set()
             self._threshold = 0
             self._reads_since_check = 0
             self._writes_since_check = 0
         self._exceptions = exceptions
+        LOGGER.debug('Heartbeat Checker Started')
         self._start_new_timer()
 
     def stop(self):
