@@ -78,6 +78,16 @@ class Connection(Stateful):
         self.close()
 
     @property
+    def fileno(self):
+        """Returns the Socket File number.
+
+        :return:
+        """
+        if not self._io.socket:
+            return None
+        return self._io.socket.fileno()
+
+    @property
     def is_blocked(self):
         """Is the connection currently being blocked from publishing by
         the remote server.
@@ -101,43 +111,6 @@ class Connection(Stateful):
         :rtype: socket
         """
         return self._io.socket
-
-    @property
-    def fileno(self):
-        """Returns the Socket File number.
-
-        :return:
-        """
-        if not self._io.socket:
-            return None
-        return self._io.socket.fileno()
-
-    def open(self):
-        """Open Connection.
-
-        :raises AMQPConnectionError: Raises if a Connection cannot be
-                                     established.
-        """
-        LOGGER.debug('Connection Opening')
-        self.set_state(self.OPENING)
-        self._exceptions = []
-        self._io.open()
-        self._send_handshake()
-        self._wait_for_connection_to_open()
-        self.heartbeat.start(self._exceptions)
-        LOGGER.debug('Connection Opened')
-
-    def close(self):
-        """Close connection."""
-        LOGGER.debug('Connection Closing')
-        self.heartbeat.stop()
-        if not self.is_closed and self._io.socket:
-            self._close_channels()
-            self.set_state(self.CLOSING)
-            self._channel0.send_close_connection_frame()
-        self._io.close()
-        self.set_state(self.CLOSED)
-        LOGGER.debug('Connection Closed')
 
     def channel(self, rpc_timeout=60):
         """Open Channel.
@@ -177,10 +150,37 @@ class Connection(Stateful):
         self.close()
         raise self.exceptions[0]
 
+    def close(self):
+        """Close connection."""
+        LOGGER.debug('Connection Closing')
+        self.heartbeat.stop()
+        if not self.is_closed and self._io.socket:
+            self._close_channels()
+            self.set_state(self.CLOSING)
+            self._channel0.send_close_connection_frame()
+        self._io.close()
+        self.set_state(self.CLOSED)
+        LOGGER.debug('Connection Closed')
+
+    def open(self):
+        """Open Connection.
+
+        :raises AMQPConnectionError: Raises if a Connection cannot be
+                                     established.
+        """
+        LOGGER.debug('Connection Opening')
+        self.set_state(self.OPENING)
+        self._exceptions = []
+        self._io.open()
+        self._send_handshake()
+        self._wait_for_connection_to_open()
+        self.heartbeat.start(self._exceptions)
+        LOGGER.debug('Connection Opened')
+
     def write_frame(self, channel_id, frame_out):
         """Marshal and write an outgoing pamqp frame to the Socket.
 
-        :param int channel_id:
+        :param int channel_id: Channel ID.
         :param pamqp_spec.Frame frame_out: Amqp frame.
         :return:
         """
@@ -188,18 +188,76 @@ class Connection(Stateful):
         self.heartbeat.register_write()
         self._io.write_to_socket(frame_data)
 
-    def write_frames(self, channel_id, multiple_frames):
+    def write_frames(self, channel_id, frames_out):
         """Marshal and write multiple outgoing pamqp frames to the Socket.
 
-        :param int channel_id:
-        :param list multiple_frames: Amqp frames.
+        :param int channel_id: Channel ID/
+        :param list frames_out: Amqp frames.
         :return:
         """
-        frame_data = EMPTY_BUFFER
-        for single_frame in multiple_frames:
-            frame_data += pamqp_frame.marshal(single_frame, channel_id)
+        data_out = EMPTY_BUFFER
+        for single_frame in frames_out:
+            data_out += pamqp_frame.marshal(single_frame, channel_id)
         self.heartbeat.register_write()
-        self._io.write_to_socket(frame_data)
+        self._io.write_to_socket(data_out)
+
+    def _close_channels(self):
+        """Close any open channels.
+
+        :return:
+        """
+        for channel_id in self._channels:
+            if not self._channels[channel_id].is_open:
+                continue
+            self._channels[channel_id].close()
+
+    def _handle_amqp_frame(self, data_in):
+        """Unmarshal a single AMQP frame and return the result.
+
+        :param data_in: socket data
+        :return: data_in, channel_id, frame
+        """
+        if not data_in:
+            return data_in, None, None
+        try:
+            byte_count, channel_id, frame_in = pamqp_frame.unmarshal(data_in)
+            return data_in[byte_count:], channel_id, frame_in
+        except pamqp_exception.UnmarshalingException:
+            pass
+        except pamqp_spec.AMQPFrameError as why:
+            LOGGER.error('AMQPFrameError: %r', why, exc_info=True)
+        except ValueError as why:
+            LOGGER.error(why, exc_info=True)
+            self.exceptions.append(AMQPConnectionError(why))
+        return data_in, None, None
+
+    def _read_buffer(self, data_in):
+        """Process the socket buffer, and direct the data to the appropriate
+        channel.
+
+        :rtype: bytes
+        """
+        while data_in:
+            data_in, channel_id, frame_in = \
+                self._handle_amqp_frame(data_in)
+
+            if frame_in is None:
+                break
+
+            self.heartbeat.register_read()
+            if channel_id == 0:
+                self._channel0.on_frame(frame_in)
+            else:
+                self._channels[channel_id].on_frame(frame_in)
+
+        return data_in
+
+    def _send_handshake(self):
+        """Send a RabbitMQ Handshake.
+
+        :return:
+        """
+        self._io.write_to_socket(pamqp_header.ProtocolHeader().marshal())
 
     def _validate_parameters(self):
         """Validate Connection Parameters.
@@ -221,13 +279,6 @@ class Connection(Stateful):
         elif not compatibility.is_integer(self.parameters['heartbeat']):
             raise AMQPInvalidArgument('heartbeat should be an integer')
 
-    def _send_handshake(self):
-        """Send a RabbitMQ Handshake.
-
-        :return:
-        """
-        self._io.write_to_socket(pamqp_header.ProtocolHeader().marshal())
-
     def _wait_for_connection_to_open(self):
         """Wait for the Connection to fully open.
 
@@ -240,54 +291,3 @@ class Connection(Stateful):
             if time.time() - start_time > timeout:
                 raise AMQPConnectionError('Connection timed out')
             sleep(IDLE_WAIT)
-
-    def _read_buffer(self, buffer):
-        """Process the socket buffer, and direct the data to the appropriate
-        channel.
-
-        :rtype: bytes
-        """
-        while buffer:
-            buffer, channel_id, frame_in = \
-                self._handle_amqp_frame(buffer)
-
-            if frame_in is None:
-                break
-
-            self.heartbeat.register_read()
-            if channel_id == 0:
-                self._channel0.on_frame(frame_in)
-            else:
-                self._channels[channel_id].on_frame(frame_in)
-
-        return buffer
-
-    def _handle_amqp_frame(self, data_in):
-        """Unmarshal a incoming RabbitMQ frame and return the result.
-
-        :param data_in: socket data
-        :return: buffer, channel_id, frame
-        """
-        if not data_in:
-            return data_in, None, None
-        try:
-            byte_count, channel_id, frame_in = pamqp_frame.unmarshal(data_in)
-            return data_in[byte_count:], channel_id, frame_in
-        except pamqp_exception.UnmarshalingException:
-            pass
-        except pamqp_spec.AMQPFrameError as why:
-            LOGGER.error('AMQPFrameError: %r', why, exc_info=True)
-        except ValueError as why:
-            LOGGER.error(why, exc_info=True)
-            self.exceptions.append(AMQPConnectionError(why))
-        return data_in, None, None
-
-    def _close_channels(self):
-        """Close any open channels.
-
-        :return:
-        """
-        for channel_id in self._channels:
-            if not self._channels[channel_id].is_open:
-                continue
-            self._channels[channel_id].close()

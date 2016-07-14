@@ -39,14 +39,6 @@ class Channel0(object):
         LOGGER.debug('Frame Received: %s', frame_in.name)
         if frame_in.name == 'Heartbeat':
             return
-        elif frame_in.name == 'Connection.Start':
-            self.server_properties = frame_in.server_properties
-            self._send_start_ok_frame(frame_in)
-        elif frame_in.name == 'Connection.Tune':
-            self._send_tune_ok_frame()
-            self._send_open_connection()
-        elif frame_in.name == 'Connection.OpenOk':
-            self._set_connection_state(Stateful.OPEN)
         elif frame_in.name == 'Connection.Close':
             self._close_connection(frame_in)
         elif frame_in.name == 'Connection.CloseOk':
@@ -55,15 +47,16 @@ class Channel0(object):
             self._blocked_connection(frame_in)
         elif frame_in.name == 'Connection.Unblocked':
             self._unblocked_connection()
+        elif frame_in.name == 'Connection.OpenOk':
+            self._set_connection_state(Stateful.OPEN)
+        elif frame_in.name == 'Connection.Start':
+            self.server_properties = frame_in.server_properties
+            self._send_start_ok_frame(frame_in)
+        elif frame_in.name == 'Connection.Tune':
+            self._send_tune_ok_frame()
+            self._send_open_connection()
         else:
             LOGGER.error('[Channel0] Unhandled Frame: %s', frame_in.name)
-
-    def send_heartbeat(self):
-        """Send Heartbeat frame.
-
-        :return:
-        """
-        self._write_frame(Heartbeat())
 
     def send_close_connection_frame(self):
         """Send Connection Close frame.
@@ -71,6 +64,13 @@ class Channel0(object):
         :return:
         """
         self._write_frame(pamqp_spec.Connection.Close())
+
+    def send_heartbeat(self):
+        """Send Heartbeat frame.
+
+        :return:
+        """
+        self._write_frame(Heartbeat())
 
     def _close_connection(self, frame_in):
         """Connection Close.
@@ -112,22 +112,13 @@ class Channel0(object):
         self.is_blocked = False
         LOGGER.info('Connection is no longer blocked by remote server')
 
-    def _set_connection_state(self, state):
-        """Set Connection state.
+    def _plain_credentials(self):
+        """AMQP Plain Credentials.
 
-        :param state:
-        :return:
+        :rtype: str
         """
-        self._connection.set_state(state)
-
-    def _write_frame(self, frame_out):
-        """Write a pamqp frame from Channel0.
-
-        :param frame_out: Amqp frame.
-        :return:
-        """
-        self._connection.write_frame(0, frame_out)
-        LOGGER.debug('Frame Sent: %s', frame_out.name)
+        return '\0%s\0%s' % (self.parameters['username'],
+                             self.parameters['password'])
 
     def _send_start_ok_frame(self, frame_in):
         """Send Start OK frame.
@@ -168,13 +159,22 @@ class Channel0(object):
         )
         self._write_frame(frame)
 
-    def _plain_credentials(self):
-        """AMQP Plain Credentials.
+    def _set_connection_state(self, state):
+        """Set Connection state.
 
-        :rtype: str
+        :param state:
+        :return:
         """
-        return '\0%s\0%s' % (self.parameters['username'],
-                             self.parameters['password'])
+        self._connection.set_state(state)
+
+    def _write_frame(self, frame_out):
+        """Write a pamqp frame from Channel0.
+
+        :param frame_out: Amqp frame.
+        :return:
+        """
+        self._connection.write_frame(0, frame_out)
+        LOGGER.debug('Frame Sent: %s', frame_out.name)
 
     @staticmethod
     def _client_properties():

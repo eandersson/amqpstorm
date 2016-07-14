@@ -183,14 +183,14 @@ class Basic(Handler):
         header_frame = pamqp_header.ContentHeader(body_size=len(body),
                                                   properties=properties)
 
-        send_buffer = [method_frame, header_frame]
+        frames_out = [method_frame, header_frame]
         for body_frame in self._create_content_body(body):
-            send_buffer.append(body_frame)
+            frames_out.append(body_frame)
 
         if self._channel.confirming_deliveries:
             with self._channel.rpc.lock:
-                return self._publish_confirm(send_buffer)
-        self._channel.write_frames(send_buffer)
+                return self._publish_confirm(frames_out)
+        self._channel.write_frames(frames_out)
 
     def ack(self, delivery_tag=None, multiple=False):
         """Acknowledge Message.
@@ -369,16 +369,16 @@ class Basic(Handler):
                        method=dict(get_frame),
                        properties=dict(content_header.properties))
 
-    def _publish_confirm(self, send_buffer):
+    def _publish_confirm(self, frames_out):
         """Confirm that message was published successfully.
 
-        :param list send_buffer:
+        :param list frames_out:
 
         :rtype: bool
         """
         confirm_uuid = self._channel.rpc.register_request(['Basic.Ack',
                                                            'Basic.Nack'])
-        self._channel.write_frames(send_buffer)
+        self._channel.write_frames(frames_out)
         result = self._channel.rpc.get_request(confirm_uuid, raw=True)
         self._channel.check_for_errors()
         if isinstance(result, pamqp_spec.Basic.Ack):

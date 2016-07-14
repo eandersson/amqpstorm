@@ -60,29 +60,10 @@ class IO(object):
         self._on_read = on_read
         self._running = threading.Event()
         self._parameters = parameters
-        self.buffer = EMPTY_BUFFER
+        self.data_in = EMPTY_BUFFER
         self.poller = None
         self.socket = None
         self.use_ssl = self._parameters['ssl']
-
-    def open(self):
-        """Open Socket and establish a connection.
-
-        :raises AMQPConnectionError: If a connection cannot be established on
-                                     the specified address, raise an exception.
-        :return:
-        """
-        self._lock.acquire()
-        try:
-            self.buffer = EMPTY_BUFFER
-            self._running.set()
-            sock_addresses = self._get_socket_addresses()
-            self.socket = self._find_address_and_connect(sock_addresses)
-            self.poller = Poller(self.socket.fileno(), self._exceptions,
-                                 timeout=self._parameters['timeout'])
-            self._inbound_thread = self._create_inbound_thread()
-        finally:
-            self._lock.release()
 
     def close(self):
         """Close Socket.
@@ -99,6 +80,25 @@ class IO(object):
             if self.socket:
                 self.socket.close()
             self.socket = None
+        finally:
+            self._lock.release()
+
+    def open(self):
+        """Open Socket and establish a connection.
+
+        :raises AMQPConnectionError: If a connection cannot be established on
+                                     the specified address, raise an exception.
+        :return:
+        """
+        self._lock.acquire()
+        try:
+            self.data_in = EMPTY_BUFFER
+            self._running.set()
+            sock_addresses = self._get_socket_addresses()
+            self.socket = self._find_address_and_connect(sock_addresses)
+            self.poller = Poller(self.socket.fileno(), self._exceptions,
+                                 timeout=self._parameters['timeout'])
+            self._inbound_thread = self._create_inbound_thread()
         finally:
             self._lock.release()
 
@@ -213,28 +213,28 @@ class IO(object):
         :return:
         """
         while self._running.is_set():
-            if self.poller.is_ready:
-                self.buffer += self._receive()
-                self.buffer = self._on_read(self.buffer)
-            sleep(IDLE_WAIT)
+            if not self.poller.is_ready:
+                sleep(IDLE_WAIT)
+            self.data_in += self._receive()
+            self.data_in = self._on_read(self.data_in)
 
     def _receive(self):
         """Receive any incoming socket data.
 
             If an error is thrown, handle it and return an empty string.
 
-        :return: buffer
+        :return: data_in
         :rtype: bytes
         """
-        result = EMPTY_BUFFER
+        data_in = EMPTY_BUFFER
         try:
-            result = self._read_from_socket()
+            data_in = self._read_from_socket()
         except socket.timeout:
             pass
         except (IOError, OSError) as why:
             self._exceptions.append(AMQPConnectionError(why))
             self._running.clear()
-        return result
+        return data_in
 
     def _read_from_socket(self):
         """Read data from the socket.
@@ -242,7 +242,7 @@ class IO(object):
         :rtype: bytes
         """
         if self.use_ssl:
-            result = self.socket.read(FRAME_MAX)
+            data_in = self.socket.read(FRAME_MAX)
         else:
-            result = self.socket.recv(FRAME_MAX)
-        return result
+            data_in = self.socket.recv(FRAME_MAX)
+        return data_in
