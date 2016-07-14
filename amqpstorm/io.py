@@ -212,10 +212,10 @@ class IO(object):
         :return:
         """
         while self._running.is_set():
-            if not self.poller.is_ready:
-                sleep(IDLE_WAIT)
-            self.data_in += self._receive()
-            self.data_in = self._on_read(self.data_in)
+            if self.poller.is_ready:
+                self.data_in += self._receive()
+                self.data_in = self._on_read(self.data_in)
+            sleep(IDLE_WAIT)
 
     def _receive(self):
         """Receive any incoming socket data.
