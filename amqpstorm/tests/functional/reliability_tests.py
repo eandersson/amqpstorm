@@ -125,11 +125,11 @@ class Publish50kTest(unittest.TestCase):
 
         # Let's give RabbitMQ a few seconds to catch up.
         for _ in range(5):
+            time.sleep(0.5)
             result = self.channel.queue.declare(queue=self.queue_name,
                                                 passive=True)
             if self.messages_to_send == result['message_count']:
                 break
-            time.sleep(0.5)
 
         self.assertEqual(result['message_count'], self.messages_to_send)
 
