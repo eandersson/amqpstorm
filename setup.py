@@ -5,7 +5,7 @@ See https://github.com/eandersson/amqpstorm for more information.
 """
 
 setup(name='AMQPStorm',
-      version='1.4.1',
+      version='1.5.0-RC1',
       description='Thread-safe Python RabbitMQ Client Library based on pamqp.',
       long_description=long_description,
       author='Erik Olof Gunnar Andersson',
@@ -15,7 +15,7 @@ setup(name='AMQPStorm',
       license='MIT License',
       url='http://github.com/eandersson/amqpstorm',
       install_requires=['pamqp>=1.6.1,<2.0'],
-      package_data={'': ['README.md', 'LICENSE', 'CHANGELOG']},
+      package_data={'': ['README.rst', 'LICENSE', 'CHANGELOG.rst']},
       classifiers=[
           'Development Status :: 5 - Production/Stable',
           'Intended Audience :: Developers',
