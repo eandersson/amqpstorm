@@ -3,4 +3,5 @@
 *.bkp
 *.log
 .idea
+.class
 __pycache__
