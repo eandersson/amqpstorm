@@ -27,7 +27,8 @@ class Channel0Tests(unittest.TestCase):
         result = channel._client_properties()
 
         information = 'See https://github.com/eandersson/amqpstorm'
-        python_version = 'Python %s' % platform.python_version()
+        python_version = 'Python %s (%s)' % (platform.python_version(),
+                                             platform.python_implementation())
 
         self.assertIsInstance(result, dict)
         self.assertTrue(result['capabilities']['authentication_failure_close'])

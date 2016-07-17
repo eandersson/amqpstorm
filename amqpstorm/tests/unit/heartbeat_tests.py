@@ -119,7 +119,7 @@ class HeartbeatTests(unittest.TestCase):
             heartbeat.register_read()
             self.assertTrue(heartbeat._check_for_life_signs())
         self.assertEqual(self.beats, 10)
-        
+
         heartbeat.stop()
 
     def test_heartbeat_threshold_reset(self):
@@ -197,5 +197,5 @@ class HeartbeatTests(unittest.TestCase):
         self.assertTrue(heartbeat._check_for_life_signs())
 
         self.assertEqual(heartbeat._threshold, 0)
-        
+
         heartbeat.stop()

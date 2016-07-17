@@ -1,13 +1,14 @@
 Changelog
 -------------
 
-Version 1.5.0 RC1
+Version 1.5.0
 -------------
 - Added support for Channel.Tx (Server local transactions). [#27]
 - Added support for Heartbeat interval 0 (disabled). [#26]
+- Added Python implementation to platform string, e.g. Python 2.7.0 (Jython).
 - Fixed Jython bug. [#25]
 - Fixed incorrect log line for the Connection and Channel Context Manager.
-- Removed socket keepalive option.
+- Removed TCP Keepalive.
 
 Version 1.4.1
 -------------
