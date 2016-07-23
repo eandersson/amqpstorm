@@ -42,4 +42,4 @@ if __name__ == '__main__':
     CHANNEL.basic.consume(on_request, queue='rpc_queue')
 
     print(" [x] Awaiting RPC requests")
-    CHANNEL.start_consuming(to_tuple=False)
+    CHANNEL.start_consuming()

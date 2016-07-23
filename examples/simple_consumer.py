@@ -44,7 +44,7 @@ def consumer():
                 # Start consuming messages.
                 # to_tuple equal to False means that messages consumed
                 # are returned as a Message object, rather than a tuple.
-                channel.start_consuming(to_tuple=False)
+                channel.start_consuming()
             except KeyboardInterrupt:
                 channel.close()
 

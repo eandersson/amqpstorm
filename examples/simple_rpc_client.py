@@ -51,7 +51,7 @@ class FibonacciRpcClient(object):
         message.publish(routing_key='rpc_queue')
 
         while not self.response:
-            self.channel.process_data_events(to_tuple=False)
+            self.channel.process_data_events()
         return int(self.response)
 
     def _on_response(self, message):
