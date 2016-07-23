@@ -1,6 +1,11 @@
 Changelog
 -------------
 
+Version 2.0.0a1
+-------------
+- Messages are now delivered as a Message object by default.
+    - to_tuple and to_dict are now set to False by default.
+
 Version 1.5.0
 -------------
 - Added support for Channel.Tx (Server local transactions). [#27]

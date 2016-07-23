@@ -226,7 +226,7 @@ class Channel(BaseChannel):
         self.rpc_request(pamqp_spec.Channel.Open())
         self.set_state(self.OPEN)
 
-    def process_data_events(self, to_tuple=True):
+    def process_data_events(self, to_tuple=False):
         """Consume inbound messages.
 
             This is only required when consuming messages. All other
@@ -263,7 +263,7 @@ class Channel(BaseChannel):
             self.write_frame(frame_out)
             return self.rpc.get_request(uuid)
 
-    def start_consuming(self, to_tuple=True):
+    def start_consuming(self, to_tuple=False):
         """Start consuming messages.
 
         :param bool to_tuple: Should incoming messages be converted to a
