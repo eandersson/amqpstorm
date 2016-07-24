@@ -40,7 +40,7 @@ class Consumer(object):
                 channel = self.connection.channel()
                 channel.queue.declare('simple_queue')
                 channel.basic.consume(self, 'simple_queue', no_ack=False)
-                channel.start_consuming()
+                channel.start_consuming(to_tuple=False)
                 if not channel.consumer_tags:
                     channel.close()
             except amqpstorm.AMQPError as why:

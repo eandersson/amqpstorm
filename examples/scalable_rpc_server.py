@@ -172,7 +172,7 @@ class Consumer(object):
             self.channel.basic.qos(1)
             self.channel.queue.declare(self.rpc_queue)
             self.channel.basic.consume(self, self.rpc_queue, no_ack=False)
-            self.channel.start_consuming()
+            self.channel.start_consuming(to_tuple=False)
             if not self.channel.consumer_tags:
                 # Only close the channel if there is nothing consuming.
                 # This is to allow messages that are still being processed
