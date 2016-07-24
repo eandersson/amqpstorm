@@ -52,7 +52,7 @@ class UriConnectionTests(unittest.TestCase):
     def test_uri_set_hostname(self):
         connection = \
             UriConnection('amqps://guest:guest@my-server:5672/%2F?'
-                          'heartbeat=1337', True)
+                          'heartbeat=360', True)
 
         self.assertIsInstance(connection.parameters['hostname'], str)
         self.assertEqual(connection.parameters['hostname'], 'my-server')
@@ -60,7 +60,7 @@ class UriConnectionTests(unittest.TestCase):
     def test_uri_set_username(self):
         connection = \
             UriConnection('amqps://username:guest@localhost:5672/%2F?'
-                          'heartbeat=1337', True)
+                          'heartbeat=360', True)
 
         self.assertIsInstance(connection.parameters['username'], str)
         self.assertEqual(connection.parameters['username'], 'username')
@@ -68,33 +68,33 @@ class UriConnectionTests(unittest.TestCase):
     def test_uri_set_password(self):
         connection = \
             UriConnection('amqps://guest:password@localhost:5672/%2F?'
-                          'heartbeat=1337', True)
+                          'heartbeat=360', True)
 
         self.assertIsInstance(connection.parameters['password'], str)
         self.assertEqual(connection.parameters['password'], 'password')
 
     def test_uri_set_port(self):
         connection = \
-            UriConnection('amqps://guest:guest@localhost:1337/%2F', True)
+            UriConnection('amqps://guest:guest@localhost:5672/%2F', True)
 
         self.assertIsInstance(connection.parameters['port'], int)
-        self.assertEqual(connection.parameters['port'], 1337)
+        self.assertEqual(connection.parameters['port'], 5672)
 
     def test_uri_set_heartbeat(self):
         connection = \
             UriConnection('amqps://guest:guest@localhost:5672/%2F?'
-                          'heartbeat=1337', True)
+                          'heartbeat=360', True)
 
         self.assertIsInstance(connection.parameters['heartbeat'], int)
-        self.assertEqual(connection.parameters['heartbeat'], 1337)
+        self.assertEqual(connection.parameters['heartbeat'], 360)
 
     def test_uri_set_timeout(self):
         connection = \
             UriConnection('amqps://guest:guest@localhost:5672/%2F?'
-                          'timeout=1337', True)
+                          'timeout=360', True)
 
         self.assertIsInstance(connection.parameters['timeout'], int)
-        self.assertEqual(connection.parameters['timeout'], 1337)
+        self.assertEqual(connection.parameters['timeout'], 360)
 
     def test_uri_set_virtual_host(self):
         connection = \

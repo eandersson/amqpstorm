@@ -13,9 +13,9 @@ logging.basicConfig(level=logging.DEBUG)
 
 class BasicChannelTests(unittest.TestCase):
     def test_base_channel_id(self):
-        channel = BaseChannel(1337)
+        channel = BaseChannel(100)
 
-        self.assertEqual(channel.channel_id, 1337)
+        self.assertEqual(channel.channel_id, 100)
 
     def test_base_channel_add_consumer_tag(self):
         channel = BaseChannel(0)
