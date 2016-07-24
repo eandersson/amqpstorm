@@ -1,10 +1,16 @@
 Changelog
 -------------
 
-Version 2.0.0a1
+Version 2.0.0
 -------------
-- Messages are now delivered as a Message object by default.
+- Messages are now delivered as Message objects by default.
     - to_tuple and to_dict are now set to False by default.
+
+        This is a breaking change that affects the following function:
+
+            - channel.process_data_events
+            - channel.start_consuming
+            - channel.basic.get
 
 Version 1.5.0
 -------------

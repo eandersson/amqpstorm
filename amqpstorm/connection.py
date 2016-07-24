@@ -35,7 +35,7 @@ class Connection(Stateful):
         :param str username: Username
         :param str password: Password
         :param int port: Server port
-        :param str virtual_host: Virtualhost
+        :param str virtual_host: Virtual host
         :param int heartbeat: RabbitMQ Heartbeat interval
         :param int|float timeout: Socket timeout
         :param bool ssl: Enable SSL

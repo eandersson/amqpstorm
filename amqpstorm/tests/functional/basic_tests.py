@@ -35,7 +35,7 @@ class BasicFunctionalTests(unittest.TestCase):
             self.channel.queue.declare(queue)
             self.channel.basic.publish(payload, queue)
 
-            message = self.channel.basic.get(queue, to_dict=False)
+            message = self.channel.basic.get(queue)
             self.assertEqual(message.body, payload)
             message.ack()
         finally:
