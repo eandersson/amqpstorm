@@ -4,6 +4,7 @@ import logging
 import select
 import socket
 import threading
+from errno import EAGAIN
 from errno import EINTR
 from errno import EWOULDBLOCK
 from time import sleep
@@ -124,7 +125,7 @@ class IO(object):
                 except socket.timeout:
                     pass
                 except socket.error as why:
-                    if why.args[0] == EWOULDBLOCK:
+                    if why.args[0] in (EWOULDBLOCK, EAGAIN):
                         continue
                     self._exceptions.append(AMQPConnectionError(why))
                     return
@@ -232,8 +233,9 @@ class IO(object):
         except socket.timeout:
             pass
         except (IOError, OSError) as why:
-            self._exceptions.append(AMQPConnectionError(why))
-            self._running.clear()
+            if why.args[0] not in (EWOULDBLOCK, EAGAIN):
+                self._exceptions.append(AMQPConnectionError(why))
+                self._running.clear()
         return data_in
 
     def _read_from_socket(self):
