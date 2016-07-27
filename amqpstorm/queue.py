@@ -22,7 +22,7 @@ class Queue(Handler):
         :param str queue: Queue name
         :param bool passive: Do not create
         :param bool durable: Durable queue
-        :param bool exclusive: Exclusive queue
+        :param bool exclusive: Request exclusive access
         :param bool auto_delete: Automatically delete when not in use
         :param dict arguments: Queue key/value arguments
 

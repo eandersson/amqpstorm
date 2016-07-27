@@ -27,7 +27,7 @@ class ScalableConsumer(object):
         self._consumers = []
         self._stopped = threading.Event()
 
-    def start_consumers(self):
+    def start(self):
         """Start the Consumers.
 
         :return:
@@ -190,4 +190,4 @@ class Consumer(object):
 
 if __name__ == '__main__':
     CONSUMER = ScalableConsumer()
-    CONSUMER.start_consumers()
+    CONSUMER.start()

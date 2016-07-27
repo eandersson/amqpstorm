@@ -14,11 +14,10 @@ from amqpstorm import Connection
 from amqpstorm import AMQPConnectionError
 from amqpstorm import compatibility
 from amqpstorm import UriConnection
-
-HOST = '127.0.0.1'
-USERNAME = 'guest'
-PASSWORD = 'guest'
-URI = 'amqp://guest:guest@127.0.0.1:5672/%2F'
+from amqpstorm.tests.functional import HOST
+from amqpstorm.tests.functional import URI
+from amqpstorm.tests.functional import USERNAME
+from amqpstorm.tests.functional import PASSWORD
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -108,7 +107,7 @@ class Publish5kTest(unittest.TestCase):
     connection = None
     channel = None
     messages_to_send = 5000
-    queue_name = 'test.basic.50k'
+    queue_name = 'test.basic.5k'
 
     def setUp(self):
         self.connection = Connection(HOST, USERNAME, PASSWORD)

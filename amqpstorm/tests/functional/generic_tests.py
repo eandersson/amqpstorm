@@ -12,11 +12,9 @@ from amqpstorm import Channel
 from amqpstorm import Connection
 from amqpstorm import AMQPMessageError
 from amqpstorm import AMQPChannelError
-
-HOST = '127.0.0.1'
-USERNAME = 'guest'
-PASSWORD = 'guest'
-URI = 'amqp://guest:guest@127.0.0.1:5672/%2F'
+from amqpstorm.tests.functional import HOST
+from amqpstorm.tests.functional import USERNAME
+from amqpstorm.tests.functional import PASSWORD
 
 logging.basicConfig(level=logging.DEBUG)
 

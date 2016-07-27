@@ -18,6 +18,10 @@ class Consumer(object):
         self.connection = None
 
     def create_connection(self):
+        """Create a connection.
+
+        :return:
+        """
         attempts = 0
         while True:
             attempts += 1
@@ -33,6 +37,10 @@ class Consumer(object):
                 break
 
     def start(self):
+        """Start the Consumers.
+
+        :return:
+        """
         if not self.connection:
             self.create_connection()
         while True:

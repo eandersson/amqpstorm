@@ -86,8 +86,8 @@ class IO(object):
     def open(self):
         """Open Socket and establish a connection.
 
-        :raises AMQPConnectionError: If a connection cannot be established on
-                                     the specified address, raise an exception.
+        :raises AMQPConnectionError: Raises if the connection
+                                     encountered an error.
         :return:
         """
         self._lock.acquire()
@@ -151,8 +151,8 @@ class IO(object):
 
         :param addresses:
 
-        :raises AMQPConnectionError: If no appropriate address can be found,
-                                     raise an exception.
+        :raises AMQPConnectionError: Raises if the connection
+                                     encountered an error.
 
         :rtype: socket.socket
         """

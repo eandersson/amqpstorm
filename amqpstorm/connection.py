@@ -42,7 +42,8 @@ class Connection(Stateful):
         :param dict ssl_options: SSL kwargs (from ssl.wrap_socket)
         :param bool lazy: Lazy initialize the connection
 
-        :raises AMQPConnectionError: Raises on Connection error.
+        :raises AMQPConnectionError: Raises if the connection
+                                     encountered an error.
 
         :return:
         """
@@ -118,10 +119,10 @@ class Connection(Stateful):
         :param int rpc_timeout: Timeout before we give up waiting for an RPC
                                 response from the server.
 
-        :raises AMQPInvalidArgument: Raises on invalid arguments.
-        :raises AMQPChannelError: Raises if the channel cannot be opened
-                                  before the rpc_timeout is reached.
-        :raises AMQPConnectionError: Raises if the Connection is closed.
+        :raises AMQPInvalidArgument: Invalid Parameters
+        :raises AMQPChannelError: Raises if the channel encountered an error.
+        :raises AMQPConnectionError: Raises if the connection
+                                     encountered an error.
         """
         LOGGER.debug('Opening a new Channel')
         if not compatibility.is_integer(rpc_timeout):
@@ -165,8 +166,8 @@ class Connection(Stateful):
     def open(self):
         """Open Connection.
 
-        :raises AMQPConnectionError: Raises if a Connection cannot be
-                                     established.
+        :raises AMQPConnectionError: Raises if the connection
+                                     encountered an error.
         """
         LOGGER.debug('Connection Opening')
         self.set_state(self.OPENING)

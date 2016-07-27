@@ -17,10 +17,10 @@ class Message(BaseMessage):
 
     def __init__(self, channel, auto_decode=True, **message):
         """
-        :param Channel channel: amqp-storm Channel
+        :param Channel channel: AMQPStorm Channel
         :param bool auto_decode: Auto-decode strings when possible. Does not
                                  apply to to_dict, or to_tuple.
-        :param str|unicode body: Message body
+        :param bytes|str|unicode body: Message payload
         :param dict method: Message method
         :param dict properties: Message properties
         """
@@ -32,8 +32,8 @@ class Message(BaseMessage):
     def create(channel, body, properties=None):
         """Create a new Message.
 
-        :param Channel channel: AMQP-Storm Channel
-        :param bytes|str|unicode body: Message body
+        :param Channel channel: AMQPStorm Channel
+        :param bytes|str|unicode body: Message payload
         :param dict properties: Message properties
 
         :rtype: Message
@@ -149,7 +149,6 @@ class Message(BaseMessage):
 
         :param str routing_key: Message routing key
         :param str exchange: The exchange to publish the message to
-        :param dict properties: Message properties
         :param bool mandatory: Requires the message is published
         :param bool immediate: Request immediate delivery
 
