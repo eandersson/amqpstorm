@@ -19,6 +19,7 @@ from amqpstorm import Channel
 from amqpstorm.basic import Basic
 from amqpstorm.exchange import Exchange
 from amqpstorm.queue import Queue
+from amqpstorm.tx import Tx
 from amqpstorm.exception import *
 from amqpstorm.tests.utility import FakeConnection
 from amqpstorm.tests.utility import FakeFrame
@@ -72,27 +73,47 @@ class ChannelTests(unittest.TestCase):
         channel.set_state(channel.OPEN)
         channel._consumer_tags = [1, 2, 3]
 
+        close_frame = specification.Channel.Close(reply_code=200,
+                                                  reply_text='success')
         # Close Channel.
-        channel._close_channel(specification.Channel.Close(reply_text=''))
+        channel._close_channel(close_frame)
 
         self.assertEqual(channel._inbound, [])
         self.assertEqual(channel._consumer_tags, [])
         self.assertEqual(channel._state, channel.CLOSED)
+        self.assertFalse(channel.exceptions)
 
-    def test_channel_basic_handler(self):
+    def test_channel_confirm_deliveries(self):
+        def on_select_ok(*_):
+            channel.rpc.on_frame(specification.Confirm.SelectOk())
+
+        connection = FakeConnection(on_write=on_select_ok)
+        channel = Channel(0, connection, 0.1)
+        channel.set_state(Channel.OPEN)
+
+        self.assertFalse(channel.confirming_deliveries)
+        self.assertEqual(channel.confirm_deliveries(), {})
+        self.assertTrue(channel.confirming_deliveries)
+
+    def test_channel_basic_handler_is_defined(self):
         channel = Channel(0, None, 360)
 
         self.assertIsInstance(channel.basic, Basic)
 
-    def test_channel_exchange_handler(self):
+    def test_channel_exchange_handler_is_defined(self):
         channel = Channel(0, None, 360)
 
         self.assertIsInstance(channel.exchange, Exchange)
 
-    def test_channel_queue_handler(self):
+    def test_channel_queue_handler_is_defined(self):
         channel = Channel(0, None, 360)
 
         self.assertIsInstance(channel.queue, Queue)
+
+    def test_channel_tx_handler_is_defined(self):
+        channel = Channel(0, None, 360)
+
+        self.assertIsInstance(channel.tx, Tx)
 
 
 class ChannelExceptionTests(unittest.TestCase):
@@ -217,6 +238,39 @@ class ChannelExceptionTests(unittest.TestCase):
                 self.assertRaises(AMQPChannelError, generator.next)
             else:
                 self.assertRaises(AMQPChannelError, generator.__next__)
+
+    def test_channel_basic_return_raises_when_500(self):
+        channel = Channel(0, None, 360)
+
+        basic_return = specification.Basic.Return(reply_code=500,
+                                                  reply_text='Error')
+        channel._basic_return(basic_return)
+
+        self.assertEqual(len(channel.exceptions), 1)
+        why = channel.exceptions.pop(0)
+        self.assertIsInstance(why, AMQPMessageError)
+        self.assertEqual(str(why), "Message not delivered: Error (500) "
+                                   "to queue '' from exchange ''")
+
+    def test_channel_close_raises_when_500(self):
+        channel = Channel(0, None, 360)
+
+        # Set up Fake Channel.
+        channel._inbound = [1, 2, 3]
+        channel.set_state(channel.OPEN)
+        channel._consumer_tags = [1, 2, 3]
+
+        close_frame = specification.Channel.Close(reply_code=500,
+                                                  reply_text='travis-ci')
+        # Close Channel.
+        channel._close_channel(close_frame)
+
+        self.assertEqual(channel._inbound, [])
+        self.assertEqual(channel._consumer_tags, [])
+        self.assertEqual(channel._state, channel.CLOSED)
+        exception = channel.exceptions.pop(0)
+        self.assertEqual(str(exception), 'Channel 0 was closed by remote '
+                                         'server: travis-ci')
 
 
 class ChannelBuildMessageTests(unittest.TestCase):
@@ -467,19 +521,6 @@ class ChannelFrameTests(unittest.TestCase):
 
         self.assertEqual(str(channel.exceptions[0]),
                          'Channel 0 was closed by remote server: test')
-
-    def test_channel_basic_return_raises_when_500(self):
-        channel = Channel(0, None, 360)
-
-        basic_return = specification.Basic.Return(reply_code=500,
-                                                  reply_text='Error')
-        channel._basic_return(basic_return)
-
-        self.assertEqual(len(channel.exceptions), 1)
-        why = channel.exceptions.pop(0)
-        self.assertIsInstance(why, AMQPMessageError)
-        self.assertEqual(str(why), "Message not delivered: Error (500) "
-                                   "to queue '' from exchange ''")
 
     def test_channel_unhandled_frame(self):
         connection = amqpstorm.Connection('localhost', 'guest', 'guest',

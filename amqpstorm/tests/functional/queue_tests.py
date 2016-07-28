@@ -8,10 +8,9 @@ except ImportError:
 import amqpstorm
 from amqpstorm import Connection
 from amqpstorm.tests.utility import MockLoggingHandler
-
-HOST = '127.0.0.1'
-USERNAME = 'guest'
-PASSWORD = 'guest'
+from amqpstorm.tests.functional import HOST
+from amqpstorm.tests.functional import USERNAME
+from amqpstorm.tests.functional import PASSWORD
 
 logging.basicConfig(level=logging.DEBUG)
 

@@ -4,6 +4,7 @@ import logging
 import select
 import socket
 import threading
+from errno import EAGAIN
 from errno import EINTR
 from errno import EWOULDBLOCK
 from time import sleep
@@ -86,8 +87,8 @@ class IO(object):
     def open(self):
         """Open Socket and establish a connection.
 
-        :raises AMQPConnectionError: If a connection cannot be established on
-                                     the specified address, raise an exception.
+        :raises AMQPConnectionError: Raises if the connection
+                                     encountered an error.
         :return:
         """
         self._lock.acquire()
@@ -124,7 +125,7 @@ class IO(object):
                 except socket.timeout:
                     pass
                 except socket.error as why:
-                    if why.args[0] == EWOULDBLOCK:
+                    if why.args[0] in (EWOULDBLOCK, EAGAIN):
                         continue
                     self._exceptions.append(AMQPConnectionError(why))
                     return
@@ -151,8 +152,8 @@ class IO(object):
 
         :param addresses:
 
-        :raises AMQPConnectionError: If no appropriate address can be found,
-                                     raise an exception.
+        :raises AMQPConnectionError: Raises if the connection
+                                     encountered an error.
 
         :rtype: socket.socket
         """
@@ -232,8 +233,9 @@ class IO(object):
         except socket.timeout:
             pass
         except (IOError, OSError) as why:
-            self._exceptions.append(AMQPConnectionError(why))
-            self._running.clear()
+            if why.args[0] not in (EWOULDBLOCK, EAGAIN):
+                self._exceptions.append(AMQPConnectionError(why))
+                self._running.clear()
         return data_in
 
     def _read_from_socket(self):

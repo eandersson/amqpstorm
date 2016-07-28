@@ -149,7 +149,7 @@ class BaseMessage(object):
 
     def __init__(self, channel, **message):
         """
-        :param Channel channel: amqp-storm Channel
+        :param Channel channel: AMQPStorm Channel
         :param str|unicode body: Message body
         :param dict method: Message method
         :param dict properties: Message properties

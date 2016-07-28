@@ -2,6 +2,7 @@ import logging
 import select
 import socket
 import ssl
+import uuid
 from errno import EINTR
 from errno import EWOULDBLOCK
 
@@ -21,6 +22,8 @@ from amqpstorm import compatibility
 from amqpstorm.tests.utility import FakeConnection
 
 logging.basicConfig(level=logging.DEBUG)
+
+RANDOM_BUFFER = str(uuid.uuid4())
 
 
 class IOTests(unittest.TestCase):
@@ -121,7 +124,7 @@ class IOTests(unittest.TestCase):
         io.socket = MagicMock(name='socket', spec=socket.socket)
         io.poller = MagicMock(name='poller', spec=amqpstorm.io.Poller)
         io.socket.send.return_value = 0
-        io.write_to_socket('afasffa')
+        io.write_to_socket(RANDOM_BUFFER)
 
         self.assertIsInstance(io._exceptions[0], AMQPConnectionError)
 
@@ -206,7 +209,7 @@ class IOExceptionTests(unittest.TestCase):
         io.socket = MagicMock(name='socket', spec=socket.socket)
         io.poller = MagicMock(name='poller', spec=amqpstorm.io.Poller)
         io.socket.send.side_effect = socket.error('error')
-        io.write_to_socket('12345')
+        io.write_to_socket(RANDOM_BUFFER)
 
         self.assertIsInstance(io._exceptions[0], AMQPConnectionError)
 
@@ -225,7 +228,7 @@ class IOExceptionTests(unittest.TestCase):
         io.socket = MagicMock(name='socket', spec=socket.socket)
         io.poller = MagicMock(name='poller', spec=amqpstorm.io.Poller)
         io.socket.send.side_effect = custom_raise
-        io.write_to_socket('12345')
+        io.write_to_socket(RANDOM_BUFFER)
 
         self.assertTrue(self.raised)
         self.assertFalse(io._exceptions)
@@ -245,7 +248,7 @@ class IOExceptionTests(unittest.TestCase):
         io.socket = MagicMock(name='socket', spec=socket.socket)
         io.poller = MagicMock(name='poller', spec=amqpstorm.io.Poller)
         io.socket.send.side_effect = custom_raise
-        io.write_to_socket('12345')
+        io.write_to_socket(RANDOM_BUFFER)
 
         self.assertTrue(self.raised)
         self.assertFalse(io._exceptions)
@@ -256,7 +259,7 @@ class IOExceptionTests(unittest.TestCase):
         io = IO(connection.parameters)
         io._exceptions = []
         io.socket = None
-        io.write_to_socket('12345')
+        io.write_to_socket(RANDOM_BUFFER)
 
         self.assertTrue(io._exceptions)
 

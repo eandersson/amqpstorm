@@ -6,19 +6,19 @@ from amqpstorm import Connection
 logging.basicConfig(level=logging.DEBUG)
 
 
-def on_message(body, channel, header, properties):
-    """This function is called on message received.
+def on_message(body, channel, method, properties):
+    """This function is called when a message is received.
 
-    :param body: Message body
-    :param channel: Channel
-    :param header: Message header
-    :param properties: Message properties
+    :param bytes|str|unicode body: Message payload
+    :param Channel channel: AMQPStorm Channel
+    :param dict method: Message method
+    :param dict properties: Message properties
     :return:
     """
     print("Message:", body)
 
     # Acknowledge that we handled the message without any issues.
-    channel.basic.ack(delivery_tag=header['delivery_tag'])
+    channel.basic.ack(delivery_tag=method['delivery_tag'])
 
 
 def consumer():
