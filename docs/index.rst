@@ -3,15 +3,20 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-amqpstorm package
+AMQPStorm package
 =================
 Thread-safe Python RabbitMQ Client Library based on pamqp.
 
 Installation
 ------------
-amqpstorm can be installed by running :command:`pip install amqpstorm`
+AMQPStorm can be installed by running :command:`pip install amqpstorm`
 
-Contents:
+Examples
+--------
+A wide verity of examples is available on Github at `https://github.com/eandersson/amqpstorm/tree/master/examples <https://github.com/eandersson/amqpstorm/tree/master/examples>`_
+
+API Documentation
+-----------------
 
 .. toctree::
    :glob:
@@ -25,7 +30,7 @@ Please report any issues to the Github repo at `https://github.com/eandersson/am
 
 Source
 ------
-amqpstorm source is available on Github at  `https://github.com/eandersson/amqp-storm <https://github.com/eandersson/amqp-storm>`_
+AMQPStorm source code is available on Github at  `https://github.com/eandersson/amqp-storm <https://github.com/eandersson/amqp-storm>`_
 
 Indices and tables
 ==================
@@ -33,4 +38,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-

@@ -1,13 +1,10 @@
 from setuptools import setup
 
-long_description = """
-See https://github.com/eandersson/amqpstorm for more information.
-"""
 
 setup(name='AMQPStorm',
-      version='2.0.0a1',
+      version='2.0.0',
       description='Thread-safe Python RabbitMQ Client Library based on pamqp.',
-      long_description=long_description,
+      long_description=open('README.rst').read(),
       author='Erik Olof Gunnar Andersson',
       author_email='me@eandersson.net',
       include_package_data=True,
@@ -37,4 +34,5 @@ setup(name='AMQPStorm',
           'Topic :: Internet',
           'Topic :: Software Development :: Libraries',
           'Topic :: Software Development :: Libraries :: Python Modules',
-          'Topic :: System :: Networking'])
+          'Topic :: System :: Networking'
+      ])
