@@ -4,9 +4,12 @@ Changelog
 Version 2.1.0
 -------------
 - Added Management Api.
-    A complete Management Api that can be used for Testing or DevOps tasks.
+    - A complete Web Management Api that can be used for Testing or DevOps related tasks.
+        
+        - Documentation https://amqpstorm.readthedocs.io/en/latest/#management-api-documentation
+        - Examples https://github.com/eandersson/amqpstorm/tree/master/examples/management_api
 
-- Connection and Channel function check_for_errors now behave more consistently.
+- Connection/Channel function check_for_errors now behave more consistently.
 
 Version 2.0.0
 -------------
