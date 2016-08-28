@@ -1,4 +1,4 @@
-Message
+AMQPStorm Message
 -----------------
 
 .. autoclass:: amqpstorm.Message

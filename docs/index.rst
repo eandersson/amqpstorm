@@ -24,13 +24,22 @@ API Documentation
 
    api/*
 
+Management API Documentation
+----------------------------
+
+.. toctree::
+   :glob:
+   :maxdepth: 1
+
+   management_api/*
+
 Issues
 ------
-Please report any issues to the Github repo at `https://github.com/eandersson/amqp-storm/issues <https://github.com/eandersson/amqp-storm/issues>`_
+Please report any issues to the Github repo at `https://github.com/eandersson/amqpstorm/issues <https://github.com/eandersson/amqpstorm/issues>`_
 
 Source
 ------
-AMQPStorm source code is available on Github at  `https://github.com/eandersson/amqp-storm <https://github.com/eandersson/amqp-storm>`_
+AMQPStorm source code is available on Github at  `https://github.com/eandersson/amqpstorm <https://github.com/eandersson/amqpstorm>`_
 
 Indices and tables
 ==================
