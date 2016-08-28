@@ -2,3 +2,4 @@ nose
 nose-timer
 mock
 coverage
+requests
