@@ -3,7 +3,10 @@ Changelog
 
 Version 2.1.0
 -------------
-- Connection/Channel function check_for_errors now behave more consistently.
+- Added Management Api.
+    A complete Management Api that can be used for Testing or DevOps tasks.
+
+- Connection and Channel function check_for_errors now behave more consistently.
 
 Version 2.0.0
 -------------
