@@ -146,7 +146,10 @@ class Connection(Stateful):
         :return:
         """
         if not self.exceptions:
-            return
+            if not self.is_closed:
+                return
+            why = AMQPConnectionError('connection was closed')
+            self.exceptions.append(why)
         self.set_state(self.CLOSED)
         self.close()
         raise self.exceptions[0]

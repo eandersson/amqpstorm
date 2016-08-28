@@ -79,7 +79,7 @@ class Queue(Handler):
                                           if_empty=if_empty)
         return self._channel.rpc_request(delete_frame)
 
-    def purge(self, queue=''):
+    def purge(self, queue):
         """Purge a Queue.
 
         :param str queue: Queue name

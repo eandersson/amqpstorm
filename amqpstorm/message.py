@@ -107,8 +107,9 @@ class Message(BaseMessage):
         :return:
         """
         if not self._method:
-            raise AMQPMessageError('Message.ack only available on '
-                                   'incoming messages')
+            raise AMQPMessageError(
+                'Message.ack only available on incoming messages'
+            )
         self._channel.basic.ack(delivery_tag=self._method['delivery_tag'])
 
     def nack(self, requeue=True):
@@ -122,8 +123,9 @@ class Message(BaseMessage):
         :param bool requeue:
         """
         if not self._method:
-            raise AMQPMessageError('Message.nack only available on '
-                                   'incoming messages')
+            raise AMQPMessageError(
+                'Message.nack only available on incoming messages'
+            )
         self._channel.basic.nack(delivery_tag=self._method['delivery_tag'],
                                  requeue=requeue)
 
@@ -138,8 +140,9 @@ class Message(BaseMessage):
         :param bool requeue: Requeue the message
         """
         if not self._method:
-            raise AMQPMessageError('Message.reject only available on '
-                                   'incoming messages')
+            raise AMQPMessageError(
+                'Message.reject only available on incoming messages'
+            )
         self._channel.basic.reject(delivery_tag=self._method['delivery_tag'],
                                    requeue=requeue)
 

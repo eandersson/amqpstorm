@@ -141,6 +141,11 @@ class Rpc(object):
             if value == uuid:
                 requests.append(key)
         self.remove(uuid)
-        message = ('rpc requests %s (%s) took too long'
-                   % (uuid, ', '.join(requests)))
+        message = (
+            'rpc requests %s (%s) took too long' %
+            (
+                uuid,
+                ', '.join(requests)
+            )
+        )
         raise AMQPChannelError(message)

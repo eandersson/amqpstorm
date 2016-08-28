@@ -164,9 +164,12 @@ class IO(object):
             except (IOError, OSError):
                 continue
             return sock
-        raise AMQPConnectionError('Could not connect to %s:%d'
-                                  % (self._parameters['hostname'],
-                                     self._parameters['port']))
+        raise AMQPConnectionError(
+            'Could not connect to %s:%d' % (
+                self._parameters['hostname'],
+                self._parameters['port']
+            )
+        )
 
     def _create_socket(self, socket_family):
         """Create Socket.
@@ -180,8 +183,9 @@ class IO(object):
         sock.settimeout(self._parameters['timeout'] or None)
         if self.use_ssl:
             if not compatibility.SSL_SUPPORTED:
-                raise AMQPConnectionError('Python not compiled with support '
-                                          'for TLSv1 or higher')
+                raise AMQPConnectionError(
+                    'Python not compiled with support for TLSv1 or higher'
+                )
             sock = self._ssl_wrap_socket(sock)
         return sock
 

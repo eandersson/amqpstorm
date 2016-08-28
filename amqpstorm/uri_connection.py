@@ -59,8 +59,10 @@ class UriConnection(Connection):
         }
         if use_ssl:
             if not compatibility.SSL_SUPPORTED:
-                raise AMQPConnectionError('Python not compiled with support '
-                                          'for TLSv1 or higher')
+                raise AMQPConnectionError(
+                    'Python not compiled with support '
+                    'for TLSv1 or higher'
+                )
             options['ssl_options'] = self._parse_ssl_options(kwargs)
         return options
 

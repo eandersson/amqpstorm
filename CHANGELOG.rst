@@ -1,6 +1,10 @@
 Changelog
 -------------
 
+Version 2.1.0
+-------------
+- Connection/Channel function check_for_errors now behave more consistently.
+
 Version 2.0.0
 -------------
 - Messages are now delivered as Message objects by default.

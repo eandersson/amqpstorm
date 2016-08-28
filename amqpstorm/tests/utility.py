@@ -1,6 +1,7 @@
 import logging
 
-from amqpstorm.base import Stateful
+from amqpstorm.connection import Channel
+from amqpstorm.connection import Connection
 
 
 class SslTLSv1_2(object):
@@ -23,11 +24,12 @@ class SslTLSNone(object):
     pass
 
 
-class FakeConnection(Stateful):
+class FakeConnection(Connection):
     """Fake Connection for Unit-Testing."""
 
-    def __init__(self, state=Stateful.OPEN, on_write=None):
-        super(FakeConnection, self).__init__()
+    def __init__(self, state=Connection.OPEN, on_write=None):
+        super(FakeConnection, self).__init__('localhost', 'guest', 'guest',
+                                             lazy=True)
         self.frames_out = []
         self.parameters = {
             'hostname': 'localhost',
@@ -51,14 +53,14 @@ class FakeConnection(Stateful):
         self.frames_out.append((channel_id, frames_out))
 
 
-class FakeChannel(Stateful):
+class FakeChannel(Channel):
     """Fake Channel for Unit-Testing."""
     result = list()
 
-    def __init__(self, state=Stateful.OPEN):
-        super(FakeChannel, self).__init__()
+    def __init__(self, state=Channel.OPEN):
+        super(FakeChannel, self).__init__(0, None, 0.1)
         self.set_state(state)
-        self.basic = FakeBasic(self)
+        self._basic = FakeBasic(self)
 
     def close(self):
         self.set_state(self.CLOSED)

@@ -53,7 +53,7 @@ class QueueTests(unittest.TestCase):
         channel.set_state(Channel.OPEN)
         exchange = Queue(channel)
 
-        self.assertEqual(exchange.purge(), {'message_count': 0})
+        self.assertEqual(exchange.purge('travis_ci'), {'message_count': 0})
 
     def test_queue_bind(self):
         def on_bind(*_):

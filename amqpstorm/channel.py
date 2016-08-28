@@ -49,8 +49,10 @@ class Channel(BaseChannel):
 
     def __exit__(self, exception_type, exception_value, _):
         if exception_type:
-            LOGGER.warning('Closing channel due to an unhandled exception: %s',
-                           exception_value)
+            LOGGER.warning(
+                'Closing channel due to an unhandled exception: %s',
+                exception_value
+            )
         if not self.is_open:
             return
         self.close()
@@ -62,7 +64,7 @@ class Channel(BaseChannel):
     def basic(self):
         """RabbitMQ Basic Operations.
 
-        :rtype: Basic
+        :rtype: amqpstorm.basic.Basic
         """
         return self._basic
 
@@ -70,7 +72,7 @@ class Channel(BaseChannel):
     def exchange(self):
         """RabbitMQ Exchange Operations.
 
-        :rtype: Exchange
+        :rtype: amqpstorm.exchange.Exchange
         """
         return self._exchange
 
@@ -78,7 +80,7 @@ class Channel(BaseChannel):
     def tx(self):
         """RabbitMQ Tx Operations.
 
-        :rtype: Tx
+        :rtype: amqpstorm.tx.Tx
         """
         return self._tx
 
@@ -86,7 +88,7 @@ class Channel(BaseChannel):
     def queue(self):
         """RabbitMQ Queue Operations.
 
-        :rtype: Queue
+        :rtype: amqpstorm.queue.Queue
         """
         return self._queue
 
@@ -118,7 +120,7 @@ class Channel(BaseChannel):
                 continue
             yield message
 
-    def close(self, reply_code=0, reply_text=''):
+    def close(self, reply_code=200, reply_text=''):
         """Close Channel.
 
         :param int reply_code: Close reply code (e.g. 200)
@@ -158,12 +160,11 @@ class Channel(BaseChannel):
                                      encountered an error.
         :return:
         """
-        if self._connection.exceptions or self._connection.is_closed:
+        try:
+            self._connection.check_for_errors()
+        except AMQPConnectionError:
             self.set_state(self.CLOSED)
-            why = AMQPConnectionError('connection was closed')
-            if self._connection.exceptions:
-                why = self._connection.exceptions[0]
-            raise why
+            raise
 
         if self.exceptions:
             exception = self.exceptions[0]
@@ -212,8 +213,10 @@ class Channel(BaseChannel):
         elif frame_in.name == 'Channel.Flow':
             self.write_frame(pamqp_spec.Channel.FlowOk(frame_in.active))
         else:
-            LOGGER.error('[Channel%d] Unhandled Frame: %s -- %s',
-                         self.channel_id, frame_in.name, dict(frame_in))
+            LOGGER.error(
+                '[Channel%d] Unhandled Frame: %s -- %s',
+                self.channel_id, frame_in.name, dict(frame_in)
+            )
 
     def open(self):
         """Open Channel.
@@ -275,8 +278,10 @@ class Channel(BaseChannel):
 
         :return:
         """
-        while self.consumer_tags and not self.is_closed:
+        while not self.is_closed:
             self.process_data_events(to_tuple=to_tuple)
+            if not self.consumer_tags:
+                break
 
     def stop_consuming(self):
         """Stop consuming messages.
@@ -317,8 +322,10 @@ class Channel(BaseChannel):
         :param pamqp_spec.Basic.Cancel frame_in: Amqp frame.
         :return:
         """
-        LOGGER.warning('Received Basic.Cancel on consumer_tag: %s',
-                       try_utf8_decode(frame_in.consumer_tag))
+        LOGGER.warning(
+            'Received Basic.Cancel on consumer_tag: %s',
+            try_utf8_decode(frame_in.consumer_tag)
+        )
         self.remove_consumer_tag(frame_in.consumer_tag)
 
     def _basic_return(self, frame_in):
@@ -328,11 +335,15 @@ class Channel(BaseChannel):
         :return:
         """
         reply_text = try_utf8_decode(frame_in.reply_text)
-        message = ("Message not delivered: %s (%s) to queue '%s' "
-                   "from exchange '%s'" % (reply_text,
-                                           frame_in.reply_code,
-                                           frame_in.routing_key,
-                                           frame_in.exchange))
+        message = (
+            "Message not delivered: %s (%s) to queue '%s' from exchange '%s'" %
+            (
+                reply_text,
+                frame_in.reply_code,
+                frame_in.routing_key,
+                frame_in.exchange
+            )
+        )
         exception = AMQPMessageError(message,
                                      reply_code=frame_in.reply_code)
         self.exceptions.append(exception)
@@ -364,15 +375,19 @@ class Channel(BaseChannel):
         """
         basic_deliver = self._inbound.pop(0)
         if not isinstance(basic_deliver, pamqp_spec.Basic.Deliver):
-            LOGGER.warning('Received an out-of-order frame: %s was '
-                           'expecting a Basic.Deliver frame',
-                           type(basic_deliver))
+            LOGGER.warning(
+                'Received an out-of-order frame: %s was '
+                'expecting a Basic.Deliver frame',
+                type(basic_deliver)
+            )
             return None
         content_header = self._inbound.pop(0)
         if not isinstance(content_header, ContentHeader):
-            LOGGER.warning('Received an out-of-order frame: %s was '
-                           'expecting a ContentHeader frame',
-                           type(content_header))
+            LOGGER.warning(
+                'Received an out-of-order frame: %s was '
+                'expecting a ContentHeader frame',
+                type(content_header)
+            )
             return None
 
         return basic_deliver, content_header
@@ -402,8 +417,13 @@ class Channel(BaseChannel):
         self.remove_consumer_tag()
         if frame_in.reply_code != 200:
             reply_text = try_utf8_decode(frame_in.reply_text)
-            message = 'Channel %d was closed by remote server: %s' % \
-                      (self._channel_id, reply_text)
+            message = (
+                'Channel %d was closed by remote server: %s' %
+                (
+                    self._channel_id,
+                    reply_text
+                )
+            )
             exception = AMQPChannelError(message,
                                          reply_code=frame_in.reply_code)
             self.exceptions.append(exception)
