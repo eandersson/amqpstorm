@@ -75,19 +75,14 @@ class Stateful(object):
 
     @property
     def exceptions(self):
-        """Any exceptions thrown. This is useful for troubleshooting, and is
-        used internally to check the health of the connection.
+        """Stores all exceptions thrown by this instance.
+
+            This is useful for troubleshooting, and is used internally
+            to check the health of the connection.
 
         :rtype: list
         """
         return self._exceptions
-
-    def check_for_errors(self):
-        """Check for critical errors.
-
-        :return:
-        """
-        pass
 
 
 class BaseChannel(Stateful):

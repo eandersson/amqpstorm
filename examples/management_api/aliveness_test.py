@@ -13,3 +13,4 @@ if __name__ == '__main__':
     except ApiConnectionError as why:
         print('Connection Error: %s' % why)
     except ApiError as why:
+        print('ApiError: %s' % why)
