@@ -3,7 +3,7 @@ from amqpstorm.management import ApiError
 from amqpstorm.management import ManagementApi
 
 if __name__ == '__main__':
-    API = ManagementApi('http://192.168.1.100:15672', 'guest', 'guest')
+    API = ManagementApi('http://127.0.0.1:15672', 'guest', 'guest')
     try:
         result = API.aliveness_test('/')
         if result['status'] == 'ok':

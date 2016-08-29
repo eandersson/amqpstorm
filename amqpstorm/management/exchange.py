@@ -50,7 +50,7 @@ class Exchange(ManagementHandler):
 
     def declare(self, exchange='', exchange_type='direct', virtual_host='/',
                 passive=False, durable=False, auto_delete=False,
-                arguments=None):
+                internal=False, arguments=None):
         """Declare an Exchange.
 
         :param str exchange: Exchange name
@@ -59,6 +59,7 @@ class Exchange(ManagementHandler):
         :param bool passive: Do not create
         :param bool durable: Durable exchange
         :param bool auto_delete: Automatically delete when not in use
+        :param bool internal: Is a exchange for use by the broker only.
         :param dict|None arguments: Exchange key/value arguments
 
         :raises ApiError: Raises if the remote server encountered an error.
@@ -73,7 +74,7 @@ class Exchange(ManagementHandler):
             {
                 'durable': durable,
                 'auto_delete': auto_delete,
-                'internal': False,
+                'internal': internal,
                 'type': exchange_type,
                 'arguments': arguments or {},
                 'vhost': urlparse.unquote(virtual_host)
