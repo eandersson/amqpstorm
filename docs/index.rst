@@ -5,11 +5,11 @@
 
 AMQPStorm package
 =================
-Thread-safe Python RabbitMQ Client Library based on pamqp.
+Thread-safe Python RabbitMQ Client & Management library.
 
 Installation
 ------------
-AMQPStorm can be installed by running :command:`pip install amqpstorm`
+AMQPStorm can be installed using the command :command:`pip install amqpstorm`
 
 Examples
 --------
