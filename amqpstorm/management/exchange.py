@@ -59,7 +59,7 @@ class Exchange(ManagementHandler):
         :param bool passive: Do not create
         :param bool durable: Durable exchange
         :param bool auto_delete: Automatically delete when not in use
-        :param bool internal: Is a exchange for use by the broker only.
+        :param bool internal: Is the exchange for use by the broker only.
         :param dict|None arguments: Exchange key/value arguments
 
         :raises ApiError: Raises if the remote server encountered an error.
