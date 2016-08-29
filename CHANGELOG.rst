@@ -3,9 +3,7 @@ Changelog
 
 Version 2.1.0
 -------------
-- Added Management Api.
-    - A complete Web Management Api that can be used for Testing or DevOps related tasks.
-        
+- Added support for the RabbitMQ Management Api.
         - Documentation https://amqpstorm.readthedocs.io/en/latest/#management-api-documentation
         - Examples https://github.com/eandersson/amqpstorm/tree/master/examples/management_api
 
@@ -69,12 +67,12 @@ Version 1.3.0
 - Fixed Runtime exception caused by listener trying to join itself [#11] - Thanks ramonz.
 - Channels are no longer closed after RabbitMQ throws a recoverable exception.
 - Added Error mapping based on the AMQP 0.9.1 specifications (when applicable).
-    Introduced three new variables to the AMQP-Storm Exceptions.
+    Introduced three new variables to the AMQPStorm Exceptions.
         - error_code: This provides HTTP style error codes based on the AMQP Specification.
         - error_type: This provides the full AMQP Error name; e.g. NO-ROUTE.
         - documentation: This provides the official AMQP Specification documentation string.
 
-    These variables are available on all AMQP-Storm exceptions, but if no error code was
+    These variables are available on all AMQPStorm exceptions, but if no error code was
     provided by RabbitMQ, they will be empty.
 
     Usage:
