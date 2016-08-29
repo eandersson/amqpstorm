@@ -1,4 +1,4 @@
-"""AMQP-Storm Connection."""
+"""AMQPStorm Connection."""
 
 import logging
 import time

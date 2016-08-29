@@ -1,4 +1,4 @@
-"""AMQP-Storm."""
+"""AMQPStorm."""
 __version__ = '2.1.0'  # noqa
 __author__ = 'eandersson'  # noqa
 

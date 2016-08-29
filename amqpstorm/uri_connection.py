@@ -1,4 +1,4 @@
-"""AMQP-Storm Uri wrapper for Connection."""
+"""AMQPStorm Uri wrapper for Connection."""
 
 import logging
 

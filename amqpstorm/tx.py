@@ -1,4 +1,4 @@
-"""AMQP-Storm Channel.Tx."""
+"""AMQPStorm Channel.Tx."""
 
 import logging
 

@@ -1,4 +1,4 @@
-"""AMQP-Storm Message."""
+"""AMQPStorm Message."""
 
 import json
 import uuid

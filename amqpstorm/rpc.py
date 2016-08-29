@@ -1,4 +1,4 @@
-"""AMQP-Storm Rpc."""
+"""AMQPStorm Rpc."""
 
 import threading
 import time

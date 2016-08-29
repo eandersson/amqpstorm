@@ -1,4 +1,4 @@
-"""AMQP-Storm Connection.IO."""
+"""AMQPStorm Connection.IO."""
 
 import logging
 import select

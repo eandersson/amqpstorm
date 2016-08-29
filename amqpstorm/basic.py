@@ -1,4 +1,4 @@
-"""AMQP-Storm Channel.Basic."""
+"""AMQPStorm Channel.Basic."""
 
 import logging
 import math

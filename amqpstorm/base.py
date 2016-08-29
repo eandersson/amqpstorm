@@ -1,4 +1,4 @@
-"""AMQP-Storm Base."""
+"""AMQPStorm Base."""
 
 import locale
 import threading

@@ -1,4 +1,4 @@
-"""AMQP-Storm Connection.Heartbeat."""
+"""AMQPStorm Connection.Heartbeat."""
 
 import logging
 import threading

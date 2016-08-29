@@ -1,4 +1,4 @@
-"""AMQP-Storm Connection.Channel0."""
+"""AMQPStorm Connection.Channel0."""
 
 import logging
 import platform

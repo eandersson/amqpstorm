@@ -1,4 +1,4 @@
-"""AMQP-Storm Channel.Exchange."""
+"""AMQPStorm Channel.Exchange."""
 
 import logging
 

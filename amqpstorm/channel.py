@@ -1,4 +1,4 @@
-"""AMQP-Storm Connection.Channel."""
+"""AMQPStorm Connection.Channel."""
 
 import logging
 from time import sleep
