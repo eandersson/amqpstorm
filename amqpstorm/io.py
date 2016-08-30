@@ -274,7 +274,7 @@ class IO(object):
             pass
         except (IOError, OSError) as why:
             if why.args[0] not in (EWOULDBLOCK, EAGAIN):
-            self._exceptions.append(AMQPConnectionError(why))
+                self._exceptions.append(AMQPConnectionError(why))
             traceback.print_exc()
             # print("[_receive (exception)] Clearing self._running")
             self._running.clear()
