@@ -1,4 +1,4 @@
-"""AMQP-Storm Connection.IO."""
+"""AMQPStorm Connection.IO."""
 
 import logging
 import traceback
@@ -6,6 +6,7 @@ import multiprocessing
 import select
 import socket
 import threading
+from errno import EAGAIN
 from errno import EINTR
 from errno import EWOULDBLOCK
 from time import sleep
@@ -109,8 +110,8 @@ class IO(object):
     def open(self):
         """Open Socket and establish a connection.
 
-        :raises AMQPConnectionError: If a connection cannot be established on
-                                     the specified address, raise an exception.
+        :raises AMQPConnectionError: Raises if the connection
+                                     encountered an error.
         :return:
         """
         self._lock.acquire()
@@ -147,7 +148,7 @@ class IO(object):
                 except socket.timeout:
                     pass
                 except socket.error as why:
-                    if why.args[0] == EWOULDBLOCK:
+                    if why.args[0] in (EWOULDBLOCK, EAGAIN):
                         continue
                     self._exceptions.append(AMQPConnectionError(why))
                     return
@@ -174,8 +175,8 @@ class IO(object):
 
         :param addresses:
 
-        :raises AMQPConnectionError: If no appropriate address can be found,
-                                     raise an exception.
+        :raises AMQPConnectionError: Raises if the connection
+                                     encountered an error.
 
         :rtype: socket.socket
         """
@@ -186,9 +187,12 @@ class IO(object):
             except (IOError, OSError):
                 continue
             return sock
-        raise AMQPConnectionError('Could not connect to %s:%d'
-                                  % (self._parameters['hostname'],
-                                     self._parameters['port']))
+        raise AMQPConnectionError(
+            'Could not connect to %s:%d' % (
+                self._parameters['hostname'],
+                self._parameters['port']
+            )
+        )
 
     def _create_socket(self, socket_family):
         """Create Socket.
@@ -202,8 +206,9 @@ class IO(object):
         sock.settimeout(self._parameters['timeout'] or None)
         if self.use_ssl:
             if not compatibility.SSL_SUPPORTED:
-                raise AMQPConnectionError('Python not compiled with support '
-                                          'for TLSv1 or higher')
+                raise AMQPConnectionError(
+                    'Python not compiled with support for TLSv1 or higher'
+                )
             sock = self._ssl_wrap_socket(sock)
         return sock
 
@@ -268,6 +273,7 @@ class IO(object):
         except socket.timeout:
             pass
         except (IOError, OSError) as why:
+            if why.args[0] not in (EWOULDBLOCK, EAGAIN):
             self._exceptions.append(AMQPConnectionError(why))
             traceback.print_exc()
             # print("[_receive (exception)] Clearing self._running")

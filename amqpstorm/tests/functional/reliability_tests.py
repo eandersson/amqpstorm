@@ -13,11 +13,11 @@ except ImportError:
 from amqpstorm import Connection
 from amqpstorm import AMQPConnectionError
 from amqpstorm import compatibility
-
-HOST = '127.0.0.1'
-USERNAME = 'guest'
-PASSWORD = 'guest'
-URI = 'amqp://guest:guest@127.0.0.1:5672/%2F'
+from amqpstorm import UriConnection
+from amqpstorm.tests.functional import HOST
+from amqpstorm.tests.functional import URI
+from amqpstorm.tests.functional import USERNAME
+from amqpstorm.tests.functional import PASSWORD
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -33,7 +33,7 @@ class OpenCloseChannelLoopTest(unittest.TestCase):
         self.connection = Connection(HOST, USERNAME, PASSWORD, lazy=True)
 
     def test_functional_open_close_channel_loop(self):
-        for _ in range(100):
+        for _ in range(10):
             self.connection.open()
             self.channel = self.connection.channel()
 
@@ -55,7 +55,7 @@ class OpenCloseChannelLoopTest(unittest.TestCase):
             self.assertIsNone(self.connection._io.socket)
             self.assertIsNone(self.connection._io.poller)
 
-        time.sleep(0.1)
+        time.sleep(1)
 
         self.assertEqual(threading.activeCount(), 1,
                          msg='Current Active threads: %s'
@@ -90,7 +90,7 @@ class OpenMultipleChannelTest(unittest.TestCase):
 
         self.connection.close()
 
-        time.sleep(0.1)
+        time.sleep(1)
 
         self.assertTrue(self.connection.is_closed)
         self.assertIsNone(self.connection._io.socket)
@@ -103,11 +103,11 @@ class OpenMultipleChannelTest(unittest.TestCase):
         self.connection.close()
 
 
-class Publish50kTest(unittest.TestCase):
+class Publish5kTest(unittest.TestCase):
     connection = None
     channel = None
-    messages_to_send = 50000
-    queue_name = 'test.basic.50k'
+    messages_to_send = 5000
+    queue_name = 'test.basic.5k'
 
     def setUp(self):
         self.connection = Connection(HOST, USERNAME, PASSWORD)
@@ -115,9 +115,9 @@ class Publish50kTest(unittest.TestCase):
         self.channel.queue.declare(self.queue_name)
         self.channel.queue.purge(self.queue_name)
 
-    def test_functional_publish_50k_messages(self):
+    def test_functional_publish_5k_messages(self):
         body = str(uuid.uuid4())
-        # Publish 50k Messages.
+        # Publish 5k Messages.
         for _ in range(self.messages_to_send):
             self.channel.basic.publish(body=body,
                                        routing_key=self.queue_name)
@@ -125,7 +125,7 @@ class Publish50kTest(unittest.TestCase):
 
         # Let's give RabbitMQ a few seconds to catch up.
         for _ in range(5):
-            time.sleep(0.5)
+            time.sleep(0.01)
             result = self.channel.queue.declare(queue=self.queue_name,
                                                 passive=True)
             if self.messages_to_send == result['message_count']:
@@ -135,6 +135,18 @@ class Publish50kTest(unittest.TestCase):
 
     def tearDown(self):
         self.channel.queue.delete(self.queue_name)
+        self.channel.close()
+        self.connection.close()
+
+
+class UriConnectionTest(unittest.TestCase):
+    connection = None
+    channel = None
+
+    def test_functional_uri_connection(self):
+        self.connection = UriConnection(URI)
+        self.channel = self.connection.channel()
+        self.assertTrue(self.connection.is_open)
         self.channel.close()
         self.connection.close()
 

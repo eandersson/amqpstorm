@@ -20,7 +20,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 class CompatibilityTests(unittest.TestCase):
     def test_compatibility_basic_integer(self):
-        x = 0
+        x = 100
         self.assertTrue(compatibility.is_integer(x))
 
     def test_compatibility_not_integer(self):
@@ -29,7 +29,7 @@ class CompatibilityTests(unittest.TestCase):
 
     @unittest.skipIf(sys.version_info[0] == 3, 'No long obj in Python 3')
     def test_compatibility_long_integer(self):
-        x = long(1)
+        x = long(100)
         self.assertTrue(compatibility.is_integer(x))
 
     def test_compatibility_normal_string(self):
@@ -46,7 +46,7 @@ class CompatibilityTests(unittest.TestCase):
         self.assertTrue(compatibility.is_string(x))
 
     def test_compatibility_is_not_string(self):
-        x = 0
+        x = 100
         self.assertFalse(compatibility.is_string(x))
 
     @unittest.skipIf(sys.version_info[0] == 3, 'No unicode obj in Python 3')
@@ -69,15 +69,15 @@ class CompatibilityTests(unittest.TestCase):
         self.assertEqual(x.decode('utf-8'), compatibility.try_utf8_decode(x))
 
     def test_compatibility_fail_silently_on_utf_16(self):
-        x = 'abc'.encode('utf-16')
+        x = 'hello'.encode('utf-16')
         self.assertEqual(compatibility.try_utf8_decode(x), x)
 
     def test_compatibility_fail_silently_on_utf_32(self):
-        x = 'abc'.encode('utf-32')
+        x = 'hello'.encode('utf-32')
         self.assertEqual(compatibility.try_utf8_decode(x), x)
 
     def test_compatibility_try_utf8_decode_on_integer(self):
-        x = 5
+        x = 100
         self.assertEqual(x, compatibility.try_utf8_decode(x))
 
     def test_compatibility_try_utf8_decode_on_dict(self):

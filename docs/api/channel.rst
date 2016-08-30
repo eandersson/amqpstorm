@@ -1,4 +1,4 @@
-Channel
+AMQPStorm Channel
 -----------------
 
 .. autoclass:: amqpstorm.Channel

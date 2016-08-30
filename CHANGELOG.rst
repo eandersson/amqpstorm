@@ -1,6 +1,25 @@
 Changelog
 -------------
 
+Version 2.1.0
+-------------
+- Added support for the RabbitMQ Management Api.
+        - Documentation https://amqpstorm.readthedocs.io/en/latest/#management-api-documentation
+        - Examples https://github.com/eandersson/amqpstorm/tree/master/examples/management_api
+
+- Connection/Channel function check_for_errors now behave more consistently.
+
+Version 2.0.0
+-------------
+- Messages are now delivered as Message objects by default.
+    - to_tuple and to_dict are now set to False by default.
+
+        This is a breaking change that affects the following function:
+
+            - channel.process_data_events
+            - channel.start_consuming
+            - channel.basic.get
+
 Version 1.5.0
 -------------
 - Added support for Channel.Tx (Server local transactions). [#27]
@@ -48,12 +67,12 @@ Version 1.3.0
 - Fixed Runtime exception caused by listener trying to join itself [#11] - Thanks ramonz.
 - Channels are no longer closed after RabbitMQ throws a recoverable exception.
 - Added Error mapping based on the AMQP 0.9.1 specifications (when applicable).
-    Introduced three new variables to the AMQP-Storm Exceptions.
+    Introduced three new variables to the AMQPStorm Exceptions.
         - error_code: This provides HTTP style error codes based on the AMQP Specification.
         - error_type: This provides the full AMQP Error name; e.g. NO-ROUTE.
         - documentation: This provides the official AMQP Specification documentation string.
 
-    These variables are available on all AMQP-Storm exceptions, but if no error code was
+    These variables are available on all AMQPStorm exceptions, but if no error code was
     provided by RabbitMQ, they will be empty.
 
     Usage:

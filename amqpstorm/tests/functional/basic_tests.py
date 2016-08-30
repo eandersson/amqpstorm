@@ -6,11 +6,10 @@ except ImportError:
     import unittest
 
 from amqpstorm import Connection
+from amqpstorm.tests.functional import HOST
+from amqpstorm.tests.functional import USERNAME
+from amqpstorm.tests.functional import PASSWORD
 from amqpstorm.tests.utility import MockLoggingHandler
-
-HOST = '127.0.0.1'
-USERNAME = 'guest'
-PASSWORD = 'guest'
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -35,7 +34,7 @@ class BasicFunctionalTests(unittest.TestCase):
             self.channel.queue.declare(queue)
             self.channel.basic.publish(payload, queue)
 
-            message = self.channel.basic.get(queue, to_dict=False)
+            message = self.channel.basic.get(queue)
             self.assertEqual(message.body, payload)
             message.ack()
         finally:

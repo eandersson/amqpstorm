@@ -1,5 +1,5 @@
-Exceptions
------------------
+AMQPStorm Exceptions
+--------------------
 
 .. autoclass:: amqpstorm.AMQPError
     :members:
