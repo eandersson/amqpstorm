@@ -1,6 +1,8 @@
 """AMQP-Storm Connection.IO."""
 
 import logging
+import traceback
+import multiprocessing
 import select
 import socket
 import threading
@@ -53,17 +55,20 @@ class Poller(object):
 class IO(object):
     """AMQP Connection.io"""
 
-    def __init__(self, parameters, exceptions=None, on_read=None):
+    def __init__(self, parameters, exceptions=None, on_read=None, name=None):
         self._exceptions = exceptions
         self._lock = threading.Lock()
         self._inbound_thread = None
         self._on_read = on_read
-        self._running = threading.Event()
+        self._running = multiprocessing.Event()
+        self._die = multiprocessing.Value('b', 0)
         self._parameters = parameters
         self.data_in = EMPTY_BUFFER
+        self.name = name
         self.poller = None
         self.socket = None
         self.use_ssl = self._parameters['ssl']
+        print("IO Object timeout: ", self._parameters)
 
     def close(self):
         """Close Socket.
@@ -72,8 +77,17 @@ class IO(object):
         """
         self._lock.acquire()
         try:
+            print("Running state: %s, thread alive: %s, thread id:%s" %
+                    (
+                        self._running.is_set(),
+                        self._inbound_thread.is_alive() if self._inbound_thread else "None",
+                        self._inbound_thread.ident if self._inbound_thread else "None"
+
+                    )
+                )
             self._running.clear()
             if self._inbound_thread:
+                print("Joining _inbound_thread. Runstate: %s", self._running.is_set())
                 self._inbound_thread.join()
             self._inbound_thread = None
             self.poller = None
@@ -82,6 +96,16 @@ class IO(object):
             self.socket = None
         finally:
             self._lock.release()
+        print("IO interface for vhost : %s closed." % self.name)
+
+    def kill(self):
+        if self._inbound_thread.is_alive():
+            self._die.value = 1
+            while self._inbound_thread.is_alive():
+                self._inbound_thread.join(1)
+                print("Worker thread still alive!")
+
+            print("Socket thread has halted")
 
     def open(self):
         """Open Socket and establish a connection.
@@ -217,6 +241,19 @@ class IO(object):
                 self.data_in += self._receive()
                 self.data_in = self._on_read(self.data_in)
             sleep(IDLE_WAIT)
+            # print("_process_incoming_data() looping. _running(): %s, threadid: %s, name: %s" % (
+            #         self._running.is_set(),
+            #         threading.get_ident(),
+            #         self.name
+            #         ))
+            if self._die.value == 1:
+                print('_process_incoming_data saw die flag. Exiting')
+                break
+        print("_process_incoming_data() Thread named %s, ID: %s exiting. _running state: %s" % (
+                        self.name,
+                        threading.get_ident(),
+                        self._running.is_set()
+                    ))
 
     def _receive(self):
         """Receive any incoming socket data.
@@ -233,6 +270,8 @@ class IO(object):
             pass
         except (IOError, OSError) as why:
             self._exceptions.append(AMQPConnectionError(why))
+            traceback.print_exc()
+            print("[_receive (exception)] Clearing self._running")
             self._running.clear()
         return data_in
 

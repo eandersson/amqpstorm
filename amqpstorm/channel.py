@@ -1,6 +1,7 @@
 """AMQP-Storm Connection.Channel."""
 
 import logging
+import multiprocessing
 from time import sleep
 
 from pamqp import specification as pamqp_spec
@@ -29,7 +30,7 @@ class Channel(BaseChannel):
     """Connection.channel"""
     __slots__ = [
         'confirming_deliveries', 'consumer_callback', 'rpc', '_basic',
-        '_connection', '_exchange', '_inbound', '_queue', '_tx'
+        '_connection', '_exchange', '_inbound', '_queue', '_tx', '_die'
     ]
 
     def __init__(self, channel_id, connection, rpc_timeout):
@@ -43,6 +44,8 @@ class Channel(BaseChannel):
         self._exchange = Exchange(self)
         self._tx = Tx(self)
         self._queue = Queue(self)
+
+        self._die = multiprocessing.Value("b", 0)
 
     def __enter__(self):
         return self
@@ -64,6 +67,7 @@ class Channel(BaseChannel):
 
         :rtype: Basic
         """
+        # print("Access to basic?")
         return self._basic
 
     @property
@@ -106,6 +110,9 @@ class Channel(BaseChannel):
         """
         self.check_for_errors()
         while not self.is_closed:
+            # print("build_inbound_messages looping!")
+            if self._die.value != 0:
+                return
             message = self._build_message()
             if not message:
                 if break_on_empty:
@@ -117,6 +124,10 @@ class Channel(BaseChannel):
                 yield message.to_tuple()
                 continue
             yield message
+
+    def kill(self):
+        self._die.value = 1
+        self.set_state(self.CLOSED)
 
     def close(self, reply_code=0, reply_text=''):
         """Close Channel.
@@ -194,6 +205,7 @@ class Channel(BaseChannel):
         :param pamqp.Frame frame_in: Amqp frame.
         :return:
         """
+        # print("on_frame: ", frame_in.name)
         if self.rpc.on_frame(frame_in):
             return
 
@@ -212,6 +224,7 @@ class Channel(BaseChannel):
         elif frame_in.name == 'Channel.Flow':
             self.write_frame(pamqp_spec.Channel.FlowOk(frame_in.active))
         else:
+            print("Did not know how to handle frame?")
             LOGGER.error('[Channel%d] Unhandled Frame: %s -- %s',
                          self.channel_id, frame_in.name, dict(frame_in))
 
@@ -241,9 +254,13 @@ class Channel(BaseChannel):
 
         :return:
         """
+        # print("process_data_events")
         if not self.consumer_callback:
             raise AMQPChannelError('no consumer_callback defined')
         for message in self.build_inbound_messages(break_on_empty=True):
+            if self._die.value != 0:
+                return
+
             if not to_tuple:
                 # noinspection PyCallingNonCallable
                 self.consumer_callback(message)
@@ -258,6 +275,7 @@ class Channel(BaseChannel):
         :param pamqp_spec.Frame frame_out: Amqp frame.
         :rtype: dict
         """
+        # print('rpc_request')
         with self.rpc.lock:
             uuid = self.rpc.register_request(frame_out.valid_responses)
             self.write_frame(frame_out)
@@ -275,9 +293,14 @@ class Channel(BaseChannel):
 
         :return:
         """
-        while self.consumer_tags and not self.is_closed:
+        while self.consumer_tags:
+            closed = self.is_closed
+            if closed:
+                break
+            if self._die.value != 0:
+                break
             self.process_data_events(to_tuple=to_tuple)
-
+            # print("start_consuming looping (state: %s)" % (self._state, ))
     def stop_consuming(self):
         """Stop consuming messages.
 
@@ -342,6 +365,7 @@ class Channel(BaseChannel):
 
         :rtype: Message
         """
+        # print("_build_message call")
         with self.lock:
             if len(self._inbound) < 2:
                 return None

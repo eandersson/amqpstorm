@@ -162,6 +162,15 @@ class Connection(Stateful):
         self.set_state(self.CLOSED)
         LOGGER.debug('Connection Closed')
 
+    def kill(self):
+        # print("Destroying all consumer tags")
+        for channel in self._channels.items():
+            channel.remove_consumer_tag()
+
+        # print("Joining on IO thread!")
+        self._io.kill()
+
+
     def open(self):
         """Open Connection.
 
