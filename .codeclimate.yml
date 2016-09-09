@@ -3,3 +3,4 @@ languages:
 exclude_paths:
   - examples/*
   - amqpstorm/tests/*
+  - amqpstorm/management/*

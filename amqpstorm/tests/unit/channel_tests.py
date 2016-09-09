@@ -275,7 +275,7 @@ class ChannelExceptionTests(unittest.TestCase):
                                    "to queue '' from exchange ''")
 
     def test_channel_close_raises_when_500(self):
-        channel = Channel(0, None, 360)
+        channel = Channel(0, FakeConnection(), 360)
 
         # Set up Fake Channel.
         channel._inbound = [1, 2, 3]

@@ -418,7 +418,7 @@ class Channel(BaseChannel):
         :param pamqp_spec.Channel.Close frame_in: Amqp frame.
         :return:
         """
-        self.remove_consumer_tag()
+        self.set_state(self.CLOSED)
         if frame_in.reply_code != 200:
             reply_text = try_utf8_decode(frame_in.reply_text)
             message = (
@@ -431,5 +431,4 @@ class Channel(BaseChannel):
             exception = AMQPChannelError(message,
                                          reply_code=frame_in.reply_code)
             self.exceptions.append(exception)
-        del self._inbound[:]
-        self.set_state(self.CLOSED)
+        self.close()
