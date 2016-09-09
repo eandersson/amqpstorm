@@ -213,7 +213,7 @@ class ConnectionTests(unittest.TestCase):
             conn.set_state(conn.OPEN)
 
         threading.Timer(function=func, interval=1, args=(connection,)).start()
-        connection._wait_for_connection_to_open()
+        connection._wait_for_connection_state(connection.OPEN)
 
         self.assertTrue(connection.is_open)
 
@@ -226,7 +226,8 @@ class ConnectionTests(unittest.TestCase):
         connection._io = io
 
         self.assertRaises(AMQPConnectionError,
-                          connection._wait_for_connection_to_open)
+                          connection._wait_for_connection_state,
+                          connection.OPEN)
 
     def test_connection_close_channels(self):
         connection = Connection('127.0.0.1', 'guest', 'guest', timeout=1,
@@ -239,7 +240,7 @@ class ConnectionTests(unittest.TestCase):
         self.assertTrue(connection._channels[1].is_open)
         self.assertTrue(connection._channels[2].is_closed)
 
-        connection._close_channels()
+        connection._close_channels(wait_for_rpc=True)
 
         self.assertTrue(connection._channels[0].is_closed)
         self.assertTrue(connection._channels[1].is_closed)

@@ -1,6 +1,16 @@
 Changelog
 -------------
 
+Version 2.1.1
+-------------
+
+- Added flag to Connection.close to immediately close the connection.
+
+    This is enabled by setting wait_for_rpc to False.
+        - connection.close(wait_for_rpc=False)
+
+- Connection will now wait for a response from the remote server before closing.
+
 Version 2.1.0
 -------------
 - Added support for the RabbitMQ Management Api.

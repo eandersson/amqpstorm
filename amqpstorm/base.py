@@ -42,6 +42,14 @@ class Stateful(object):
         self._state = state
 
     @property
+    def current_state(self):
+        """Get the State.
+
+        :rtype: int
+        """
+        return self._state
+
+    @property
     def is_closed(self):
         """Is Closed?
 

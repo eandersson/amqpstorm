@@ -133,23 +133,26 @@ class Channel(BaseChannel):
 
         :return:
         """
-        LOGGER.debug('Channel #%d Closing', self.channel_id)
         if not compatibility.is_integer(reply_code):
             raise AMQPInvalidArgument('reply_code should be an integer')
         elif not compatibility.is_string(reply_text):
             raise AMQPInvalidArgument('reply_text should be a string')
-
-        if not self._connection.is_open or not self.is_open:
-            self.remove_consumer_tag()
+        try:
+            if self._connection.is_closed or not self.is_open:
+                self.stop_consuming()
+                LOGGER.debug('Channel #%d forcefully Closed', self.channel_id)
+                return
+            LOGGER.debug('Channel #%d Closing', self.channel_id)
+            self.set_state(self.CLOSING)
+            self.stop_consuming()
+            self.rpc_request(pamqp_spec.Channel.Close(
+                reply_code=reply_code,
+                reply_text=reply_text)
+            )
+        finally:
+            if self._inbound:
+                del self._inbound[:]
             self.set_state(self.CLOSED)
-            return
-        self.set_state(self.CLOSING)
-        self.stop_consuming()
-        self.rpc_request(pamqp_spec.Channel.Close(
-            reply_code=reply_code,
-            reply_text=reply_text))
-        del self._inbound[:]
-        self.set_state(self.CLOSED)
         LOGGER.debug('Channel #%d Closed', self.channel_id)
 
     def check_for_errors(self):
@@ -294,8 +297,9 @@ class Channel(BaseChannel):
         """
         if not self.consumer_tags:
             return
-        for tag in self.consumer_tags:
-            self.basic.cancel(tag)
+        if not self.is_closed:
+            for tag in self.consumer_tags:
+                self.basic.cancel(tag)
         self.remove_consumer_tag()
 
     def write_frame(self, frame_out):

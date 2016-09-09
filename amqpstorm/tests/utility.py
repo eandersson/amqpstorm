@@ -62,7 +62,7 @@ class FakeChannel(Channel):
         self.set_state(state)
         self._basic = FakeBasic(self)
 
-    def close(self):
+    def close(self, **_):
         self.set_state(self.CLOSED)
 
 
