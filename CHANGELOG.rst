@@ -1,5 +1,5 @@
 Changelog
--------------
+---------
 
 Version 2.1.1
 -------------
@@ -13,7 +13,7 @@ Version 2.1.1
 
 Version 2.1.0
 -------------
-- Added support for the RabbitMQ Management Api.
+- [Experimental] Added support for the RabbitMQ Management Api.
         - Documentation https://amqpstorm.readthedocs.io/en/latest/#management-api-documentation
         - Examples https://github.com/eandersson/amqpstorm/tree/master/examples/management_api
 
