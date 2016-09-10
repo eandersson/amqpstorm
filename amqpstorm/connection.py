@@ -55,7 +55,7 @@ class Connection(Stateful):
             'port': port,
             'virtual_host': kwargs.get('virtual_host', '/'),
             'heartbeat': kwargs.get('heartbeat', 60),
-            'timeout': kwargs.get('timeout', 30),
+            'timeout': kwargs.get('timeout', 5),
             'ssl': kwargs.get('ssl', False),
             'ssl_options': kwargs.get('ssl_options', {})
         }
@@ -306,7 +306,7 @@ class Connection(Stateful):
         :return:
         """
         start_time = time.time()
-        timeout = (self.parameters['timeout'] or 10) + 0.25
+        timeout = (self.parameters['timeout'] or 10) * 3
         while self.current_state != state:
             self.check_for_errors()
             if time.time() - start_time > timeout:

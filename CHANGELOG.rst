@@ -3,6 +3,8 @@ Changelog
 
 Version 2.1.1
 -------------
+- Reduced default TCP Timeout from 30s to 5s.
+- Connection Open/Close timeout is now three times the value of TCP Timeout.
 - Connection will now wait for a response from the remote server before closing.
 
 Version 2.1.0

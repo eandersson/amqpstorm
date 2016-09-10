@@ -52,7 +52,7 @@ class ApiBasicFunctionalTests(unittest.TestCase):
 
     def test_api_basic_get_message_to_dict(self):
         message = str(uuid.uuid4())
-        queue = 'test_api_basic_get_message'
+        queue = 'test_api_basic_get_message_to_dict'
 
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
 

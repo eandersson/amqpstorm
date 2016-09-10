@@ -20,9 +20,9 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Poller(object):
-    """Socket Read/Write Poller."""
+    """Socket Read Poller."""
 
-    def __init__(self, fileno, exceptions, timeout=30):
+    def __init__(self, fileno, exceptions, timeout=5):
         self._fileno = fileno
         self._exceptions = exceptions
         self.timeout = timeout
