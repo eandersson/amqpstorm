@@ -1,6 +1,6 @@
 import logging
-import uuid
 import time
+import uuid
 
 try:
     import unittest2 as unittest

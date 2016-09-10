@@ -92,9 +92,9 @@ class User(ManagementHandler):
         :param str virtual_host: Virtual host name
         :param str configure_regex: Permission pattern for configuration
                                     operations for this user.
-        :param str write_regex: Permission pattern for write operations 
+        :param str write_regex: Permission pattern for write operations
                                 for this user.
-        :param str read_regex: Permission pattern for read operations 
+        :param str read_regex: Permission pattern for read operations
                                for this user.
 
         :raises ApiError: Raises if the remote server encountered an error.

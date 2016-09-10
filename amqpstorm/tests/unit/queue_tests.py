@@ -26,12 +26,12 @@ class QueueTests(unittest.TestCase):
         channel.set_state(Channel.OPEN)
         queue = Queue(channel)
 
-        self.assertEqual(queue.declare(),
-                         {
-                             'queue': '',
-                             'message_count': 0,
-                             'consumer_count': 0
-                         })
+        expected_result = {
+            'queue': '',
+            'message_count': 0,
+            'consumer_count': 0
+        }
+        self.assertEqual(queue.declare(), expected_result)
 
     def test_queue_delete(self):
         def on_delete(*_):

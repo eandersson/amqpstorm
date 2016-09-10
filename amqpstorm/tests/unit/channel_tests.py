@@ -20,7 +20,10 @@ from amqpstorm.basic import Basic
 from amqpstorm.exchange import Exchange
 from amqpstorm.queue import Queue
 from amqpstorm.tx import Tx
-from amqpstorm.exception import *
+from amqpstorm.exception import AMQPChannelError
+from amqpstorm.exception import AMQPConnectionError
+from amqpstorm.exception import AMQPInvalidArgument
+from amqpstorm.exception import AMQPMessageError
 from amqpstorm.tests.utility import FakeConnection
 from amqpstorm.tests.utility import FakeFrame
 from amqpstorm.tests.utility import MockLoggingHandler
@@ -71,6 +74,7 @@ class ChannelTests(unittest.TestCase):
                 channel.rpc.on_frame(specification.Basic.CancelOk())
                 return
             channel.rpc.on_frame(specification.Channel.CloseOk())
+
         channel = Channel(0, FakeConnection(on_write=on_close_ok), 360)
 
         # Set up Fake Channel.

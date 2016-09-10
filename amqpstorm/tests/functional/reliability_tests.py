@@ -27,9 +27,10 @@ LOGGER = logging.getLogger(__name__)
 class OpenCloseChannelLoopTest(unittest.TestCase):
     connection = None
     channel = None
-    queue_name = 'test.open.close'
+    queue_name = None
 
     def setUp(self):
+        self.queue_name = self.__class__.__name__
         self.connection = Connection(HOST, USERNAME, PASSWORD, lazy=True)
 
     def test_functional_open_close_channel_loop(self):
@@ -107,9 +108,10 @@ class Publish5kTest(unittest.TestCase):
     connection = None
     channel = None
     messages_to_send = 5000
-    queue_name = 'test.basic.5k'
+    queue_name = None
 
     def setUp(self):
+        self.queue_name = self.__class__.__name__
         self.connection = Connection(HOST, USERNAME, PASSWORD)
         self.channel = self.connection.channel()
         self.channel.queue.declare(self.queue_name)

@@ -233,6 +233,8 @@ class IO(object):
         """
         data_in = EMPTY_BUFFER
         try:
+            if not self.socket:
+                raise socket.error('connection/socket error')
             data_in = self._read_from_socket()
         except socket.timeout:
             pass

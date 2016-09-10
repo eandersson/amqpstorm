@@ -24,10 +24,11 @@ LOGGER = logging.getLogger(__name__)
 class PublishAndGetMessagesTest(unittest.TestCase):
     connection = None
     channel = None
-    queue_name = 'test.basic.get'
+    queue_name = None
     message = str(uuid.uuid4())
 
     def setUp(self):
+        self.queue_name = self.__class__.__name__
         self.connection = Connection(HOST, USERNAME, PASSWORD)
         self.channel = self.connection.channel()
         self.channel.queue.declare(self.queue_name)
@@ -56,9 +57,10 @@ class PublishAndGetMessagesTest(unittest.TestCase):
 class PublishAndGetEmptyMessagesTest(unittest.TestCase):
     connection = None
     channel = None
-    queue_name = 'test.basic.get_empty'
+    queue_name = None
 
     def setUp(self):
+        self.queue_name = self.__class__.__name__
         self.connection = Connection(HOST, USERNAME, PASSWORD)
         self.channel = self.connection.channel()
         self.channel.queue.declare(self.queue_name)
@@ -92,9 +94,10 @@ class PublishAndGetEmptyMessagesTest(unittest.TestCase):
 class PublishAndGetLargeMessageTest(unittest.TestCase):
     connection = None
     channel = None
-    queue_name = 'test.basic.get_large'
+    queue_name = None
 
     def setUp(self):
+        self.queue_name = self.__class__.__name__
         self.connection = Connection(HOST, USERNAME, PASSWORD)
         self.channel = self.connection.channel()
         self.channel.confirm_deliveries()
@@ -120,9 +123,10 @@ class PublishAndGetLargeMessageTest(unittest.TestCase):
 class PublishLargeMessagesAndConsumeTest(unittest.TestCase):
     connection = None
     channel = None
-    queue_name = 'test.basic.large_messages'
+    queue_name = None
 
     def setUp(self):
+        self.queue_name = self.__class__.__name__
         self.connection = Connection(HOST, USERNAME, PASSWORD)
         self.channel = self.connection.channel()
         self.channel.confirm_deliveries()
@@ -141,7 +145,8 @@ class PublishLargeMessagesAndConsumeTest(unittest.TestCase):
                                        routing_key=self.queue_name)
 
         inbound_messages = []
-        for message in self.channel.build_inbound_messages(break_on_empty=True):
+        for message in \
+                self.channel.build_inbound_messages(break_on_empty=True):
             self.assertEqual(message.body, body)
             inbound_messages.append(message)
         self.assertEqual(len(inbound_messages), messages_to_publish)
@@ -155,9 +160,10 @@ class PublishLargeMessagesAndConsumeTest(unittest.TestCase):
 class PublishEmptyMessagesAndConsumeTest(unittest.TestCase):
     connection = None
     channel = None
-    queue_name = 'test.basic.empty_messages'
+    queue_name = None
 
     def setUp(self):
+        self.queue_name = self.__class__.__name__
         self.connection = Connection(HOST, USERNAME, PASSWORD)
         self.channel = self.connection.channel()
         self.channel.confirm_deliveries()
@@ -176,7 +182,8 @@ class PublishEmptyMessagesAndConsumeTest(unittest.TestCase):
                                        routing_key=self.queue_name)
 
         inbound_messages = []
-        for message in self.channel.build_inbound_messages(break_on_empty=True):
+        for message in \
+                self.channel.build_inbound_messages(break_on_empty=True):
             self.assertEqual(message.body, body)
             inbound_messages.append(message)
         self.assertEqual(len(inbound_messages), messages_to_publish)
@@ -190,9 +197,10 @@ class PublishEmptyMessagesAndConsumeTest(unittest.TestCase):
 class PublishLargeMessagesAndGetTest(unittest.TestCase):
     connection = None
     channel = None
-    queue_name = 'test.basic.large_messages'
+    queue_name = None
 
     def setUp(self):
+        self.queue_name = self.__class__.__name__
         self.connection = Connection(HOST, USERNAME, PASSWORD)
         self.channel = self.connection.channel()
         self.channel.confirm_deliveries()
@@ -225,9 +233,10 @@ class PublishLargeMessagesAndGetTest(unittest.TestCase):
 class PublishWithPropertiesAndGetTest(unittest.TestCase):
     connection = None
     channel = None
-    queue_name = 'test.basic.properties'
+    queue_name = None
 
     def setUp(self):
+        self.queue_name = self.__class__.__name__
         self.connection = Connection(HOST, USERNAME, PASSWORD)
         self.channel = self.connection.channel()
         self.channel.queue.declare(self.queue_name)
@@ -289,9 +298,10 @@ class PublishWithPropertiesAndGetTest(unittest.TestCase):
 class PublishMessageAndResend(unittest.TestCase):
     connection = None
     channel = None
-    queue_name = 'test.basic.resend'
+    queue_name = None
 
     def setUp(self):
+        self.queue_name = self.__class__.__name__
         self.connection = Connection(HOST, USERNAME, PASSWORD)
         self.channel = self.connection.channel()
         self.channel.queue.declare(self.queue_name)
@@ -348,9 +358,10 @@ class PublishMessageAndResend(unittest.TestCase):
 class PublishAndConsumeMessagesTest(unittest.TestCase):
     connection = None
     channel = None
-    queue_name = 'test.basic.consume'
+    queue_name = None
 
     def setUp(self):
+        self.queue_name = self.__class__.__name__
         self.connection = Connection(HOST, USERNAME, PASSWORD)
         self.channel = self.connection.channel()
         self.channel.queue.declare(self.queue_name)
@@ -393,9 +404,10 @@ class PublishAndConsumeMessagesTest(unittest.TestCase):
 class GeneratorConsumeMessagesTest(unittest.TestCase):
     connection = None
     channel = None
-    queue_name = 'test.basic.generator'
+    queue_name = None
 
     def setUp(self):
+        self.queue_name = self.__class__.__name__
         self.connection = Connection(HOST, USERNAME, PASSWORD)
         self.channel = self.connection.channel()
         self.channel.queue.declare(self.queue_name)
@@ -429,10 +441,11 @@ class GeneratorConsumeMessagesTest(unittest.TestCase):
 class ConsumeAndRedeliverTest(unittest.TestCase):
     connection = None
     channel = None
-    queue_name = 'test.consume.redeliver'
+    queue_name = None
     message = str(uuid.uuid4())
 
     def setUp(self):
+        self.queue_name = self.__class__.__name__
         self.connection = Connection(HOST, USERNAME, PASSWORD)
         self.channel = self.connection.channel()
         self.channel.queue.declare(self.queue_name)
@@ -476,10 +489,11 @@ class ConsumeAndRedeliverTest(unittest.TestCase):
 class GetAndRedeliverTest(unittest.TestCase):
     connection = None
     channel = None
-    queue_name = 'test.get.redeliver'
+    queue_name = None
     message = str(uuid.uuid4())
 
     def setUp(self):
+        self.queue_name = self.__class__.__name__
         self.connection = Connection(HOST, USERNAME, PASSWORD)
         self.channel = self.connection.channel()
         self.channel.queue.declare(self.queue_name)
@@ -505,9 +519,10 @@ class GetAndRedeliverTest(unittest.TestCase):
 class PublisherConfirmsTest(unittest.TestCase):
     connection = None
     channel = None
-    queue_name = 'test.basic.confirm'
+    queue_name = None
 
     def setUp(self):
+        self.queue_name = self.__class__.__name__
         self.connection = Connection(HOST, USERNAME, PASSWORD)
         self.channel = self.connection.channel()
         self.channel.queue.declare(self.queue_name)
@@ -534,9 +549,10 @@ class PublisherConfirmsTest(unittest.TestCase):
 class PublisherConfirmFailsTest(unittest.TestCase):
     connection = None
     channel = None
-    queue_name = 'test.basic.confirm.fails'
+    queue_name = None
 
     def setUp(self):
+        self.queue_name = self.__class__.__name__
         self.connection = Connection(HOST, USERNAME, PASSWORD)
         self.channel = self.connection.channel()
         self.channel.confirm_deliveries()
@@ -557,9 +573,10 @@ class PublisherConfirmFailsTest(unittest.TestCase):
 class PublishFailAndFix(unittest.TestCase):
     connection = None
     channel = None
-    queue_name = 'test.publish.fail.and.fix'
+    queue_name = None
 
     def setUp(self):
+        self.queue_name = self.__class__.__name__
         self.connection = Connection(HOST, USERNAME, PASSWORD)
         self.channel = self.connection.channel()
         self.channel.confirm_deliveries()
@@ -594,9 +611,10 @@ class PublishFailAndFix(unittest.TestCase):
 class PublishAndFail(unittest.TestCase):
     connection = None
     channel = None
-    queue_name = 'test.publish.and.fail'
+    queue_name = None
 
     def setUp(self):
+        self.queue_name = self.__class__.__name__
         self.connection = Connection(HOST, USERNAME, PASSWORD)
         self.channel = self.connection.channel()
         self.channel.queue.declare(self.queue_name)
@@ -618,9 +636,10 @@ class PublishAndFail(unittest.TestCase):
 class StartStopConsumeTest(unittest.TestCase):
     connection = None
     channel = None
-    queue_name = 'test.basic.consume'
+    queue_name = None
 
     def setUp(self):
+        self.queue_name = self.__class__.__name__
         self.connection = Connection(HOST, USERNAME, PASSWORD)
         self.channel = self.connection.channel()
         self.channel.queue.declare(self.queue_name)

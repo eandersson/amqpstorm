@@ -69,7 +69,10 @@ class ApiQueueFunctionalTests(unittest.TestCase):
             for queue in queues:
                 self.assertIsInstance(queue, dict)
                 self.assertIn('name', queue)
-                self.assertIn('state', queue)
+                self.assertIn('vhost', queue)
+                self.assertIn('node', queue)
+                self.assertIn('durable', queue)
+                self.assertIn('arguments', queue)
                 self.assertIn('auto_delete', queue)
         finally:
             api.queue.delete(queue_name)

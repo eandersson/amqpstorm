@@ -16,7 +16,7 @@ except ImportError:
 import amqpstorm.io
 from amqpstorm.io import IO
 from amqpstorm.io import Poller
-from amqpstorm.exception import *
+from amqpstorm.exception import AMQPConnectionError
 from amqpstorm import compatibility
 
 from amqpstorm.tests.utility import FakeConnection
@@ -115,6 +115,16 @@ class IOTests(unittest.TestCase):
         io.socket.read.return_value = '12345'
 
         self.assertEqual(io._receive(), '12345')
+
+    def test_io_simple_receive_when_socket_not_set(self):
+        connection = FakeConnection()
+        exceptions = []
+        io = IO(connection.parameters, exceptions=exceptions)
+
+        self.assertFalse(io.use_ssl)
+
+        self.assertEqual(io._receive(), bytes())
+        self.assertEqual(str(exceptions[0]), 'connection/socket error')
 
     def test_io_simple_send_zero_bytes_sent(self):
         connection = FakeConnection()

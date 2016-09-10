@@ -21,9 +21,10 @@ LOGGER = logging.getLogger(__name__)
 class LegacyStartStopConsumeTest(unittest.TestCase):
     connection = None
     channel = None
-    queue_name = 'test.basic.consume'
+    queue_name = None
 
     def setUp(self):
+        self.queue_name = self.__class__.__name__
         self.connection = Connection(HOST, USERNAME, PASSWORD)
         self.channel = self.connection.channel()
         self.channel.queue.declare(self.queue_name)
@@ -68,10 +69,11 @@ class LegacyStartStopConsumeTest(unittest.TestCase):
 class LegacyPublishAndConsumeMessagesTest(unittest.TestCase):
     connection = None
     channel = None
-    queue_name = 'test.basic.consume'
+    queue_name = None
     message = str(uuid.uuid4())
 
     def setUp(self):
+        self.queue_name = self.__class__.__name__
         self.connection = Connection(HOST, USERNAME, PASSWORD)
         self.channel = self.connection.channel()
         self.channel.queue.declare(self.queue_name)
@@ -115,9 +117,10 @@ class LegacyPublishAndConsumeMessagesTest(unittest.TestCase):
 class LegacyGeneratorConsumeMessagesTest(unittest.TestCase):
     connection = None
     channel = None
-    queue_name = 'test.basic.generator'
+    queue_name = None
 
     def setUp(self):
+        self.queue_name = self.__class__.__name__
         self.connection = Connection(HOST, USERNAME, PASSWORD)
         self.channel = self.connection.channel()
         self.channel.queue.declare(self.queue_name)
@@ -156,10 +159,11 @@ class LegacyGeneratorConsumeMessagesTest(unittest.TestCase):
 class LegacyublishAndGetMessagesTest(unittest.TestCase):
     connection = None
     channel = None
-    queue_name = 'test.basic.get'
+    queue_name = None
     message = str(uuid.uuid4())
 
     def setUp(self):
+        self.queue_name = self.__class__.__name__
         self.connection = Connection(HOST, USERNAME, PASSWORD)
         self.channel = self.connection.channel()
         self.channel.queue.declare(self.queue_name)

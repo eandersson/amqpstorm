@@ -12,7 +12,8 @@ except ImportError:
 
 from amqpstorm.io import IO
 from amqpstorm import Connection
-from amqpstorm.exception import *
+from amqpstorm.exception import AMQPConnectionError
+from amqpstorm.exception import AMQPInvalidArgument
 
 from pamqp.specification import Basic as spec_basic
 from pamqp import specification as pamqp_spec

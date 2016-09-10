@@ -8,7 +8,7 @@ except ImportError:
     import unittest
 
 from amqpstorm import Message
-from amqpstorm.exception import *
+from amqpstorm.exception import AMQPMessageError
 
 from amqpstorm.tests.utility import FakeChannel
 

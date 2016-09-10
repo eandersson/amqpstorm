@@ -3,3 +3,4 @@ nose-timer
 mock
 coverage
 requests
+flake8
