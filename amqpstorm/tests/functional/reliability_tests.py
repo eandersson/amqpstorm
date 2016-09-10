@@ -69,44 +69,6 @@ class OpenCloseChannelLoopTest(unittest.TestCase):
         self.connection.close()
 
 
-class CloseWithoutWait(unittest.TestCase):
-    connection = None
-    channel = None
-    queue_name = 'test.close.without.wait'
-
-    def setUp(self):
-        self.connection = Connection(HOST, USERNAME, PASSWORD, lazy=True)
-
-    def test_functional_close_without_wait(self):
-        self.connection.open()
-        self.channel = self.connection.channel()
-
-        # Verify that the Connection/Channel has been opened properly.
-        self.assertIsNotNone(self.connection._io.socket)
-        self.assertIsNotNone(self.connection._io.poller)
-        self.assertTrue(self.channel.is_open)
-        self.assertTrue(self.connection.is_open)
-
-        self.channel.queue.declare(self.queue_name)
-        self.channel.basic.publish(body=str(uuid.uuid4()),
-                                   routing_key=self.queue_name)
-        self.connection.close(wait_for_rpc=False)
-
-        # Verify that the Connection/Channel has been closed properly.
-        self.assertTrue(self.channel.is_closed)
-        self.assertTrue(self.connection.is_closed)
-        self.assertIsNone(self.connection._io.socket)
-        self.assertIsNone(self.connection._io.poller)
-
-
-    def tearDown(self):
-        self.connection = Connection(HOST, USERNAME, PASSWORD)
-        self.channel = self.connection.channel()
-        self.channel.queue.delete(self.queue_name)
-        self.channel.close()
-        self.connection.close()
-
-
 class OpenMultipleChannelTest(unittest.TestCase):
     connection = None
     channel = None

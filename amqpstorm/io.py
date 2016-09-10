@@ -75,7 +75,7 @@ class IO(object):
         try:
             self._running.clear()
             if self._inbound_thread:
-                self._inbound_thread.join()
+                self._inbound_thread.join(timeout=self._parameters['timeout'])
             self._inbound_thread = None
             self.poller = None
             if self.socket:
@@ -192,7 +192,7 @@ class IO(object):
     def _ssl_wrap_socket(self, sock):
         """Wrap SSLSocket around the Socket.
 
-        :param socket sock:
+        :param socket.socket sock:
         :rtype: SSLSocket
         """
         if 'ssl_version' not in self._parameters['ssl_options']:

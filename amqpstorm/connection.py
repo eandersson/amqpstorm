@@ -154,12 +154,8 @@ class Connection(Stateful):
         self.close()
         raise self.exceptions[0]
 
-    def close(self, wait_for_rpc=True):
+    def close(self):
         """Close connection.
-
-        :param bool wait_for_rpc: Should we wait for an RPC response from the
-                                  remote server. If not, close the connection
-                                  and all channels immediately.
 
         :raises AMQPConnectionError: Raises if the connection
                                      encountered an error.
@@ -170,10 +166,9 @@ class Connection(Stateful):
         self.heartbeat.stop()
         try:
             if not self.is_closed and self._io.socket:
-                self._close_channels(wait_for_rpc)
+                self._close_remaining_channels()
                 self._channel0.send_close_connection_frame()
-                if wait_for_rpc:
-                    self._wait_for_connection_state(Stateful.CLOSED)
+                self._wait_for_connection_state(Stateful.CLOSED)
             self._io.close()
         finally:
             self.set_state(self.CLOSED)
@@ -220,7 +215,7 @@ class Connection(Stateful):
         self.heartbeat.register_write()
         self._io.write_to_socket(data_out)
 
-    def _close_channels(self, wait_for_rpc):
+    def _close_remaining_channels(self):
         """Close any open channels.
 
         :return:
@@ -228,8 +223,7 @@ class Connection(Stateful):
         for channel_id in self._channels:
             if not self._channels[channel_id].is_open:
                 continue
-            if not wait_for_rpc:
-                self._channels[channel_id].set_state(Channel.CLOSED)
+            self._channels[channel_id].set_state(Channel.CLOSED)
             self._channels[channel_id].close()
 
     def _handle_amqp_frame(self, data_in):

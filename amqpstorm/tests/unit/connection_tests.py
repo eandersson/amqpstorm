@@ -240,7 +240,7 @@ class ConnectionTests(unittest.TestCase):
         self.assertTrue(connection._channels[1].is_open)
         self.assertTrue(connection._channels[2].is_closed)
 
-        connection._close_channels(wait_for_rpc=True)
+        connection._close_remaining_channels()
 
         self.assertTrue(connection._channels[0].is_closed)
         self.assertTrue(connection._channels[1].is_closed)
