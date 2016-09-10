@@ -166,14 +166,13 @@ class Connection(Stateful):
         self.heartbeat.stop()
         try:
             if not self.is_closed and self._io.socket:
-                self._close_remaining_channels()
-                try:
-                    self._channel0.send_close_connection_frame()
-                    self._wait_for_connection_state(Stateful.CLOSED)
-                except AMQPConnectionError:
-                    pass
-            self._io.close()
+                self._channel0.send_close_connection_frame()
+                self._wait_for_connection_state(Stateful.CLOSED)
+            self._close_remaining_channels()
+        except AMQPConnectionError:
+            pass
         finally:
+            self._io.close()
             self.set_state(self.CLOSED)
             LOGGER.debug('Connection Closed')
 
