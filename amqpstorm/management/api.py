@@ -16,7 +16,7 @@ API_TOP = 'top/%s'
 
 
 class ManagementApi(object):
-    def __init__(self, api_url, username, password, timeout=5):
+    def __init__(self, api_url, username, password, timeout=10):
         self.http_client = HTTPClient(api_url, username, password,
                                       timeout=timeout)
         self._basic = Basic(self.http_client)

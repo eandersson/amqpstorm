@@ -17,6 +17,7 @@ class Exchange(ManagementHandler):
         """Get Exchange details.
 
         :param str exchange: Exchange name
+        :param str virtual_host: Virtual host name
 
         :raises ApiError: Raises if the remote server encountered an error.
         :raises ApiConnectionError: Raises if there was a connectivity issue.

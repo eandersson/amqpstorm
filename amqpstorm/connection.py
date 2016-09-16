@@ -55,7 +55,7 @@ class Connection(Stateful):
             'port': port,
             'virtual_host': kwargs.get('virtual_host', '/'),
             'heartbeat': kwargs.get('heartbeat', 60),
-            'timeout': kwargs.get('timeout', 5),
+            'timeout': kwargs.get('timeout', 10),
             'ssl': kwargs.get('ssl', False),
             'ssl_options': kwargs.get('ssl_options', {})
         }
