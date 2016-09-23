@@ -273,6 +273,44 @@ class ConnectionTests(unittest.TestCase):
             )
         )
 
+    def test_connection_close(self):
+        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
+                                lazy=True)
+        connection.set_state(connection.OPEN)
+        io = IO(connection.parameters, [])
+        io.socket = Mock(name='socket', spec=socket.socket)
+        connection._io = io
+
+        def on_write(frame_out):
+            self.assertIsInstance(frame_out, pamqp_spec.Connection.Close)
+
+        connection._channel0._write_frame = on_write
+
+        self.assertFalse(connection.is_closed)
+
+        connection.close()
+
+        self.assertTrue(connection.is_closed)
+
+    def test_connection_close_handles_raise_on_write(self):
+        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
+                                lazy=True)
+        connection.set_state(connection.OPEN)
+        io = IO(connection.parameters, [])
+        io.socket = Mock(name='socket', spec=socket.socket)
+        connection._io = io
+
+        def raise_on_write(_):
+            raise AMQPConnectionError('travis-ci')
+
+        connection._channel0._write_frame = raise_on_write
+
+        self.assertFalse(connection.is_closed)
+
+        connection.close()
+
+        self.assertTrue(connection.is_closed)
+
     def test_connection_close_channels(self):
         connection = Connection('127.0.0.1', 'guest', 'guest', timeout=1,
                                 lazy=True)
