@@ -15,6 +15,7 @@ from amqpstorm.base import Stateful
 from amqpstorm.channel import Channel
 from amqpstorm.channel0 import Channel0
 from amqpstorm.exception import AMQPConnectionError
+from amqpstorm.exception import AMQPError
 from amqpstorm.exception import AMQPInvalidArgument
 from amqpstorm.heartbeat import Heartbeat
 from amqpstorm.io import EMPTY_BUFFER
@@ -168,7 +169,8 @@ class Connection(Stateful):
             self._close_remaining_channels()
             if not self.is_closed and self._io.socket:
                 self._channel0.send_close_connection_frame()
-                self._wait_for_connection_state(Stateful.CLOSED)
+                self._wait_for_connection_state(Stateful.CLOSED,
+                                                raise_on_exception=False)
         except AMQPConnectionError:
             pass
         finally:
@@ -187,7 +189,8 @@ class Connection(Stateful):
         self._exceptions = []
         self._io.open()
         self._send_handshake()
-        self._wait_for_connection_state(state=Stateful.OPEN)
+        self._wait_for_connection_state(state=Stateful.OPEN,
+                                        raise_on_exception=True)
         self.heartbeat.start(self._exceptions)
         LOGGER.debug('Connection Opened')
 
@@ -296,10 +299,12 @@ class Connection(Stateful):
         elif not compatibility.is_integer(self.parameters['heartbeat']):
             raise AMQPInvalidArgument('heartbeat should be an integer')
 
-    def _wait_for_connection_state(self, state=Stateful.OPEN):
+    def _wait_for_connection_state(self, state=Stateful.OPEN,
+                                   raise_on_exception=True):
         """Wait for a Connection state.
 
         :param int state: State that we expect
+        :param bool raise_on_exception: Should we raise on exception
 
         :raises AMQPConnectionError: Raises if we reach the connection timeout.
 
@@ -308,7 +313,12 @@ class Connection(Stateful):
         start_time = time.time()
         timeout = (self.parameters['timeout'] or 10) * 3
         while self.current_state != state:
-            self.check_for_errors()
-            if time.time() - start_time > timeout:
-                raise AMQPConnectionError('Connection timed out')
+            try:
+                self.check_for_errors()
+                if time.time() - start_time > timeout:
+                    raise AMQPConnectionError('Connection timed out')
+            except AMQPError:
+                if not raise_on_exception:
+                    break
+                raise
             sleep(IDLE_WAIT)

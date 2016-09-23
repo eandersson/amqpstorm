@@ -1,6 +1,10 @@
 Changelog
 ---------
 
+Version 2.1.2
+-------------
+- Fixed a potential recursion error in Connection.close.
+
 Version 2.1.1
 -------------
 - Reduced default TCP Timeout from 30s to 10s.

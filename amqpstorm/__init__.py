@@ -1,5 +1,5 @@
 """AMQPStorm."""
-__version__ = '2.1.1'  # noqa
+__version__ = '2.1.2'  # noqa
 __author__ = 'eandersson'  # noqa
 
 import logging

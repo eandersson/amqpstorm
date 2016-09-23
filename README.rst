@@ -1,11 +1,11 @@
 AMQPStorm
--------------
+---------
 Thread-safe Python RabbitMQ Client & Management library.
 
 |Version| |CodeClimate| |Travis| |Coverage|
 
 Introduction
--------------
+------------
 AMQPStorm is a library designed to be consistent, stable and thread-safe.
 
 - 100% Unit-test Coverage!
@@ -19,7 +19,11 @@ Documentation
 Additional documentation is available on `ReadTheDocs <https://amqpstorm.readthedocs.org>`_.
 
 Changelog
+---------
+
+Version 2.1.2
 -------------
+- Fixed a potential recursion error in Connection.close.
 
 Version 2.1.1
 -------------
@@ -47,7 +51,7 @@ Version 2.0.0
             - channel.basic.get
 
 Credits
--------------
+-------
 Special thanks to gmr (Gavin M. Roy) for creating pamqp, and in addition amqpstorm is heavily influenced by his pika and rabbitpy libraries.
 
 .. |Version| image:: https://badge.fury.io/py/amqpstorm.svg?
