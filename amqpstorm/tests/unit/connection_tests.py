@@ -274,7 +274,7 @@ class ConnectionTests(unittest.TestCase):
         )
 
     def test_connection_close(self):
-        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
+        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=1,
                                 lazy=True)
         connection.set_state(connection.OPEN)
         io = IO(connection.parameters, [])
@@ -283,6 +283,7 @@ class ConnectionTests(unittest.TestCase):
 
         def on_write(frame_out):
             self.assertIsInstance(frame_out, pamqp_spec.Connection.Close)
+            connection._channel0._close_connection_ok()
 
         connection._channel0._write_frame = on_write
 
