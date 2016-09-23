@@ -10,12 +10,41 @@ AMQPStorm is a library designed to be consistent, stable and thread-safe.
 
 - 100% Unit-test Coverage!
 - Supports Python 2.6, 2.7 and Python 3.3+.
+- Fully tested against Python Implementations; CPython, PyPy and Pyston.
 - When using a SSL connection, TLSv1 or higher is required.
 
 Documentation
 -------------
 
 Additional documentation is available on `ReadTheDocs <https://amqpstorm.readthedocs.org>`_.
+
+Changelog
+-------------
+
+Version 2.1.1
+-------------
+- Reduced default TCP Timeout from 30s to 10s.
+- Connection Open/Close timeout is now three times the value of TCP Timeout.
+- Connection will now wait for a response from the remote server before closing.
+
+Version 2.1.0
+-------------
+- [Experimental] Added support for the RabbitMQ Management Api.
+    - Documentation https://amqpstorm.readthedocs.io/en/latest/#management-api-documentation
+    - Examples https://github.com/eandersson/amqpstorm/tree/master/examples/management_api
+
+- Connection/Channel function check_for_errors now behave more consistently.
+
+Version 2.0.0
+-------------
+- Messages are now delivered as Message objects by default.
+    - to_tuple and to_dict are now set to False by default.
+
+        This is a breaking change that affects the following function:
+
+            - channel.process_data_events
+            - channel.start_consuming
+            - channel.basic.get
 
 Credits
 -------------
