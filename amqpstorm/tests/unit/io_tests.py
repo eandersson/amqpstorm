@@ -6,7 +6,7 @@ import uuid
 from errno import EINTR
 from errno import EWOULDBLOCK
 
-from mock import MagicMock
+from mock import Mock
 
 try:
     import unittest2 as unittest
@@ -30,7 +30,7 @@ class IOTests(unittest.TestCase):
     def test_io_socket_close(self):
         connection = FakeConnection()
         io = IO(connection.parameters)
-        io.socket = MagicMock(name='socket', spec=socket.socket)
+        io.socket = Mock(name='socket', spec=socket.socket)
         io.close()
 
         self.assertIsNone(io.socket)
@@ -95,7 +95,7 @@ class IOTests(unittest.TestCase):
 
         self.assertFalse(io.use_ssl)
 
-        io.socket = MagicMock(name='socket', spec=socket.socket)
+        io.socket = Mock(name='socket', spec=socket.socket)
         io.socket.recv.return_value = '12345'
 
         self.assertEqual(io._receive(), '12345')
@@ -108,9 +108,9 @@ class IOTests(unittest.TestCase):
         self.assertTrue(io.use_ssl)
 
         if hasattr(ssl, 'SSLObject'):
-            io.socket = MagicMock(name='socket', spec=ssl.SSLObject)
+            io.socket = Mock(name='socket', spec=ssl.SSLObject)
         elif hasattr(ssl, 'SSLSocket'):
-            io.socket = MagicMock(name='socket', spec=ssl.SSLSocket)
+            io.socket = Mock(name='socket', spec=ssl.SSLSocket)
 
         io.socket.read.return_value = '12345'
 
@@ -131,8 +131,8 @@ class IOTests(unittest.TestCase):
 
         io = IO(connection.parameters)
         io._exceptions = []
-        io.socket = MagicMock(name='socket', spec=socket.socket)
-        io.poller = MagicMock(name='poller', spec=amqpstorm.io.Poller)
+        io.socket = Mock(name='socket', spec=socket.socket)
+        io.poller = Mock(name='poller', spec=amqpstorm.io.Poller)
         io.socket.send.return_value = 0
         io.write_to_socket(RANDOM_BUFFER)
 
@@ -142,7 +142,7 @@ class IOTests(unittest.TestCase):
         connection = FakeConnection()
         connection.parameters['ssl_options'] = {}
 
-        sock = MagicMock(name='socket', spec=socket.socket)
+        sock = Mock(name='socket', spec=socket.socket)
         sock.fileno.return_value = 1
 
         io = IO(connection.parameters)
@@ -198,7 +198,7 @@ class IOExceptionTests(unittest.TestCase):
 
         io = IO(connection.parameters)
         io._exceptions = []
-        io.socket = MagicMock(name='socket', spec=socket.socket)
+        io.socket = Mock(name='socket', spec=socket.socket)
         io.socket.recv.side_effect = socket.error('error')
         io._receive()
 
@@ -207,7 +207,7 @@ class IOExceptionTests(unittest.TestCase):
     def test_io_receive_raises_socket_timeout(self):
         connection = FakeConnection()
         io = IO(connection.parameters)
-        io.socket = MagicMock(name='socket', spec=socket.socket)
+        io.socket = Mock(name='socket', spec=socket.socket)
         io.socket.recv.side_effect = socket.timeout('timeout')
         io._receive()
 
@@ -216,8 +216,8 @@ class IOExceptionTests(unittest.TestCase):
 
         io = IO(connection.parameters)
         io._exceptions = []
-        io.socket = MagicMock(name='socket', spec=socket.socket)
-        io.poller = MagicMock(name='poller', spec=amqpstorm.io.Poller)
+        io.socket = Mock(name='socket', spec=socket.socket)
+        io.poller = Mock(name='poller', spec=amqpstorm.io.Poller)
         io.socket.send.side_effect = socket.error('error')
         io.write_to_socket(RANDOM_BUFFER)
 
@@ -235,8 +235,8 @@ class IOExceptionTests(unittest.TestCase):
 
         io = IO(connection.parameters)
         io._exceptions = []
-        io.socket = MagicMock(name='socket', spec=socket.socket)
-        io.poller = MagicMock(name='poller', spec=amqpstorm.io.Poller)
+        io.socket = Mock(name='socket', spec=socket.socket)
+        io.poller = Mock(name='poller', spec=amqpstorm.io.Poller)
         io.socket.send.side_effect = custom_raise
         io.write_to_socket(RANDOM_BUFFER)
 
@@ -255,8 +255,8 @@ class IOExceptionTests(unittest.TestCase):
 
         io = IO(connection.parameters)
         io._exceptions = []
-        io.socket = MagicMock(name='socket', spec=socket.socket)
-        io.poller = MagicMock(name='poller', spec=amqpstorm.io.Poller)
+        io.socket = Mock(name='socket', spec=socket.socket)
+        io.poller = Mock(name='poller', spec=amqpstorm.io.Poller)
         io.socket.send.side_effect = custom_raise
         io.write_to_socket(RANDOM_BUFFER)
 

@@ -3,7 +3,7 @@ import socket
 import ssl
 import threading
 
-from mock import MagicMock
+from mock import Mock
 
 try:
     import unittest2 as unittest
@@ -70,7 +70,7 @@ class ConnectionTests(unittest.TestCase):
         connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
         connection.set_state(connection.OPENING)
         io = IO(connection.parameters, [])
-        io.socket = MagicMock(name='socket', spec=socket.socket)
+        io.socket = Mock(name='socket', spec=socket.socket)
         connection._io = io
         io.socket.fileno.return_value = 5
 
@@ -205,7 +205,7 @@ class ConnectionTests(unittest.TestCase):
                                 lazy=True)
         connection.set_state(connection.OPENING)
         io = IO(connection.parameters, [])
-        io.socket = MagicMock(name='socket', spec=socket.socket)
+        io.socket = Mock(name='socket', spec=socket.socket)
         connection._io = io
 
         self.assertFalse(connection.is_open)
@@ -223,7 +223,7 @@ class ConnectionTests(unittest.TestCase):
                                 lazy=True)
         connection.set_state(connection.OPENING)
         io = IO(connection.parameters, [])
-        io.socket = MagicMock(name='socket', spec=socket.socket)
+        io.socket = Mock(name='socket', spec=socket.socket)
         connection._io = io
 
         self.assertRaises(AMQPConnectionError,
