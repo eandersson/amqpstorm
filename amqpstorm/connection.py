@@ -176,7 +176,7 @@ class Connection(Stateful):
         finally:
             self._io.close()
             self.set_state(self.CLOSED)
-            LOGGER.debug('Connection Closed')
+        LOGGER.debug('Connection Closed')
 
     def open(self):
         """Open Connection.
