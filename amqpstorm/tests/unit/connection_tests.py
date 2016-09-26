@@ -213,7 +213,8 @@ class ConnectionTests(unittest.TestCase):
         def set_state_to_open(conn):
             conn.set_state(conn.OPEN)
 
-        threading.Timer(function=set_state_to_open, interval=1, args=(connection,)).start()
+        threading.Timer(function=set_state_to_open,
+                        interval=1, args=(connection,)).start()
         connection._wait_for_connection_state(connection.OPEN)
 
         self.assertTrue(connection.is_open)
