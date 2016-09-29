@@ -151,8 +151,9 @@ class Connection(Stateful):
                 return
             why = AMQPConnectionError('connection was closed')
             self.exceptions.append(why)
-        self.set_state(self.CLOSED)
-        self.close()
+        if not self.is_closed:
+            self.set_state(self.CLOSED)
+            self.close()
         raise self.exceptions[0]
 
     def close(self):
@@ -163,14 +164,14 @@ class Connection(Stateful):
         :return:
         """
         LOGGER.debug('Connection Closing')
-        self.set_state(self.CLOSING)
+        if not self.is_closed:
+            self.set_state(self.CLOSING)
         self.heartbeat.stop()
         try:
             self._close_remaining_channels()
-            if not self.is_closed and self._io.socket:
+            if not self.is_closed and self.socket:
                 self._channel0.send_close_connection_frame()
-                self._wait_for_connection_state(Stateful.CLOSED,
-                                                raise_on_exception=False)
+                self._wait_for_connection_state(state=Stateful.CLOSED)
         except AMQPConnectionError:
             pass
         finally:
@@ -189,8 +190,7 @@ class Connection(Stateful):
         self._exceptions = []
         self._io.open()
         self._send_handshake()
-        self._wait_for_connection_state(state=Stateful.OPEN,
-                                        raise_on_exception=True)
+        self._wait_for_connection_state(state=Stateful.OPEN)
         self.heartbeat.start(self._exceptions)
         LOGGER.debug('Connection Opened')
 
@@ -299,12 +299,10 @@ class Connection(Stateful):
         elif not compatibility.is_integer(self.parameters['heartbeat']):
             raise AMQPInvalidArgument('heartbeat should be an integer')
 
-    def _wait_for_connection_state(self, state=Stateful.OPEN,
-                                   raise_on_exception=True):
+    def _wait_for_connection_state(self, state=Stateful.OPEN):
         """Wait for a Connection state.
 
         :param int state: State that we expect
-        :param bool raise_on_exception: Should we raise on exception
 
         :raises AMQPConnectionError: Raises if we reach the connection timeout.
 
@@ -313,12 +311,7 @@ class Connection(Stateful):
         start_time = time.time()
         timeout = (self.parameters['timeout'] or 10) * 3
         while self.current_state != state:
-            try:
-                self.check_for_errors()
-                if time.time() - start_time > timeout:
-                    raise AMQPConnectionError('Connection timed out')
-            except AMQPError:
-                if not raise_on_exception:
-                    break
-                raise
+            self.check_for_errors()
+            if time.time() - start_time > timeout:
+                raise AMQPConnectionError('Connection timed out')
             sleep(IDLE_WAIT)

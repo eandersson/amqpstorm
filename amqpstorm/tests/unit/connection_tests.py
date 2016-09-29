@@ -228,21 +228,7 @@ class ConnectionTests(unittest.TestCase):
 
         self.assertRaises(
             AMQPConnectionError, connection._wait_for_connection_state,
-            connection.OPEN, True
-        )
-
-    def test_connection_wait_for_connection_does_not_raise_on_error(self):
-        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
-                                lazy=True)
-        connection.set_state(connection.OPENING)
-
-        connection.exceptions.append(AMQPConnectionError('travis-ci'))
-
-        self.assertIsNone(
-            connection._wait_for_connection_state(
-                connection.OPEN,
-                False
-            )
+            connection.OPEN
         )
 
     def test_connection_wait_for_connection_raises_on_timeout(self):
@@ -257,21 +243,6 @@ class ConnectionTests(unittest.TestCase):
             AMQPConnectionError,
             connection._wait_for_connection_state,
             connection.OPEN
-        )
-
-    def test_connection_wait_for_connection_breaks_on_timeout(self):
-        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
-                                lazy=True)
-        connection.set_state(connection.OPENING)
-        io = IO(connection.parameters, [])
-        io.socket = Mock(name='socket', spec=socket.socket)
-        connection._io = io
-
-        self.assertIsNone(
-            connection._wait_for_connection_state(
-                connection.OPEN,
-                False
-            )
         )
 
     def test_connection_close(self):
