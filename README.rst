@@ -21,6 +21,10 @@ Additional documentation is available on `ReadTheDocs <https://amqpstorm.readthe
 Changelog
 =========
 
+Version 2.1.3
+-------------
+- Better fix to potential recursion error in Connection.close.
+
 Version 2.1.2
 -------------
 - Fixed a potential recursion error in Connection.close.
