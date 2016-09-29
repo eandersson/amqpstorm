@@ -15,7 +15,6 @@ from amqpstorm.base import Stateful
 from amqpstorm.channel import Channel
 from amqpstorm.channel0 import Channel0
 from amqpstorm.exception import AMQPConnectionError
-from amqpstorm.exception import AMQPError
 from amqpstorm.exception import AMQPInvalidArgument
 from amqpstorm.heartbeat import Heartbeat
 from amqpstorm.io import EMPTY_BUFFER
