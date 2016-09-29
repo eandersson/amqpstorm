@@ -150,9 +150,8 @@ class Connection(Stateful):
                 return
             why = AMQPConnectionError('connection was closed')
             self.exceptions.append(why)
-        if not self.is_closed:
-            self.set_state(self.CLOSED)
-            self.close()
+        self.set_state(self.CLOSED)
+        self.close()
         raise self.exceptions[0]
 
     def close(self):
