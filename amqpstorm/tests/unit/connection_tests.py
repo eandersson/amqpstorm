@@ -253,6 +253,10 @@ class ConnectionTests(unittest.TestCase):
         io.socket = Mock(name='socket', spec=socket.socket)
         connection._io = io
 
+        # Create some fake channels.
+        for index in range(10):
+            connection._channels[index + 1] = FakeChannel(FakeChannel.OPEN)
+
         def on_write(frame_out):
             self.assertIsInstance(frame_out, pamqp_spec.Connection.Close)
             connection._channel0._close_connection_ok()
@@ -262,6 +266,39 @@ class ConnectionTests(unittest.TestCase):
         self.assertFalse(connection.is_closed)
 
         connection.close()
+
+        # Make sure all the fake channels were closed as well.
+        for index in range(10):
+            self.assertTrue(connection._channels[index + 1].is_closed)
+
+        self.assertTrue(connection.is_closed)
+
+    def test_connection_close_when_already_closed(self):
+        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=1,
+                                lazy=True)
+        connection.set_state(connection.OPEN)
+        io = IO(connection.parameters, [])
+        io.socket = Mock(name='socket', spec=socket.socket)
+        connection._io = io
+
+        connection.set_state(connection.CLOSED)
+
+        # Create some fake channels.
+        for index in range(10):
+            connection._channels[index + 1] = FakeChannel(FakeChannel.OPEN)
+
+        def state_set(state):
+            self.assertEqual(state, connection.CLOSED)
+
+        connection.set_state = state_set
+
+        self.assertTrue(connection.is_closed)
+
+        connection.close()
+
+        # Make sure all the fake channels were closed as well.
+        for index in range(10):
+            self.assertTrue(connection._channels[index + 1].is_closed)
 
         self.assertTrue(connection.is_closed)
 
@@ -273,6 +310,10 @@ class ConnectionTests(unittest.TestCase):
         io.socket = Mock(name='socket', spec=socket.socket)
         connection._io = io
 
+        # Create some fake channels.
+        for index in range(10):
+            connection._channels[index + 1] = FakeChannel(FakeChannel.OPEN)
+
         def raise_on_write(_):
             raise AMQPConnectionError('travis-ci')
 
@@ -281,6 +322,10 @@ class ConnectionTests(unittest.TestCase):
         self.assertFalse(connection.is_closed)
 
         connection.close()
+
+        # Make sure all the fake channels were closed as well.
+        for index in range(10):
+            self.assertTrue(connection._channels[index + 1].is_closed)
 
         self.assertTrue(connection.is_closed)
 

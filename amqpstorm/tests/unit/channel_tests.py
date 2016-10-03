@@ -99,6 +99,11 @@ class ChannelTests(unittest.TestCase):
         channel.set_state(channel.CLOSED)
         channel._consumer_tags = ['1', '2', '3']
 
+        def state_set(state):
+            self.assertEqual(state, channel.CLOSED)
+
+        channel.set_state = state_set
+
         # Close Channel.
         channel.close()
 
@@ -246,7 +251,7 @@ class ChannelExceptionTests(unittest.TestCase):
             else:
                 self.assertRaises(AMQPChannelError, generator.__next__)
 
-    def test_channel_build_inbound_rases_in_loop(self):
+    def test_channel_build_inbound_raises_in_loop(self):
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(Channel.OPEN)
         self.first = True

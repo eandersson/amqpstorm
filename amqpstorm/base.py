@@ -12,9 +12,6 @@ LOCALE = locale.getdefaultlocale()[0] or 'en_US'
 
 class Stateful(object):
     """Stateful"""
-    __slots__ = [
-        '_exceptions', '_lock', '_state'
-    ]
     CLOSED = 0
     CLOSING = 1
     OPENING = 2
