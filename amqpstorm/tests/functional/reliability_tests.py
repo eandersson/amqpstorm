@@ -55,6 +55,7 @@ class OpenCloseChannelLoopTest(unittest.TestCase):
             self.assertTrue(self.connection.is_closed)
             self.assertIsNone(self.connection._io.socket)
             self.assertIsNone(self.connection._io.poller)
+            self.assertFalse(self.connection._io._running.is_set())
 
         time.sleep(1)
 
@@ -96,6 +97,7 @@ class OpenMultipleChannelTest(unittest.TestCase):
         self.assertTrue(self.connection.is_closed)
         self.assertIsNone(self.connection._io.socket)
         self.assertIsNone(self.connection._io.poller)
+        self.assertFalse(self.connection._io._running.is_set())
         self.assertEqual(threading.activeCount(), 1,
                          msg='Current Active threads: %s'
                              % threading._active)
