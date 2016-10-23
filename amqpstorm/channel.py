@@ -405,6 +405,9 @@ class Channel(BaseChannel):
         body = bytes()
         while len(body) < body_size:
             if not self._inbound:
+                if self.is_closed:
+                    self.check_for_errors()
+                    break
                 sleep(IDLE_WAIT)
                 continue
             body_piece = self._inbound.pop(0)
