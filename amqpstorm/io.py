@@ -1,6 +1,8 @@
 """AMQPStorm Connection.IO."""
 
 import logging
+import traceback
+import multiprocessing
 import select
 import socket
 import threading
@@ -54,14 +56,16 @@ class Poller(object):
 class IO(object):
     """AMQP Connection.io"""
 
-    def __init__(self, parameters, exceptions=None, on_read=None):
+    def __init__(self, parameters, exceptions=None, on_read=None, name=None):
         self._exceptions = exceptions
         self._lock = threading.Lock()
         self._inbound_thread = None
         self._on_read = on_read
-        self._running = threading.Event()
+        self._running = multiprocessing.Event()
+        self._die = multiprocessing.Value('b', 0)
         self._parameters = parameters
         self.data_in = EMPTY_BUFFER
+        self.name = name
         self.poller = None
         self.socket = None
         self.use_ssl = self._parameters['ssl']
@@ -83,6 +87,12 @@ class IO(object):
             self.socket = None
         finally:
             self._lock.release()
+
+    def kill(self):
+        if self._inbound_thread.is_alive():
+            self._die.value = 1
+            while self._inbound_thread.is_alive():
+                self._inbound_thread.join(1)
 
     def open(self):
         """Open Socket and establish a connection.
@@ -222,6 +232,8 @@ class IO(object):
                 self.data_in += self._receive()
                 self.data_in = self._on_read(self.data_in)
             sleep(IDLE_WAIT)
+            if self._die.value == 1:
+                break
 
     def _receive(self):
         """Receive any incoming socket data.
@@ -241,7 +253,7 @@ class IO(object):
         except (IOError, OSError) as why:
             if why.args[0] not in (EWOULDBLOCK, EAGAIN):
                 self._exceptions.append(AMQPConnectionError(why))
-                self._running.clear()
+            self._running.clear()
         return data_in
 
     def _read_from_socket(self):

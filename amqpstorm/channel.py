@@ -1,6 +1,7 @@
 """AMQPStorm Connection.Channel."""
 
 import logging
+import multiprocessing
 from time import sleep
 
 from pamqp import specification as pamqp_spec
@@ -29,7 +30,7 @@ class Channel(BaseChannel):
     """Connection.channel"""
     __slots__ = [
         'confirming_deliveries', 'consumer_callback', 'rpc', '_basic',
-        '_connection', '_exchange', '_inbound', '_queue', '_tx'
+        '_connection', '_exchange', '_inbound', '_queue', '_tx', '_die'
     ]
 
     def __init__(self, channel_id, connection, rpc_timeout):
@@ -43,6 +44,8 @@ class Channel(BaseChannel):
         self._exchange = Exchange(self)
         self._tx = Tx(self)
         self._queue = Queue(self)
+
+        self._die = multiprocessing.Value("b", 0)
 
     def __enter__(self):
         return self
@@ -108,6 +111,8 @@ class Channel(BaseChannel):
         """
         self.check_for_errors()
         while not self.is_closed:
+            if self._die.value != 0:
+                return
             message = self._build_message()
             if not message:
                 if break_on_empty:
@@ -119,6 +124,11 @@ class Channel(BaseChannel):
                 yield message.to_tuple()
                 continue
             yield message
+
+    
+    def kill(self):
+        self._die.value = 1
+        self.set_state(self.CLOSED)
 
     def close(self, reply_code=200, reply_text=''):
         """Close Channel.
@@ -251,6 +261,9 @@ class Channel(BaseChannel):
         if not self.consumer_callback:
             raise AMQPChannelError('no consumer_callback defined')
         for message in self.build_inbound_messages(break_on_empty=True):
+            if self._die.value != 0:
+                return
+
             if not to_tuple:
                 # noinspection PyCallingNonCallable
                 self.consumer_callback(message)
@@ -282,10 +295,12 @@ class Channel(BaseChannel):
 
         :return:
         """
-        while not self.is_closed:
-            self.process_data_events(to_tuple=to_tuple)
-            if not self.consumer_tags:
+        while self.consumer_tags:
+            if self.is_closed:
                 break
+            if self._die.value != 0:
+                break
+            self.process_data_events(to_tuple=to_tuple)
 
     def stop_consuming(self):
         """Stop consuming messages.
@@ -344,8 +359,8 @@ class Channel(BaseChannel):
             "Message not delivered: %s (%s) to queue '%s' from exchange '%s'" %
             (
                 reply_text,
-                frame_in.reply_code,
-                frame_in.routing_key,
+                                           frame_in.reply_code,
+                                           frame_in.routing_key,
                 frame_in.exchange
             )
         )
@@ -358,6 +373,7 @@ class Channel(BaseChannel):
 
         :rtype: Message
         """
+        # print("_build_message call")
         with self.lock:
             if len(self._inbound) < 2:
                 return None
@@ -382,7 +398,7 @@ class Channel(BaseChannel):
         if not isinstance(basic_deliver, pamqp_spec.Basic.Deliver):
             LOGGER.warning(
                 'Received an out-of-order frame: %s was '
-                'expecting a Basic.Deliver frame',
+                           'expecting a Basic.Deliver frame',
                 type(basic_deliver)
             )
             return None
@@ -390,7 +406,7 @@ class Channel(BaseChannel):
         if not isinstance(content_header, ContentHeader):
             LOGGER.warning(
                 'Received an out-of-order frame: %s was '
-                'expecting a ContentHeader frame',
+                           'expecting a ContentHeader frame',
                 type(content_header)
             )
             return None

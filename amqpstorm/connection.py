@@ -177,6 +177,13 @@ class Connection(Stateful):
             self.set_state(self.CLOSED)
         LOGGER.debug('Connection Closed')
 
+    def kill(self):
+        for channel in self._channels.items():
+            channel.remove_consumer_tag()
+
+        self._io.kill()
+
+
     def open(self):
         """Open Connection.
 
