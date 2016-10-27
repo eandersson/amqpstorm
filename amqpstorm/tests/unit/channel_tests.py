@@ -403,7 +403,8 @@ class ChannelBuildMessageTests(unittest.TestCase):
 
         :return:
         """
-        channel = Channel(0, None, 360)
+        channel = Channel(0, FakeConnection(), 360)
+        channel.set_state(Channel.OPEN)
         channel._inbound = []
 
         def add_inbound():
@@ -412,6 +413,24 @@ class ChannelBuildMessageTests(unittest.TestCase):
         threading.Timer(function=add_inbound, interval=0.5).start()
 
         self.assertFalse(channel._build_message_body(128))
+
+    def test_channel_build_message_empty_and_raise(self):
+        """Start building a message with an empty inbound queue,
+            and raise when the channel is closed.
+
+        :return:
+        """
+        channel = Channel(0, FakeConnection(), 360)
+        channel.set_state(Channel.OPEN)
+        channel._inbound = []
+
+        def close_channel():
+            channel.set_state(Channel.CLOSED)
+
+        threading.Timer(function=close_channel, interval=0.1).start()
+
+        self.assertRaises(AMQPChannelError,
+                          channel._build_message_body, 128)
 
     def test_channel_build_message_body(self):
         channel = Channel(0, None, 360)

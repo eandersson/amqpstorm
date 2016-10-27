@@ -1,11 +1,11 @@
 Changelog
 =========
 
-Version 2.1.3
+Version 2.1.4
 -------------
-- Better fix to potential recursion error in Connection.close.
+- Fixed a rare bug that could cause the consumer to get stuck if the connection unexpectedly dies - Thanks Connor Wolf.
 
-Version 2.1.2
+Version 2.1.3
 -------------
 - Fixed a potential recursion error in Connection.close.
 
