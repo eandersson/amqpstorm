@@ -137,13 +137,12 @@ class Channel(BaseChannel):
             raise AMQPInvalidArgument('reply_code should be an integer')
         elif not compatibility.is_string(reply_text):
             raise AMQPInvalidArgument('reply_text should be a string')
-        if not self.is_closed:
-            self.set_state(self.CLOSING)
         try:
-            if self._connection.is_closed or not self.is_open:
+            if self._connection.is_closed or self.is_closed:
                 self.stop_consuming()
                 LOGGER.debug('Channel #%d forcefully Closed', self.channel_id)
                 return
+            self.set_state(self.CLOSING)
             LOGGER.debug('Channel #%d Closing', self.channel_id)
             self.stop_consuming()
             self.rpc_request(pamqp_spec.Channel.Close(
