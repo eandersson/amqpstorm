@@ -92,13 +92,15 @@ class Channel(BaseChannel):
         """
         return self._queue
 
-    def build_inbound_messages(self, break_on_empty=False, to_tuple=False):
+    def build_inbound_messages(self, break_on_empty=False, to_tuple=False,
+                               auto_decode=True):
         """Build messages in the inbound queue.
 
         :param bool break_on_empty: Should we break the loop when there are
                                     no more messages to consume.
         :param bool to_tuple: Should incoming messages be converted to a
                               tuple before delivery.
+        :param bool auto_decode: Auto-decode strings when possible.
 
         :raises AMQPChannelError: Raises if the channel encountered an error.
         :raises AMQPConnectionError: Raises if the connection
@@ -108,7 +110,7 @@ class Channel(BaseChannel):
         """
         self.check_for_errors()
         while not self.is_closed:
-            message = self._build_message()
+            message = self._build_message(auto_decode=auto_decode)
             if not message:
                 if break_on_empty:
                     break
@@ -232,7 +234,7 @@ class Channel(BaseChannel):
         self.rpc_request(pamqp_spec.Channel.Open())
         self.set_state(self.OPEN)
 
-    def process_data_events(self, to_tuple=False):
+    def process_data_events(self, to_tuple=False, auto_decode=True):
         """Consume inbound messages.
 
             This is only required when consuming messages. All other
@@ -240,6 +242,7 @@ class Channel(BaseChannel):
 
         :param bool to_tuple: Should incoming messages be converted to a
                               tuple before delivery.
+        :param bool auto_decode: Auto-decode strings when possible.
 
         :raises AMQPChannelError: Raises if the channel encountered an error.
         :raises AMQPConnectionError: Raises if the connection
@@ -249,7 +252,8 @@ class Channel(BaseChannel):
         """
         if not self.consumer_callback:
             raise AMQPChannelError('no consumer_callback defined')
-        for message in self.build_inbound_messages(break_on_empty=True):
+        for message in self.build_inbound_messages(break_on_empty=True,
+                                                   auto_decode=auto_decode):
             if not to_tuple:
                 # noinspection PyCallingNonCallable
                 self.consumer_callback(message)
@@ -269,11 +273,12 @@ class Channel(BaseChannel):
             self.write_frame(frame_out)
             return self.rpc.get_request(uuid)
 
-    def start_consuming(self, to_tuple=False):
+    def start_consuming(self, to_tuple=False, auto_decode=True):
         """Start consuming messages.
 
         :param bool to_tuple: Should incoming messages be converted to a
                               tuple before delivery.
+        :param bool auto_decode: Auto-decode strings when possible.
 
         :raises AMQPChannelError: Raises if the channel encountered an error.
         :raises AMQPConnectionError: Raises if the connection
@@ -282,7 +287,8 @@ class Channel(BaseChannel):
         :return:
         """
         while not self.is_closed:
-            self.process_data_events(to_tuple=to_tuple)
+            self.process_data_events(to_tuple=to_tuple,
+                                     auto_decode=auto_decode)
             if not self.consumer_tags:
                 break
 
@@ -352,8 +358,10 @@ class Channel(BaseChannel):
                                      reply_code=frame_in.reply_code)
         self.exceptions.append(exception)
 
-    def _build_message(self):
+    def _build_message(self, auto_decode):
         """Fetch and build a complete Message from the inbound queue.
+
+        :param bool auto_decode: Auto-decode strings when possible.
 
         :rtype: Message
         """
@@ -369,7 +377,8 @@ class Channel(BaseChannel):
         message = Message(channel=self,
                           body=body,
                           method=dict(basic_deliver),
-                          properties=dict(content_header.properties))
+                          properties=dict(content_header.properties),
+                          auto_decode=auto_decode)
         return message
 
     def _build_message_headers(self):

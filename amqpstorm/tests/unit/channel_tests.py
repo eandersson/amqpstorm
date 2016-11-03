@@ -175,7 +175,7 @@ class ChannelExceptionTests(unittest.TestCase):
     def test_channel_check_error_no_exception(self):
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(Channel.OPEN)
-        channel.check_for_errors()
+        self.assertIsNone(channel.check_for_errors())
 
     def test_channel_check_error_when_closed(self):
         channel = Channel(0, FakeConnection(), 360)
@@ -256,7 +256,7 @@ class ChannelExceptionTests(unittest.TestCase):
         channel.set_state(Channel.OPEN)
         self.first = True
 
-        def raise_after_one():
+        def raise_after_one(**_):
             if not self.first:
                 channel.exceptions.append(AMQPChannelError())
             self.first = False
@@ -320,9 +320,26 @@ class ChannelBuildMessageTests(unittest.TestCase):
         body = ContentBody(value=message)
 
         channel._inbound = [deliver, header, body]
-        result = channel._build_message()
+        result = channel._build_message(auto_decode=False)
 
-        self.assertEqual(result._body, message)
+        self.assertIsInstance(result.body, bytes)
+        self.assertEqual(result.body, message)
+
+    def test_channel_build_message_auto_decode(self):
+        channel = Channel(0, None, 360)
+
+        message = b'Hello World!'
+        message_len = len(message)
+
+        deliver = specification.Basic.Deliver()
+        header = ContentHeader(body_size=message_len)
+        body = ContentBody(value=message)
+
+        channel._inbound = [deliver, header, body]
+        result = channel._build_message(auto_decode=True)
+
+        self.assertIsInstance(result.body, str)
+        self.assertEqual(result.body, message.decode('utf-8'))
 
     def test_channel_build_out_of_order_message_deliver(self):
         channel = Channel(0, None, 360)
@@ -334,7 +351,7 @@ class ChannelBuildMessageTests(unittest.TestCase):
         header = ContentHeader(body_size=message_len)
 
         channel._inbound = [deliver, deliver, header]
-        result = channel._build_message()
+        result = channel._build_message(auto_decode=True)
 
         self.assertEqual(result, None)
         self.assertIn("Received an out-of-order frame:",
@@ -351,7 +368,7 @@ class ChannelBuildMessageTests(unittest.TestCase):
         body = ContentBody(value=message)
 
         channel._inbound = [header, deliver, header, body]
-        result = channel._build_message()
+        result = channel._build_message(auto_decode=True)
 
         self.assertEqual(result, None)
         self.assertIn("Received an out-of-order frame:",

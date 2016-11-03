@@ -3,6 +3,7 @@ Changelog
 
 Version 2.1.4
 -------------
+- Added parameter to override auto-decode on incoming Messages - Thanks Travis Griggs.
 - Fixed a rare bug that could cause the consumer to get stuck if the connection unexpectedly dies - Thanks Connor Wolf.
 
 Version 2.1.3

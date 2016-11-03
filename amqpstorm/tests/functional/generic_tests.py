@@ -516,6 +516,136 @@ class GetAndRedeliverTest(unittest.TestCase):
         self.connection.close()
 
 
+class GetWithoutAutoDecodeTest(unittest.TestCase):
+    connection = None
+    channel = None
+    queue_name = None
+    message = str(uuid.uuid4())
+
+    def setUp(self):
+        self.queue_name = self.__class__.__name__
+        self.connection = Connection(HOST, USERNAME, PASSWORD)
+        self.channel = self.connection.channel()
+        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.purge(self.queue_name)
+        self.channel.confirm_deliveries()
+        self.channel.basic.publish(body=self.message,
+                                   routing_key=self.queue_name)
+
+    def test_functional_get_and_redeliver(self):
+        message = self.channel.basic.get(self.queue_name, no_ack=False,
+                                         auto_decode=False)
+        self.assertIsInstance(message.body, bytes)
+        self.assertEqual(message.body, self.message.encode('utf-8'))
+
+    def tearDown(self):
+        self.channel.queue.delete(self.queue_name)
+        self.channel.close()
+        self.connection.close()
+
+
+class GetWithAutoDecodeTest(unittest.TestCase):
+    connection = None
+    channel = None
+    queue_name = None
+    message = str(uuid.uuid4())
+
+    def setUp(self):
+        self.queue_name = self.__class__.__name__
+        self.connection = Connection(HOST, USERNAME, PASSWORD)
+        self.channel = self.connection.channel()
+        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.purge(self.queue_name)
+        self.channel.confirm_deliveries()
+        self.channel.basic.publish(body=self.message,
+                                   routing_key=self.queue_name)
+
+    def test_functional_get_and_redeliver(self):
+        message = self.channel.basic.get(self.queue_name, no_ack=False,
+                                         auto_decode=True)
+        self.assertIsInstance(message.body, str)
+        self.assertEqual(message.body, self.message)
+
+    def tearDown(self):
+        self.channel.queue.delete(self.queue_name)
+        self.channel.close()
+        self.connection.close()
+
+
+class ConsumeWithAutoDecodeTest(unittest.TestCase):
+    connection = None
+    channel = None
+    queue_name = None
+    message = str(uuid.uuid4())
+
+    def setUp(self):
+        self.queue_name = self.__class__.__name__
+        self.connection = Connection(HOST, USERNAME, PASSWORD)
+        self.channel = self.connection.channel()
+        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.purge(self.queue_name)
+        self.channel.confirm_deliveries()
+        self.channel.basic.publish(body=self.message,
+                                   routing_key=self.queue_name)
+
+    def test_functional_get_and_redeliver(self):
+        def on_message(message):
+            self.assertIsInstance(message.body, str)
+            self.assertEqual(message.body, self.message)
+            message.channel.stop_consuming()
+
+        self.channel.basic.consume(callback=on_message,
+                                   queue=self.queue_name,
+                                   no_ack=True)
+
+        # Sleep for 0.01s to make sure RabbitMQ has time to catch up.
+        time.sleep(0.01)
+
+        self.channel.start_consuming(auto_decode=True)
+
+    def tearDown(self):
+        self.channel.queue.delete(self.queue_name)
+        self.channel.close()
+        self.connection.close()
+
+
+class ConsumeWithoutAutoDecodeTest(unittest.TestCase):
+    connection = None
+    channel = None
+    queue_name = None
+    message = str(uuid.uuid4())
+
+    def setUp(self):
+        self.queue_name = self.__class__.__name__
+        self.connection = Connection(HOST, USERNAME, PASSWORD)
+        self.channel = self.connection.channel()
+        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.purge(self.queue_name)
+        self.channel.confirm_deliveries()
+        self.channel.basic.publish(body=self.message,
+                                   routing_key=self.queue_name)
+
+    def test_functional_get_and_redeliver(self):
+        def on_message(message):
+            self.assertIsInstance(message.body, bytes)
+            self.assertEqual(message.body, self.message.encode('utf-8'))
+            message.channel.stop_consuming()
+
+        self.channel.basic.consume(callback=on_message,
+                                   queue=self.queue_name,
+                                   no_ack=True)
+
+        # Sleep for 0.01s to make sure RabbitMQ has time to catch up.
+        time.sleep(0.01)
+
+        self.channel.start_consuming(auto_decode=False)
+
+    def tearDown(self):
+        self.channel.queue.delete(self.queue_name)
+        self.channel.close()
+        self.connection.close()
+
+
 class PublisherConfirmsTest(unittest.TestCase):
     connection = None
     channel = None
