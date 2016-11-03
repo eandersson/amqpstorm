@@ -18,7 +18,7 @@ setup(
         'amqpstorm.tests.unit.management'
     ],
     license='MIT License',
-    url='http://github.com/eandersson/amqpstorm',
+    url='https://www.amqpstorm.io',
     install_requires=['pamqp>=1.6.1,<2.0'],
     extra_require={
         'management_api': ['requests']

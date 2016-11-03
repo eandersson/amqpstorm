@@ -12,7 +12,7 @@ except ImportError:
 
 from pamqp.body import ContentBody
 from pamqp.header import ContentHeader
-from pamqp.specification import Basic as spec_basic
+from pamqp import specification as pamqp_spec
 
 from amqpstorm import exception
 from amqpstorm.channel import Basic
@@ -50,7 +50,7 @@ class BasicTests(unittest.TestCase):
         self.assertEqual(channel_id, 9)
 
         # Verify Classes
-        self.assertIsInstance(basic_publish, spec_basic.Publish)
+        self.assertIsInstance(basic_publish, pamqp_spec.Basic.Publish)
         self.assertIsInstance(content_header, ContentHeader)
         self.assertIsInstance(content_body, ContentBody)
 
@@ -66,7 +66,7 @@ class BasicTests(unittest.TestCase):
         message = str(uuid.uuid4())
 
         def on_publish_return_ack(*_):
-            channel.rpc.on_frame(spec_basic.Ack())
+            channel.rpc.on_frame(pamqp_spec.Basic.Ack())
 
         connection = FakeConnection(on_write=on_publish_return_ack)
         channel = Channel(9, connection, 1)
@@ -81,7 +81,7 @@ class BasicTests(unittest.TestCase):
         message = str(uuid.uuid4())
 
         def on_publish_return_nack(*_):
-            channel.rpc.on_frame(spec_basic.Nack())
+            channel.rpc.on_frame(pamqp_spec.Basic.Nack())
 
         connection = FakeConnection(on_write=on_publish_return_nack)
         channel = Channel(9, connection, 1)
@@ -138,6 +138,84 @@ class BasicTests(unittest.TestCase):
 
         # Confirm that it matches the original string.
         self.assertEqual(result_body, message)
+
+    def test_basic_get(self):
+        message = str(uuid.uuid4()).encode('utf-8')
+        message_len = len(message)
+
+        def on_get_frame(*_):
+            channel.rpc.on_frame(pamqp_spec.Basic.GetOk())
+            channel.rpc.on_frame(ContentHeader(body_size=message_len))
+            channel.rpc.on_frame(ContentBody(value=message))
+
+        connection = FakeConnection(on_write=on_get_frame)
+        channel = Channel(9, connection, 1)
+        channel.set_state(Channel.OPEN)
+        basic = Basic(channel)
+
+        result = basic.get(queue='travis-ci')
+
+        self.assertEqual(result.body, message.decode('utf-8'))
+
+    def test_basic_get_to_dict(self):
+        message = str(uuid.uuid4()).encode('utf-8')
+        message_len = len(message)
+
+        def on_get_frame(*_):
+            channel.rpc.on_frame(pamqp_spec.Basic.GetOk())
+            channel.rpc.on_frame(ContentHeader(body_size=message_len))
+            channel.rpc.on_frame(ContentBody(value=message))
+
+        connection = FakeConnection(on_write=on_get_frame)
+        channel = Channel(9, connection, 1)
+        channel.set_state(Channel.OPEN)
+        basic = Basic(channel)
+
+        result = basic.get(queue='travis-ci', to_dict=True)
+
+        self.assertEqual(result['body'], message)
+
+    def test_basic_get_message(self):
+        message = str(uuid.uuid4()).encode('utf-8')
+        message_len = len(message)
+
+        get_frame = pamqp_spec.Basic.Get(queue='travis-ci',
+                                         no_ack=False)
+
+        def on_get_frame(*_):
+            channel.rpc.on_frame(pamqp_spec.Basic.GetOk())
+            channel.rpc.on_frame(ContentHeader(body_size=message_len))
+            channel.rpc.on_frame(ContentBody(value=message))
+
+        connection = FakeConnection(on_write=on_get_frame)
+        channel = Channel(9, connection, 1)
+        channel.set_state(Channel.OPEN)
+        basic = Basic(channel)
+
+        result = basic._get_message(get_frame, auto_decode=False)
+
+        self.assertEqual(result.body, message)
+
+    def test_basic_get_message_auto_decode(self):
+        message = str(uuid.uuid4()).encode('utf-8')
+        message_len = len(message)
+
+        get_frame = pamqp_spec.Basic.Get(queue='travis-ci',
+                                         no_ack=False)
+
+        def on_get_frame(*_):
+            channel.rpc.on_frame(pamqp_spec.Basic.GetOk())
+            channel.rpc.on_frame(ContentHeader(body_size=message_len))
+            channel.rpc.on_frame(ContentBody(value=message))
+
+        connection = FakeConnection(on_write=on_get_frame)
+        channel = Channel(9, connection, 1)
+        channel.set_state(Channel.OPEN)
+        basic = Basic(channel)
+
+        result = basic._get_message(get_frame, auto_decode=True)
+
+        self.assertEqual(result.body.encode('utf-8'), message)
 
     def test_basic_get_content_body(self):
         message = b'Hello World!'
@@ -199,14 +277,14 @@ class BasicTests(unittest.TestCase):
         tag = 'unittest'
 
         def on_publish_return_ack(_, frame):
-            self.assertIsInstance(frame, spec_basic.Consume)
+            self.assertIsInstance(frame, pamqp_spec.Basic.Consume)
             self.assertEqual(frame.arguments, {})
             self.assertEqual(frame.consumer_tag, tag)
             self.assertEqual(frame.exclusive, True)
             self.assertEqual(frame.no_ack, True)
             self.assertEqual(frame.exclusive, True)
             self.assertEqual(frame.queue, '')
-            channel.rpc.on_frame(spec_basic.ConsumeOk(tag))
+            channel.rpc.on_frame(pamqp_spec.Basic.ConsumeOk(tag))
 
         connection = FakeConnection(on_write=on_publish_return_ack)
         channel = Channel(9, connection, 1)
@@ -409,7 +487,7 @@ class BasicExceptionTests(unittest.TestCase):
         message = str(uuid.uuid4())
 
         def on_publish_return_invalid_frame(*_):
-            channel.rpc.on_frame(spec_basic.Cancel())
+            channel.rpc.on_frame(pamqp_spec.Basic.Cancel())
 
         connection = FakeConnection(on_write=on_publish_return_invalid_frame)
         channel = Channel(9, connection, 0.01)
