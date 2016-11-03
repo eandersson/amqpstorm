@@ -12,6 +12,7 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
+import sphinx_bootstrap_theme
 import sys
 
 sys.path.insert(0, '../')
@@ -60,6 +61,7 @@ author = u'Erik Olof Gunnar Andersson'
 #
 # The short X.Y version.
 import amqpstorm  # noqa
+import amqpstorm.management  # noqa
 
 release = amqpstorm.__version__
 version = release
@@ -68,7 +70,7 @@ version = release
 # for a list of supported languages.
 #
 # This is also used if you do content translation via gettext catalogs.
-# Usually you set "language" from the command line for these cases.
+# Usually you set 'language' from the command line for these cases.
 language = 'en'
 
 # There are two options for replacing |today|: either, you set today to some
@@ -103,7 +105,7 @@ pygments_style = 'sphinx'
 # A list of ignored prefixes for module index sorting.
 # modindex_common_prefix = []
 
-# If true, keep warnings as "system message" paragraphs in the built documents.
+# If true, keep warnings as 'system message' paragraphs in the built documents.
 # keep_warnings = False
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
@@ -113,18 +115,70 @@ todo_include_todos = True
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'default'
+html_theme = 'bootstrap'
+html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-# html_theme_options = {}
+
+html_theme_options = {
+    # Navigation bar title. (Default: ``project`` value)
+    'navbar_title': 'AMQPStorm',
+
+    # Tab name for entire site. (Default: 'Site')
+    'navbar_site_name': 'AMQPStorm',
+
+    # Render the next and previous page links in navbar. (Default: true)
+    'navbar_sidebarrel': True,
+
+    # Render the current pages TOC in the navbar. (Default: true)
+    'navbar_pagenav': True,
+
+    # Tab name for the current pages TOC. (Default: 'Page')
+    'navbar_pagenav_name': 'Page',
+
+    # Global TOC depth for 'site' navbar tab. (Default: 1)
+    # Switching to -1 shows all levels.
+    'globaltoc_depth': 2,
+
+    # Include hidden TOCs in Site navbar?
+    #
+    # Note: If this is 'false', you cannot have mixed ``:hidden:`` and
+    # non-hidden ``toctree`` directives in the same page, or else the build
+    # will break.
+    #
+    # Values: 'true' (default) or 'false'
+    'globaltoc_includehidden': 'true',
+
+    # HTML navbar class (Default: 'navbar') to attach to <div> element.
+    # For black navbar, do 'navbar navbar-inverse'
+    'navbar_class': 'navbar navbar-inverse',
+
+    # Fix navigation bar to top of page?
+    # Values: 'true' (default) or 'false'
+    'navbar_fixed_top': 'false',
+
+    # Location of link to source.
+    # Options are 'nav' (default), 'footer' or anything else to exclude.
+    'source_link_position': 'footer',
+
+    # Bootswatch (http://bootswatch.com/) theme.
+    #
+    # Options are nothing (default) or the name of a valid theme
+    # such as 'amelia' or 'cosmo'.
+    'bootswatch_theme': 'cosmo',
+
+    # Choose Bootstrap version.
+    # Values: '3' (default) or '2' (in quotes)
+    'bootstrap_version': '3',
+}
 
 # Add any paths that contain custom themes here, relative to this directory.
 # html_theme_path = []
 
 # The name for this set of Sphinx documents.
-# "<project> v<release> documentation" by default.
+# '<project> v<release> documentation' by default.
 # html_title = u'amqpstorm v'
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
@@ -141,7 +195,7 @@ html_theme = 'default'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
-# so a file named "default.css" will overwrite the builtin "default.css".
+# so a file named 'default.css' will overwrite the builtin 'default.css'.
 html_static_path = []
 
 # Add any extra paths that contain custom files (such as robots.txt or
@@ -177,10 +231,10 @@ html_static_path = []
 # If true, links to the reST sources are added to the pages.
 # html_show_sourcelink = True
 
-# If true, "Created using Sphinx" is shown in the HTML footer. Default is True.
+# If true, 'Created using Sphinx' is shown in the HTML footer. Default is True.
 # html_show_sphinx = True
 
-# If true, "(C) Copyright ..." is shown in the HTML footer. Default is True.
+# If true, '(C) Copyright ...' is shown in the HTML footer. Default is True.
 # html_show_copyright = True
 
 # If true, an OpenSearch description file will be output, and all pages will
@@ -188,7 +242,7 @@ html_static_path = []
 # base URL from which the finished HTML is served.
 # html_use_opensearch = ''
 
-# This is the file name suffix for HTML files (e.g. ".xhtml").
+# This is the file name suffix for HTML files (e.g. '.xhtml').
 # html_file_suffix = None
 
 # Language to be used for generating the HTML full-text search index.
@@ -237,7 +291,7 @@ latex_documents = [
 # the title page.
 # latex_logo = None
 
-# For "manual" documents, if this is true, then toplevel headings are parts,
+# For 'manual' documents, if this is true, then toplevel headings are parts,
 # not chapters.
 # latex_use_parts = False
 
@@ -288,7 +342,7 @@ texinfo_documents = [
 # How to display URL addresses: 'footnote', 'no', or 'inline'.
 # texinfo_show_urls = 'footnote'
 
-# If true, do not generate a @detailmenu in the "Top" node's menu.
+# If true, do not generate a @detailmenu in the 'Top' node's menu.
 # texinfo_no_detailmenu = False
 
 
