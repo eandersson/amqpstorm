@@ -16,7 +16,7 @@ AMQPStorm is a library designed to be consistent, stable and thread-safe.
 Documentation
 =============
 
-Additional documentation is available on `docs.amqpstorm.io <http://docs.amqpstorm.io>`_.
+Additional documentation is available on `docs.amqpstorm.io <https://www.amqpstorm.io>`_.
 
 Changelog
 =========
@@ -39,7 +39,7 @@ Version 2.1.1
 Version 2.1.0
 -------------
 - [Experimental] Added support for the RabbitMQ Management Api.
-    - Documentation http://docs.amqpstorm.io/en/latest/#management-api-documentation
+    - Documentation https://www.amqpstorm.io/#management-api-documentation
     - Examples https://github.com/eandersson/amqpstorm/tree/master/examples/management_api
 
 - Connection/Channel function check_for_errors now behave more consistently.
