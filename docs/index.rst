@@ -15,8 +15,8 @@ Examples
 --------
 A wide verity of examples is available on Github at `https://github.com/eandersson/amqpstorm/tree/master/examples <https://github.com/eandersson/amqpstorm/tree/master/examples>`_
 
-API Documentation
------------------
+Documentation
+-------------
 
 .. toctree::
    :glob:
@@ -35,7 +35,7 @@ Management API Documentation
 
 Issues
 ------
-Please report any issues to the Github repo at `https://github.com/eandersson/amqpstorm/issues <https://github.com/eandersson/amqpstorm/issues>`_
+Please report any issues on Github at `https://github.com/eandersson/amqpstorm/issues <https://github.com/eandersson/amqpstorm/issues>`_
 
 Source
 ------

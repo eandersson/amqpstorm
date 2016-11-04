@@ -18,7 +18,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Basic(Handler):
-    """AMQP Channel.basic"""
+    """RabbitMQ Basic Operations."""
     __slots__ = []
 
     def qos(self, prefetch_count=0, prefetch_size=0, global_=False):

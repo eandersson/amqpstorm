@@ -30,14 +30,16 @@ sys.path.insert(0, '../')
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc',
-              'sphinx.ext.doctest',
-              'sphinx.ext.viewcode',
-              'sphinx.ext.autosummary',
-              'sphinx.ext.intersphinx']
+extensions = [
+    'sphinx.ext.autodoc',
+    'sphinx.ext.doctest',
+    'sphinx.ext.viewcode',
+    'sphinx.ext.autosummary',
+    'sphinx.ext.intersphinx'
+]
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = []
+templates_path = ['_templates']
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
@@ -106,7 +108,7 @@ pygments_style = 'sphinx'
 # modindex_common_prefix = []
 
 # If true, keep warnings as 'system message' paragraphs in the built documents.
-# keep_warnings = False
+keep_warnings = False
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
@@ -127,7 +129,7 @@ html_theme_options = {
     'navbar_title': 'AMQPStorm',
 
     # Tab name for entire site. (Default: 'Site')
-    'navbar_site_name': 'AMQPStorm',
+    'navbar_site_name': 'Site',
 
     # Render the next and previous page links in navbar. (Default: true)
     'navbar_sidebarrel': True,
@@ -196,7 +198,7 @@ html_theme_options = {
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named 'default.css' will overwrite the builtin 'default.css'.
-html_static_path = []
+html_static_path = ['_static']
 
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied
@@ -213,7 +215,7 @@ html_static_path = []
 # html_use_smartypants = True
 
 # Custom sidebar templates, maps document names to template names.
-# html_sidebars = {}
+html_sidebars = {}
 
 # Additional templates that should be rendered to pages, maps page names to
 # template names.
@@ -232,10 +234,10 @@ html_static_path = []
 # html_show_sourcelink = True
 
 # If true, 'Created using Sphinx' is shown in the HTML footer. Default is True.
-# html_show_sphinx = True
+html_show_sphinx = True
 
 # If true, '(C) Copyright ...' is shown in the HTML footer. Default is True.
-# html_show_copyright = True
+html_show_copyright = False
 
 # If true, an OpenSearch description file will be output, and all pages will
 # contain a <link> tag referring to it.  The value of this option must be the

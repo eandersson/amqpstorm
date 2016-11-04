@@ -20,7 +20,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Channel0(object):
-    """AMQP Connection.Channel0"""
+    """Internal Channel0 handler."""
 
     def __init__(self, connection):
         super(Channel0, self).__init__()

@@ -26,7 +26,7 @@ CONTENT_FRAME = ['Basic.Deliver', 'ContentHeader', 'ContentBody']
 
 
 class Channel(BaseChannel):
-    """Connection.channel"""
+    """RabbitMQ Channel."""
     __slots__ = [
         'confirming_deliveries', 'consumer_callback', 'rpc', '_basic',
         '_connection', '_exchange', '_inbound', '_queue', '_tx'
@@ -236,9 +236,6 @@ class Channel(BaseChannel):
 
     def process_data_events(self, to_tuple=False, auto_decode=True):
         """Consume inbound messages.
-
-            This is only required when consuming messages. All other
-            events are automatically handled in the background.
 
         :param bool to_tuple: Should incoming messages be converted to a
                               tuple before delivery.

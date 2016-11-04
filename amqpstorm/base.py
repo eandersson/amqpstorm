@@ -11,7 +11,7 @@ LOCALE = locale.getdefaultlocale()[0] or 'en_US'
 
 
 class Stateful(object):
-    """Stateful"""
+    """Stateful implementation."""
     CLOSED = 0
     CLOSING = 1
     OPENING = 2
@@ -91,7 +91,7 @@ class Stateful(object):
 
 
 class BaseChannel(Stateful):
-    """AMQP BaseChannel"""
+    """Channel base class."""
     __slots__ = [
         '_channel_id', '_consumer_tags'
     ]
@@ -142,7 +142,7 @@ class BaseChannel(Stateful):
 
 
 class BaseMessage(object):
-    """AMQP BaseMessage"""
+    """Base Message class."""
     __slots__ = [
         '_body', '_channel', '_method', '_properties'
     ]

@@ -10,7 +10,7 @@ from amqpstorm.exception import AMQPMessageError
 
 
 class Message(BaseMessage):
-    """AMQP Message"""
+    """RabbitMQ Message object."""
     __slots__ = [
         '_auto_decode', '_decode_cache'
     ]

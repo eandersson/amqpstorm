@@ -52,7 +52,7 @@ class Poller(object):
 
 
 class IO(object):
-    """AMQP Connection.io"""
+    """Internal Input/Output handler."""
 
     def __init__(self, parameters, exceptions=None, on_read=None):
         self._exceptions = exceptions

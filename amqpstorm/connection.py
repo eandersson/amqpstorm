@@ -24,7 +24,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Connection(Stateful):
-    """AMQP Connection"""
+    """RabbitMQ Connection."""
     __slots__ = [
         'heartbeat', 'parameters', '_channel0', '_channels', '_io'
     ]

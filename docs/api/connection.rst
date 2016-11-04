@@ -1,5 +1,5 @@
-AMQPStorm Connection
---------------------
+Connection
+----------
 
 .. autoclass:: amqpstorm.UriConnection
     :members:
