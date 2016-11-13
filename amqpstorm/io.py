@@ -74,12 +74,12 @@ class IO(object):
         self._lock.acquire()
         try:
             self._running.clear()
+            if self.socket:
+                self.socket.close()
             if self._inbound_thread:
                 self._inbound_thread.join(timeout=self._parameters['timeout'])
             self._inbound_thread = None
             self.poller = None
-            if self.socket:
-                self.socket.close()
             self.socket = None
         finally:
             self._lock.release()
