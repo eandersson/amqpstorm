@@ -5,7 +5,6 @@ import platform
 
 from pamqp import specification as pamqp_spec
 from pamqp.heartbeat import Heartbeat
-from pamqp.specification import Connection as pamqp_connection
 
 from amqpstorm import __version__
 from amqpstorm.base import AUTH_MECHANISM
@@ -137,7 +136,7 @@ class Channel0(object):
             self._connection.exceptions.append(exception)
             return
         credentials = self._plain_credentials()
-        start_ok_frame = pamqp_connection.StartOk(
+        start_ok_frame = pamqp_spec.Connection.StartOk(
             mechanism=AUTH_MECHANISM,
             client_properties=self._client_properties(),
             response=credentials,
@@ -149,9 +148,9 @@ class Channel0(object):
 
         :return:
         """
-        tune_ok_frame = pamqp_connection.TuneOk(channel_max=MAX_CHANNELS,
-                                                frame_max=FRAME_MAX,
-                                                heartbeat=self._heartbeat)
+        tune_ok_frame = pamqp_spec.Connection.TuneOk(channel_max=MAX_CHANNELS,
+                                                     frame_max=FRAME_MAX,
+                                                     heartbeat=self._heartbeat)
         self._write_frame(tune_ok_frame)
 
     def _send_open_connection(self):
@@ -159,7 +158,7 @@ class Channel0(object):
 
         :return:
         """
-        open_frame = pamqp_connection.Open(
+        open_frame = pamqp_spec.Connection.Open(
             virtual_host=self._parameters['virtual_host']
         )
         self._write_frame(open_frame)
