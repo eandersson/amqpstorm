@@ -142,7 +142,7 @@ class BaseChannel(Stateful):
 
 
 class BaseMessage(object):
-    """Base Message class."""
+    """Message base class."""
     __slots__ = [
         '_body', '_channel', '_method', '_properties'
     ]

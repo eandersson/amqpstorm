@@ -83,7 +83,7 @@ class Basic(Handler):
     def recover(self, requeue=False):
         """Redeliver unacknowledged messages.
 
-        :param bool requeue: Requeue the messages
+        :param bool requeue: Re-queue the messages
 
         :raises AMQPInvalidArgument: Invalid Parameters
         :raises AMQPChannelError: Raises if the channel encountered an error.
@@ -221,7 +221,7 @@ class Basic(Handler):
 
         :param int/long delivery_tag: Server-assigned delivery tag
         :param bool multiple: Negative acknowledge multiple messages
-        :param bool requeue: Requeue message
+        :param bool requeue: Re-queue the message
 
         :raises AMQPInvalidArgument: Invalid Parameters
         :raises AMQPChannelError: Raises if the channel encountered an error.
@@ -247,7 +247,7 @@ class Basic(Handler):
         """Reject Message.
 
         :param int/long delivery_tag: Server-assigned delivery tag
-        :param bool requeue: Requeue the message
+        :param bool requeue: Re-queue the message
 
         :raises AMQPInvalidArgument: Invalid Parameters
         :raises AMQPChannelError: Raises if the channel encountered an error.
