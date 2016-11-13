@@ -186,6 +186,7 @@ class Connection(Stateful):
         LOGGER.debug('Connection Opening')
         self.set_state(self.OPENING)
         self._exceptions = []
+        self._channels = {}
         self._io.open()
         self._send_handshake()
         self._wait_for_connection_state(state=Stateful.OPEN)
