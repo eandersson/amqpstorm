@@ -1,27 +1,14 @@
-import logging
-
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
-
 from amqpstorm.management import ManagementApi
-from amqpstorm.tests.functional import HOST
-from amqpstorm.tests.functional import HTTP_URL
-from amqpstorm.tests.functional import USERNAME
-from amqpstorm.tests.functional import PASSWORD
-from amqpstorm import Connection
-
-logging.basicConfig(level=logging.DEBUG)
-
-LOGGER = logging.getLogger(__name__)
+from amqpstorm.tests import HTTP_URL
+from amqpstorm.tests import PASSWORD
+from amqpstorm.tests import USERNAME
+from amqpstorm.tests.utility import TestFunctionalFramework
+from amqpstorm.tests.utility import setup
 
 
-class ApiChannelFunctionalTests(unittest.TestCase):
+class ApiChannelFunctionalTests(TestFunctionalFramework):
+    @setup()
     def test_channel_get(self):
-        connection = Connection(HOST, USERNAME, PASSWORD)
-        connection.channel()
-
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
 
         channels = api.channel.list()
@@ -32,16 +19,10 @@ class ApiChannelFunctionalTests(unittest.TestCase):
         for channel in channels:
             self.assertIsInstance(api.channel.get(channel['name']), dict)
 
-        connection.close()
-
+    @setup()
     def test_channel_list(self):
-        connection = Connection(HOST, USERNAME, PASSWORD)
-        connection.channel()
-
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
 
         result = api.channel.list()
         self.assertIsInstance(result, list)
         self.assertIsInstance(result[0], dict)
-
-        connection.close()

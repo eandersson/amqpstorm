@@ -1,4 +1,5 @@
 from setuptools import setup
+from setuptools import find_packages
 
 setup(
     name='AMQPStorm',
@@ -8,15 +9,7 @@ setup(
     author='Erik Olof Gunnar Andersson',
     author_email='me@eandersson.net',
     include_package_data=True,
-    packages=[
-        'amqpstorm',
-        'amqpstorm.management',
-        'amqpstorm.tests',
-        'amqpstorm.tests.functional',
-        'amqpstorm.tests.functional.management',
-        'amqpstorm.tests.unit',
-        'amqpstorm.tests.unit.management'
-    ],
+    packages=find_packages(),
     license='MIT License',
     url='https://www.amqpstorm.io',
     install_requires=['pamqp>=1.6.1,<2.0'],

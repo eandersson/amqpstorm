@@ -1,35 +1,19 @@
-import logging
 import socket
-import ssl
 import threading
 
 from mock import Mock
+from pamqp import frame as pamqp_frame
+from pamqp import specification as pamqp_spec
+from pamqp.specification import Basic as spec_basic
 
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
-
-from amqpstorm.io import IO
 from amqpstorm import Connection
 from amqpstorm.exception import AMQPConnectionError
-from amqpstorm.exception import AMQPInvalidArgument
-
-from pamqp.specification import Basic as spec_basic
-from pamqp import specification as pamqp_spec
-from pamqp import frame as pamqp_frame
-
+from amqpstorm.io import IO
 from amqpstorm.tests.utility import FakeChannel
-from amqpstorm.tests.utility import MockLoggingHandler
-
-logging.basicConfig(level=logging.DEBUG)
+from amqpstorm.tests.utility import TestFramework
 
 
-class ConnectionTests(unittest.TestCase):
-    def setUp(self):
-        self.logging_handler = MockLoggingHandler()
-        logging.root.addHandler(self.logging_handler)
-
+class ConnectionTests(TestFramework):
     def test_connection_with_statement(self):
         with Connection('127.0.0.1', 'guest', 'guest', lazy=True) as con:
             self.assertIsInstance(con, Connection)
@@ -37,14 +21,14 @@ class ConnectionTests(unittest.TestCase):
     def test_connection_with_statement_when_failing(self):
         try:
             with Connection('127.0.0.1', 'guest', 'guest', lazy=True) as con:
-                con.exceptions.append(AMQPConnectionError('error'))
+                con.exceptions.append(AMQPConnectionError('travis-ci'))
                 con.check_for_errors()
         except AMQPConnectionError as why:
             self.assertIsInstance(why, AMQPConnectionError)
 
-        self.assertEqual(self.logging_handler.messages['warning'][0],
+        self.assertEqual(self.get_last_log(),
                          'Closing connection due to an unhandled exception: '
-                         'error')
+                         'travis-ci')
 
     def test_connection_server_is_blocked_default_value(self):
         connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
@@ -99,6 +83,16 @@ class ConnectionTests(unittest.TestCase):
 
         self.assertEqual(connection._read_buffer(cancel_ok_frame), b'\x00')
 
+    def test_connection_send_handshake(self):
+        connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
+
+        def on_write_to_socket(message):
+            self.assertEqual(message, b'AMQP\x00\x00\t\x01')
+
+        connection._io.write_to_socket = on_write_to_socket
+
+        self.assertIsNone(connection._send_handshake())
+
     def test_connection_handle_read_buffer_none_returns_none(self):
         connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
 
@@ -106,10 +100,16 @@ class ConnectionTests(unittest.TestCase):
 
     def test_connection_basic_handle_amqp_frame(self):
         connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
-        cancel_ok_frame = spec_basic.CancelOk().marshal()
+        payload = (
+            b'\x01\x00\x00\x00\x00\x00\x0c\x00\n\x00\x1e\x00\x00\x00'
+            b'\x02\x00\x00\x00<\xce'
+        )
 
-        self.assertEqual(connection._handle_amqp_frame(cancel_ok_frame),
-                         (b'\x00', None, None))
+        data_in, channel_id, frame_in = connection._handle_amqp_frame(payload)
+
+        self.assertEqual(data_in, b'')
+        self.assertEqual(channel_id, 0)
+        self.assertIsInstance(frame_in, pamqp_spec.Connection.Tune)
 
     def test_connection_handle_amqp_frame_none_returns_none(self):
         connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
@@ -129,13 +129,16 @@ class ConnectionTests(unittest.TestCase):
         try:
             pamqp_frame.unmarshal = throw_error
 
-            result = connection._handle_amqp_frame('error')
+            result = connection._handle_amqp_frame('travis-ci')
 
-            self.assertEqual(result[0], 'error')
+            self.assertEqual(result[0], 'travis-ci')
             self.assertIsNone(result[1])
             self.assertIsNone(result[2])
         finally:
             pamqp_frame.unmarshal = restore_func
+
+        self.assertEqual(self.get_last_log(),
+                         'AMQPFrameError: AMQPFrameError()')
 
     def test_connection_handle_unicode_error(self):
         """This test covers an unlikely issue triggered by network corruption.
@@ -161,13 +164,16 @@ class ConnectionTests(unittest.TestCase):
         try:
             pamqp_frame.unmarshal = throw_error
 
-            result = connection._handle_amqp_frame('error')
+            result = connection._handle_amqp_frame('travis-ci')
 
-            self.assertEqual(result[0], 'error')
+            self.assertEqual(result[0], 'travis-ci')
             self.assertIsNone(result[1])
             self.assertIsNone(result[2])
         finally:
             pamqp_frame.unmarshal = restore_func
+
+        self.assertEqual(self.get_last_log(),
+                         "'' codec can't decode bytes in position 1-0: ")
 
     def test_connection_handle_value_error(self):
         """This test covers an unlikely issue triggered by network corruption.
@@ -192,16 +198,19 @@ class ConnectionTests(unittest.TestCase):
         try:
             pamqp_frame.unmarshal = throw_error
 
-            result = connection._handle_amqp_frame('error')
+            result = connection._handle_amqp_frame('travis-ci')
 
-            self.assertEqual(result[0], 'error')
+            self.assertEqual(result[0], 'travis-ci')
             self.assertIsNone(result[1])
             self.assertIsNone(result[2])
         finally:
             pamqp_frame.unmarshal = restore_func
 
+        self.assertEqual(self.get_last_log(),
+                         "Unknown type: b'\x13'")
+
     def test_connection_wait_for_connection(self):
-        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=5,
+        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=1,
                                 lazy=True)
         connection.set_state(connection.OPENING)
         io = IO(connection.parameters, [])
@@ -214,7 +223,7 @@ class ConnectionTests(unittest.TestCase):
             conn.set_state(conn.OPEN)
 
         threading.Timer(function=set_state_to_open,
-                        interval=1, args=(connection,)).start()
+                        interval=0.1, args=(connection,)).start()
         connection._wait_for_connection_state(connection.OPEN)
 
         self.assertTrue(connection.is_open)
@@ -245,8 +254,30 @@ class ConnectionTests(unittest.TestCase):
             connection.OPEN
         )
 
+    def test_connection_open(self):
+        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
+                                lazy=True)
+        io = IO(connection.parameters, [])
+        io.socket = Mock(name='socket', spec=socket.socket)
+        connection._io = io
+
+        def open():
+            pass
+
+        def on_write_to_socket(_):
+            connection.set_state(connection.OPEN)
+
+        connection._io.open = open
+        connection._io.write_to_socket = on_write_to_socket
+
+        self.assertTrue(connection.is_closed)
+
+        connection.open()
+
+        self.assertTrue(connection.is_open)
+
     def test_connection_close(self):
-        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=1,
+        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
                                 lazy=True)
         connection.set_state(connection.OPEN)
         io = IO(connection.parameters, [])
@@ -274,7 +305,7 @@ class ConnectionTests(unittest.TestCase):
         self.assertTrue(connection.is_closed)
 
     def test_connection_close_when_already_closed(self):
-        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=1,
+        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
                                 lazy=True)
         connection.set_state(connection.OPEN)
         io = IO(connection.parameters, [])
@@ -330,7 +361,7 @@ class ConnectionTests(unittest.TestCase):
         self.assertTrue(connection.is_closed)
 
     def test_connection_close_channels(self):
-        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=1,
+        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
                                 lazy=True)
         connection._channels[0] = FakeChannel()
         connection._channels[1] = FakeChannel()
@@ -347,21 +378,21 @@ class ConnectionTests(unittest.TestCase):
         self.assertTrue(connection._channels[2].is_closed)
 
     def test_connection_closed_on_exception(self):
-        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=1,
+        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
                                 lazy=True)
         connection.set_state(connection.OPEN)
-        connection.exceptions.append(AMQPConnectionError('error'))
+        connection.exceptions.append(AMQPConnectionError('travis-ci'))
 
         self.assertTrue(connection.is_open)
         self.assertRaises(AMQPConnectionError, connection.check_for_errors)
         self.assertTrue(connection.is_closed)
 
     def test_connection_heartbeat_stopped_on_close(self):
-        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=1,
+        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
                                 lazy=True)
         connection.set_state(connection.OPEN)
         connection.heartbeat.start(connection.exceptions)
-        connection.exceptions.append(AMQPConnectionError('error'))
+        connection.exceptions.append(AMQPConnectionError('travis-ci'))
 
         self.assertTrue(connection.heartbeat._running.is_set())
 
@@ -369,85 +400,15 @@ class ConnectionTests(unittest.TestCase):
 
         self.assertFalse(connection.heartbeat._running.is_set())
 
-
-class ConnectionParameterTests(unittest.TestCase):
-    def test_connection_set_hostname(self):
-        connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
-
-        self.assertEqual(connection.parameters['username'], 'guest')
-
-    def test_connection_set_username(self):
-        connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
-
-        self.assertEqual(connection.parameters['username'], 'guest')
-
-    def test_connection_set_password(self):
-        connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
-
-        self.assertEqual(connection.parameters['username'], 'guest')
-
-    def test_connection_set_parameters(self):
-        connection = Connection('127.0.0.1', 'guest', 'guest',
-                                virtual_host='travis',
-                                heartbeat=120,
-                                timeout=180,
-                                ssl=True,
-                                ssl_options={
-                                    'ssl_version': ssl.PROTOCOL_TLSv1
-                                },
+    def test_connection_open_new_channel(self):
+        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
                                 lazy=True)
+        connection.set_state(connection.OPEN)
 
-        self.assertEqual(connection.parameters['virtual_host'], 'travis')
-        self.assertEqual(connection.parameters['heartbeat'], 120)
-        self.assertEqual(connection.parameters['timeout'], 180)
-        self.assertEqual(connection.parameters['ssl'], True)
-        self.assertEqual(connection.parameters['ssl_options']['ssl_version'],
-                         ssl.PROTOCOL_TLSv1)
+        def on_open_ok(_, frame_out):
+            self.assertIsInstance(frame_out, pamqp_spec.Channel.Open)
+            connection._channels[1].on_frame(pamqp_spec.Channel.OpenOk())
 
-    def test_connection_invalid_hostname(self):
-        self.assertRaises(AMQPInvalidArgument, Connection, 1,
-                          'guest', 'guest', lazy=True)
+        connection.write_frame = on_open_ok
 
-    def test_connection_invalid_username(self):
-        self.assertRaises(AMQPInvalidArgument, Connection, '127.0.0.1',
-                          2, 'guest', lazy=True)
-        self.assertRaises(AMQPInvalidArgument, Connection, '127.0.0.1',
-                          None, 'guest', lazy=True)
-
-    def test_connection_invalid_password(self):
-        self.assertRaises(AMQPInvalidArgument, Connection, '127.0.0.1',
-                          'guest', 3, lazy=True)
-        self.assertRaises(AMQPInvalidArgument, Connection, '127.0.0.1',
-                          'guest', None, lazy=True)
-
-    def test_connection_invalid_virtual_host(self):
-        self.assertRaises(AMQPInvalidArgument, Connection, '127.0.0.1',
-                          'guest', 'guest', virtual_host=4, lazy=True)
-        self.assertRaises(AMQPInvalidArgument, Connection, '127.0.0.1',
-                          'guest', 'guest', virtual_host=None, lazy=True)
-
-    def test_connection_invalid_port(self):
-        self.assertRaises(AMQPInvalidArgument, Connection, '127.0.0.1',
-                          'guest', 'guest', port='', lazy=True)
-        self.assertRaises(AMQPInvalidArgument, Connection, '127.0.0.1',
-                          'guest', 'guest', port=None, lazy=True)
-
-    def test_connection_invalid_heartbeat(self):
-        self.assertRaises(AMQPInvalidArgument, Connection, '127.0.0.1',
-                          'guest', 'guest', heartbeat='5', lazy=True)
-        self.assertRaises(AMQPInvalidArgument, Connection, '127.0.0.1',
-                          'guest', 'guest', heartbeat=None, lazy=True)
-
-    def test_connection_invalid_timeout(self):
-        self.assertRaises(AMQPInvalidArgument, Connection, '127.0.0.1',
-                          'guest', 'guest', timeout='6', lazy=True)
-        self.assertRaises(AMQPInvalidArgument, Connection, '127.0.0.1',
-                          'guest', 'guest', timeout=None, lazy=True)
-
-    def test_connection_invalid_timeout_on_channel(self):
-        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=1,
-                                lazy=True)
-
-        self.assertRaisesRegexp(AMQPInvalidArgument,
-                                'rpc_timeout should be an integer',
-                                connection.channel, None)
+        connection.channel()

@@ -1,27 +1,16 @@
-import logging
 import platform
 
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
+from pamqp.heartbeat import Heartbeat
+from pamqp.specification import Connection
 
 import amqpstorm
-
-from pamqp.specification import Connection
-from pamqp.heartbeat import Heartbeat
-
-from amqpstorm.channel0 import Channel0
 from amqpstorm import AMQPConnectionError
-
+from amqpstorm.channel0 import Channel0
 from amqpstorm.tests.utility import FakeConnection
-from amqpstorm.tests.utility import FakeFrame
-from amqpstorm.tests.utility import MockLoggingHandler
-
-logging.basicConfig(level=logging.DEBUG)
+from amqpstorm.tests.utility import TestFramework
 
 
-class Channel0Tests(unittest.TestCase):
+class Channel0Tests(TestFramework):
     def test_channel0_client_properties(self):
         channel = Channel0(FakeConnection())
         result = channel._client_properties()
@@ -76,12 +65,12 @@ class Channel0Tests(unittest.TestCase):
         self.assertTrue(connection.is_closed)
         self.assertRaises(AMQPConnectionError, connection.check_for_errors)
 
-    def test_channel0_send_start_ok_frame(self):
+    def test_channel0_send_start_ok(self):
         connection = FakeConnection()
         connection.parameters['username'] = 'guest'
         connection.parameters['password'] = 'password'
         channel = Channel0(connection)
-        channel._send_start_ok_frame(Connection.Start(mechanisms=b'PLAIN'))
+        channel._send_start_ok(Connection.Start(mechanisms=b'PLAIN'))
 
         self.assertNotEqual(connection.frames_out, [])
 
@@ -92,10 +81,10 @@ class Channel0Tests(unittest.TestCase):
         self.assertNotEqual(frame_out.locale, '')
         self.assertIsNotNone(frame_out.locale)
 
-    def test_channel0_send_tune_ok_frame(self):
+    def test_channel0_send_tune_ok(self):
         connection = FakeConnection()
         channel = Channel0(connection)
-        channel._send_tune_ok_frame()
+        channel._send_tune_ok()
 
         self.assertNotEqual(connection.frames_out, [])
 
@@ -104,7 +93,7 @@ class Channel0Tests(unittest.TestCase):
         self.assertEqual(channel_id, 0)
         self.assertIsInstance(frame_out, Connection.TuneOk)
 
-    def test_channel0_send_heartbeat_frame(self):
+    def test_channel0_send_heartbeat(self):
         connection = FakeConnection()
         channel = Channel0(connection)
         channel.send_heartbeat()
@@ -116,10 +105,10 @@ class Channel0Tests(unittest.TestCase):
         self.assertEqual(channel_id, 0)
         self.assertIsInstance(frame_out, Heartbeat)
 
-    def test_channel0_send_close_connection_frame(self):
+    def test_channel0_send_close_connection(self):
         connection = FakeConnection()
         channel = Channel0(connection)
-        channel.send_close_connection_frame()
+        channel.send_close_connection()
 
         self.assertNotEqual(connection.frames_out, [])
 
@@ -132,84 +121,8 @@ class Channel0Tests(unittest.TestCase):
         connection = amqpstorm.Connection('localhost', 'guest', 'guest',
                                           lazy=True)
         channel = Channel0(connection)
-        channel._send_start_ok_frame(
-            Connection.Start(mechanisms='CRAM-MD5 SCRAM-SHA-1 SCRAM-SHA-256'))
+        channel._send_start_ok(
+            Connection.Start(mechanisms='CRAM-MD5 SCRAM-SHA-1 SCRAM-SHA-256')
+        )
 
         self.assertRaises(AMQPConnectionError, connection.check_for_errors)
-
-
-class Channel0FrameTests(unittest.TestCase):
-    def setUp(self):
-        self.logging_handler = MockLoggingHandler()
-        logging.root.addHandler(self.logging_handler)
-
-    def test_channel0_open_ok_frame(self):
-        connection = amqpstorm.Connection('localhost', 'guest', 'guest',
-                                          lazy=True)
-        channel = Channel0(connection)
-
-        self.assertFalse(connection.is_open)
-
-        channel.on_frame(Connection.OpenOk())
-
-        self.assertTrue(connection.is_open)
-
-    def test_channel0_on_close_frame(self):
-        connection = amqpstorm.Connection('localhost', 'guest', 'guest',
-                                          lazy=True)
-        connection.set_state(connection.OPEN)
-        channel = Channel0(connection)
-
-        self.assertFalse(connection.exceptions)
-
-        channel.on_frame(Connection.Close())
-
-        self.assertTrue(connection.exceptions)
-        self.assertTrue(connection.is_closed)
-        self.assertRaisesRegexp(AMQPConnectionError,
-                                'Connection was closed by remote server: ',
-                                connection.check_for_errors)
-
-    def test_channel0_heartbeat(self):
-        connection = amqpstorm.Connection('localhost', 'guest', 'guest',
-                                          lazy=True)
-        channel = Channel0(connection)
-        self.assertIsNone(channel.on_frame(Heartbeat()))
-
-    def test_channel0_is_blocked(self):
-        connection = amqpstorm.Connection('localhost', 'guest', 'guest',
-                                          lazy=True)
-        channel = Channel0(connection)
-
-        self.assertFalse(channel.is_blocked)
-
-        channel.on_frame(Connection.Blocked('unit-test'))
-
-        self.assertTrue(channel.is_blocked)
-        self.assertEqual(self.logging_handler.messages['warning'][0],
-                         'Connection is blocked by remote server: unit-test')
-
-    def test_channel0_unblocked(self):
-        connection = amqpstorm.Connection('localhost', 'guest', 'guest',
-                                          lazy=True)
-        channel = Channel0(connection)
-
-        channel.on_frame(Connection.Blocked())
-
-        self.assertTrue(channel.is_blocked)
-
-        channel.on_frame(Connection.Unblocked())
-
-        self.assertFalse(channel.is_blocked)
-        self.assertEqual(self.logging_handler.messages['info'][0],
-                         'Connection is no longer blocked by remote server')
-
-    def test_channel0_unhandled_frame(self):
-        connection = amqpstorm.Connection('localhost', 'guest', 'guest',
-                                          lazy=True)
-        channel = Channel0(connection)
-
-        channel.on_frame(FakeFrame())
-
-        self.assertEqual(self.logging_handler.messages['error'][0],
-                         "[Channel0] Unhandled Frame: FakeFrame")

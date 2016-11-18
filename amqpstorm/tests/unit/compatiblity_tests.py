@@ -1,24 +1,18 @@
 # -*- coding: utf-8 -*-
 import imp
-import logging
 import ssl
 import sys
-
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
 
 from amqpstorm import compatibility
 from amqpstorm.tests.utility import SslTLSNone
 from amqpstorm.tests.utility import SslTLSv1
 from amqpstorm.tests.utility import SslTLSv1_1
 from amqpstorm.tests.utility import SslTLSv1_2
+from amqpstorm.tests.utility import TestFramework
+from amqpstorm.tests.utility import unittest
 
-logging.basicConfig(level=logging.DEBUG)
 
-
-class CompatibilityTests(unittest.TestCase):
+class CompatibilityTests(TestFramework):
     def test_compatibility_basic_integer(self):
         x = 100
         self.assertTrue(compatibility.is_integer(x))
@@ -112,6 +106,7 @@ class CompatibilityTests(unittest.TestCase):
     def test_compatibility_patch_uri(self):
         self.assertEqual(compatibility.patch_uri('amqps://'), 'https://')
         self.assertEqual(compatibility.patch_uri('amqp://'), 'http://')
+        self.assertEqual(compatibility.patch_uri('travis://'), 'travis://')
 
 
 class CompatibilitySslTests(unittest.TestCase):

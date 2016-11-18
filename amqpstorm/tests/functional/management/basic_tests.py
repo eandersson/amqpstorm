@@ -1,70 +1,46 @@
-import logging
-import uuid
-
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
-
 from amqpstorm.management import ManagementApi
 from amqpstorm.message import Message
-from amqpstorm.tests.functional import HTTP_URL
-from amqpstorm.tests.functional import USERNAME
-from amqpstorm.tests.functional import PASSWORD
-
-logging.basicConfig(level=logging.DEBUG)
-
-LOGGER = logging.getLogger(__name__)
+from amqpstorm.tests import HTTP_URL
+from amqpstorm.tests import PASSWORD
+from amqpstorm.tests import USERNAME
+from amqpstorm.tests.utility import TestFunctionalFramework
+from amqpstorm.tests.utility import setup
 
 
-class ApiBasicFunctionalTests(unittest.TestCase):
+class ApiBasicFunctionalTests(TestFunctionalFramework):
+    @setup(queue=True)
     def test_api_basic_publish(self):
-        message = str(uuid.uuid4())
-        queue = 'test_api_basic_publish'
-
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
 
-        api.queue.declare(queue)
+        api.queue.declare(self.queue_name)
         try:
-            self.assertEqual(api.basic.publish(message, queue),
+            self.assertEqual(api.basic.publish(self.message, self.queue_name),
                              {'routed': True})
         finally:
-            api.queue.delete(queue)
+            api.queue.delete(self.queue_name)
 
+    @setup(queue=True)
     def test_api_basic_get_message(self):
-        message = str(uuid.uuid4())
-        queue = 'test_api_basic_get_message'
-
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
 
-        api.queue.declare(queue)
-        try:
-            self.assertEqual(api.basic.publish(message, queue),
-                             {'routed': True})
+        api.queue.declare(self.queue_name)
+        self.assertEqual(api.basic.publish(self.message, self.queue_name),
+                         {'routed': True})
 
-            result = api.basic.get(queue, requeue=False)
-            self.assertIsInstance(result, list)
-            self.assertIsInstance(result[0], Message)
-            self.assertEqual(result[0].body, message)
+        result = api.basic.get(self.queue_name, requeue=False)
+        self.assertIsInstance(result, list)
+        self.assertIsInstance(result[0], Message)
+        self.assertEqual(result[0].body, self.message)
 
-        finally:
-            api.queue.delete(queue)
-
+    @setup(queue=True)
     def test_api_basic_get_message_to_dict(self):
-        message = str(uuid.uuid4())
-        queue = 'test_api_basic_get_message_to_dict'
-
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
 
-        api.queue.declare(queue)
-        try:
-            self.assertEqual(api.basic.publish(message, queue),
-                             {'routed': True})
+        api.queue.declare(self.queue_name)
+        self.assertEqual(api.basic.publish(self.message, self.queue_name),
+                         {'routed': True})
 
-            result = api.basic.get(queue, requeue=False, to_dict=True)
-            self.assertIsInstance(result, list)
-            self.assertIsInstance(result[0], dict)
-            self.assertEqual(result[0]['payload'], message)
-
-        finally:
-            api.queue.delete(queue)
+        result = api.basic.get(self.queue_name, requeue=False, to_dict=True)
+        self.assertIsInstance(result, list)
+        self.assertIsInstance(result[0], dict)
+        self.assertEqual(result[0]['payload'], self.message)

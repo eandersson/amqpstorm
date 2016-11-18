@@ -250,13 +250,14 @@ class Channel(BaseChannel):
         if not self.consumer_callback:
             raise AMQPChannelError('no consumer_callback defined')
         for message in self.build_inbound_messages(break_on_empty=True,
+                                                   to_tuple=to_tuple,
                                                    auto_decode=auto_decode):
-            if not to_tuple:
+            if to_tuple:
                 # noinspection PyCallingNonCallable
-                self.consumer_callback(message)
+                self.consumer_callback(*message)
                 continue
             # noinspection PyCallingNonCallable
-            self.consumer_callback(*message.to_tuple())
+            self.consumer_callback(message)
         sleep(IDLE_WAIT)
 
     def rpc_request(self, frame_out):

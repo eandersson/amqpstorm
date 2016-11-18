@@ -1,35 +1,21 @@
-import logging
 import time
-import uuid
-
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
 
 from amqpstorm import Connection
-from amqpstorm.tests.functional import HOST
-from amqpstorm.tests.functional import HTTP_URL
-from amqpstorm.tests.functional import USERNAME
-from amqpstorm.tests.functional import PASSWORD
 from amqpstorm.exception import AMQPConnectionError
-from amqpstorm.management import ManagementApi
+from amqpstorm.tests import HOST
+from amqpstorm.tests import PASSWORD
+from amqpstorm.tests import USERNAME
+from amqpstorm.tests.utility import TestFunctionalFramework
+from amqpstorm.tests.utility import setup
 
-logging.basicConfig(level=logging.DEBUG)
 
-LOGGER = logging.getLogger(__name__)
+class WebFunctionalTests(TestFunctionalFramework):
+    def configure(self):
+        self.disable_logging_validation()
 
-
-class WebFunctionalTests(unittest.TestCase):
-    connection = None
-    channel = None
-
+    @setup()
     def test_functional_client_properties(self):
-        self.connection = Connection(HOST, USERNAME, PASSWORD)
-        self.channel = self.connection.channel()
-
-        api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
-        client_properties = api.connection.list()[0]['client_properties']
+        client_properties = self.api.connection.list()[0]['client_properties']
 
         result = self.connection._channel0._client_properties()
 
@@ -39,99 +25,75 @@ class WebFunctionalTests(unittest.TestCase):
         self.assertEqual(result['product'], client_properties['product'])
         self.assertEqual(result['platform'], client_properties['platform'])
 
-        self.connection.close()
-
+    @setup(queue=True)
     def test_functional_consume_web_message(self):
-        message = str(uuid.uuid4())
-        queue = 'test_functional_consume_web_message'
+        self.channel.queue.declare(self.queue_name)
+        self.api.basic.publish(body=self.message,
+                               routing_key=self.queue_name)
 
-        api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
+        time.sleep(1)
 
-        self.connection = Connection(HOST, USERNAME, PASSWORD, timeout=1)
-        self.channel = self.connection.channel()
+        result = self.channel.basic.get(self.queue_name)
 
-        try:
-            self.channel.queue.declare(queue)
-            api.basic.publish(body=message, routing_key=queue)
+        self.assertEqual(result.body, self.message)
 
-            time.sleep(1)
-
-            result = self.channel.basic.get(queue)
-
-            self.assertEqual(result.body, message)
-        finally:
-            self.channel.queue.delete(queue)
-            self.connection.close()
-
+    @setup(queue=True)
     def test_functional_remove_queue_while_consuming(self):
-        message = str(uuid.uuid4())
-        queue = 'test_functional_remove_queue_while_consuming'
+        self.channel.queue.declare(self.queue_name)
+        for _ in range(10):
+            self.api.basic.publish(body=self.message,
+                                   routing_key=self.queue_name)
 
-        api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
+        self.channel.basic.consume(queue=self.queue_name, no_ack=True)
+        queue_deleted = False
+        messages_received = 0
+        for _ in self.channel.build_inbound_messages(break_on_empty=True):
+            messages_received += 1
+            if not queue_deleted:
+                self.api.queue.delete(self.queue_name)
+                queue_deleted = True
 
-        self.connection = Connection(HOST, USERNAME, PASSWORD, timeout=1)
-        self.channel = self.connection.channel()
+        self.assertFalse(self.channel._inbound)
 
-        try:
-            self.channel.queue.declare(queue)
-            for _ in range(10):
-                api.basic.publish(body=message, routing_key=queue)
-
-            self.channel.basic.consume(queue=queue, no_ack=True)
-            queue_deleted = False
-            messages_received = 0
-            for _ in self.channel.build_inbound_messages(break_on_empty=True):
-                messages_received += 1
-                if not queue_deleted:
-                    api.queue.delete(queue)
-                    queue_deleted = True
-            self.assertFalse(self.channel._inbound)
-        finally:
-            self.channel.queue.delete(queue)
-            self.connection.close()
-
+    @setup()
     def test_functional_connection_forcefully_closed(self):
-        api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
-
-        self.connection = Connection(HOST, USERNAME, PASSWORD, timeout=1)
-        self.channel = self.connection.channel()
-
-        for connection in api.connection.list():
-            api.connection.close(connection['name'])
+        for connection in self.api.connection.list():
+            self.api.connection.close(connection['name'])
 
         time.sleep(0.1)
 
-        self.assertRaises(AMQPConnectionError, self.channel.basic.publish,
-                          'body', 'routing_key')
+        self.assertRaisesRegexp(
+            AMQPConnectionError,
+            'Connection was closed by remote server: '
+            'CONNECTION_FORCED - Closed via management api',
+            self.channel.basic.publish, 'body', 'routing_key'
+        )
 
-        self.assertRaisesRegexp(AMQPConnectionError,
-                                'Connection was closed by remote server: '
-                                'CONNECTION_FORCED - '
-                                'Closed via management api',
-                                self.channel.check_for_errors)
+        self.assertRaisesRegexp(
+            AMQPConnectionError,
+            'Connection was closed by remote server: '
+            'CONNECTION_FORCED - Closed via management api',
+            self.channel.check_for_errors
+        )
 
-        self.assertRaisesRegexp(AMQPConnectionError,
-                                'Connection was closed by remote server: '
-                                'CONNECTION_FORCED - '
-                                'Closed via management api',
-                                self.connection.check_for_errors)
+        self.assertRaisesRegexp(
+            AMQPConnectionError,
+            'Connection was closed by remote server: '
+            'CONNECTION_FORCED - Closed via management api',
+            self.connection.check_for_errors
+        )
 
-        self.connection.close()
-
+    @setup(new_connection=False, queue=True)
     def test_functional_alternative_virtual_host(self):
-        vhost_name = 'travis_ci'
-        queue = 'test_functional_alternative_virtual_host'
+        self.api.virtual_host.create(self.virtual_host_name)
 
-        api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
-        api.virtual_host.create(vhost_name)
-
-        api.user.set_permission('guest', vhost_name)
+        self.api.user.set_permission('guest', self.virtual_host_name)
 
         self.connection = Connection(HOST, USERNAME, PASSWORD,
-                                     virtual_host=vhost_name, timeout=1)
+                                     virtual_host=self.virtual_host_name,
+                                     timeout=1)
         self.channel = self.connection.channel()
-        self.channel.queue.declare(queue)
-        self.channel.queue.delete(queue)
-        api.user.delete_permission('guest', vhost_name)
-        api.virtual_host.delete(vhost_name)
-        self.connection.close()
+        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.delete(self.queue_name)
+        self.api.user.delete_permission('guest', self.virtual_host_name)
+        self.api.virtual_host.delete(self.virtual_host_name)

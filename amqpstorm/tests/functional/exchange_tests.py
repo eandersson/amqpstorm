@@ -1,51 +1,36 @@
-import logging
-
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
-
 import amqpstorm
-from amqpstorm import Connection
-from amqpstorm.tests.functional import HOST
-from amqpstorm.tests.functional import USERNAME
-from amqpstorm.tests.functional import PASSWORD
-from amqpstorm.tests.utility import MockLoggingHandler
-
-logging.basicConfig(level=logging.DEBUG)
-
-LOGGER = logging.getLogger(__name__)
+from amqpstorm.tests.utility import TestFunctionalFramework
+from amqpstorm.tests.utility import setup
 
 
-class ExchangeFunctionalTests(unittest.TestCase):
-    def setUp(self):
-        self.logging_handler = MockLoggingHandler()
-        logging.root.addHandler(self.logging_handler)
-        self.connection = Connection(HOST, USERNAME, PASSWORD)
-        self.channel = self.connection.channel()
-
+class ExchangeFunctionalTests(TestFunctionalFramework):
+    @setup(exchange=True)
     def test_functional_exchange_declare(self):
-        self.channel.exchange.declare('test_functional_exchange_declare',
+        self.channel.exchange.declare(self.exchange_name,
                                       passive=False,
                                       durable=True, auto_delete=True)
-        self.channel.exchange.declare('test_functional_exchange_declare',
-                                      passive=True)
+        self.assertEqual({}, self.channel.exchange.declare(self.exchange_name,
+                                                           passive=True))
 
+    @setup(exchange=True)
     def test_functional_exchange_delete(self):
-        self.channel.exchange.declare('test_functional_exchange_delete')
-        self.channel.exchange.delete('test_functional_exchange_delete',
+        self.channel.exchange.declare(self.exchange_name)
+        self.channel.exchange.delete(self.exchange_name,
                                      if_unused=True)
         self.assertRaises(amqpstorm.AMQPChannelError,
                           self.channel.exchange.declare,
-                          'test_functional_exchange_delete', passive=True)
+                          self.exchange_name, passive=True)
 
+    @setup(exchange=True, override_names=['exchange1', 'exchange2'])
     def test_functional_exchange_bind(self):
         self.channel.exchange.declare('exchange1')
         self.channel.exchange.declare('exchange2')
 
-        self.assertEqual(self.channel.exchange.bind('exchange1', 'exchange2',
+        self.assertEqual(self.channel.exchange.bind('exchange1',
+                                                    'exchange2',
                                                     'routing_key'), {})
 
+    @setup(exchange=True, override_names=['exchange1', 'exchange2'])
     def test_functional_exchange_unbind(self):
         self.channel.exchange.declare('exchange1')
         self.channel.exchange.declare('exchange2')
@@ -53,10 +38,3 @@ class ExchangeFunctionalTests(unittest.TestCase):
 
         self.assertEqual(self.channel.exchange.unbind('exchange1', 'exchange2',
                                                       'routing_key'), {})
-
-    def tearDown(self):
-        self.channel.close()
-        self.connection.close()
-        self.assertFalse(self.logging_handler.messages['warning'])
-        self.assertFalse(self.logging_handler.messages['error'])
-        self.assertFalse(self.logging_handler.messages['critical'])

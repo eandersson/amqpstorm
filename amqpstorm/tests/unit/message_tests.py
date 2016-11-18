@@ -1,23 +1,15 @@
-import logging
 import uuid
 from datetime import datetime
 
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
-
 from amqpstorm import Message
 from amqpstorm.exception import AMQPMessageError
-
 from amqpstorm.tests.utility import FakeChannel
+from amqpstorm.tests.utility import TestFramework
 
-logging.basicConfig(level=logging.DEBUG)
 
-
-class MessageTests(unittest.TestCase):
+class MessageTests(TestFramework):
     def test_message_create_new_message(self):
-        body = b'Hello World'
+        body = self.message
 
         message = Message.create(None, body,
                                  properties={'key': 'value',
@@ -35,7 +27,7 @@ class MessageTests(unittest.TestCase):
         self.assertEqual(result['properties']['key'], 'value')
 
     def test_message_default_properties(self):
-        body = b'Hello World'
+        body = self.message
 
         message = Message.create(None, body)
 
@@ -123,13 +115,15 @@ class MessageTests(unittest.TestCase):
         self.assertEqual(reply_to, message.reply_to)
 
     def test_message_do_not_override_properties(self):
-        reply_to = 'hello_world',
+        reply_to = self.message,
         correlation_id = str(uuid.uuid4())
+        message_id = str(uuid.uuid4())
         timestamp = datetime.now()
 
         properties = {
             'reply_to': reply_to,
             'correlation_id': correlation_id,
+            'message_id': message_id,
             'timestamp': timestamp
         }
 
@@ -137,6 +131,7 @@ class MessageTests(unittest.TestCase):
 
         self.assertEqual(reply_to, message.reply_to)
         self.assertEqual(correlation_id, message.correlation_id)
+        self.assertEqual(message_id, message.message_id)
         self.assertEqual(timestamp, message.timestamp)
 
     def test_message_get_channel(self):
@@ -218,28 +213,26 @@ class MessageTests(unittest.TestCase):
         self.assertRaises(AMQPMessageError, message.reject)
 
     def test_message_auto_decode_enabled(self):
-        body = 'Hello World',
-        message = Message(body=body,
+        message = Message(body=self.message,
                           properties={'key': 'value',
                                       'headers': {b'name': b'eandersson'}},
                           channel=None)
 
-        self.assertEqual(body, message.body)
+        self.assertEqual(self.message, message.body)
         self.assertIn('name', message.properties['headers'])
         self.assertIn(b'name', message._properties['headers'])
         self.assertIsInstance(message.properties['headers']['name'], str)
 
     def test_message_auto_decode_cache(self):
-        body = 'Hello World',
-        message = Message(body=body,
+        message = Message(body=self.message,
                           channel=None)
 
-        self.assertEqual(body, message.body)
+        self.assertEqual(self.message, message.body)
         message._body = 'invalidate'
-        self.assertEqual(body, message.body)
+        self.assertEqual(self.message, message.body)
 
     def test_message_auto_decode_when_method_is_none(self):
-        message = Message(body='Hello World',
+        message = Message(body=self.message,
                           method=None,
                           channel=None)
 
@@ -248,7 +241,7 @@ class MessageTests(unittest.TestCase):
     def test_message_auto_decode_when_method_contains_list(self):
         method_data = {'key': [b'a', b'b']}
 
-        message = Message(body='Hello World',
+        message = Message(body=self.message,
                           method=method_data,
                           channel=None)
 
@@ -258,7 +251,7 @@ class MessageTests(unittest.TestCase):
     def test_message_auto_decode_when_method_is_tuple(self):
         method_data = (1, 2, 3, 4, 5)
 
-        message = Message(body='Hello World',
+        message = Message(body=self.message,
                           method=method_data,
                           channel=None)
 
@@ -269,7 +262,7 @@ class MessageTests(unittest.TestCase):
     def test_message_auto_decode_when_properties_contains_list(self):
         prop_data = [b'travis', 2, 3, 4, 5]
 
-        message = Message(body='Hello World',
+        message = Message(body=self.message,
                           properties={'key': prop_data},
                           channel=None)
 
@@ -281,7 +274,7 @@ class MessageTests(unittest.TestCase):
     def test_message_auto_decode_when_properties_contains_tuple(self):
         prop_data = (b'travis', 2, 3, 4, 5)
 
-        message = Message(body='Hello World',
+        message = Message(body=self.message,
                           properties={'key': prop_data},
                           channel=None)
 
@@ -295,7 +288,7 @@ class MessageTests(unittest.TestCase):
             'hello': b'travis'
         }
 
-        message = Message(body='Hello World',
+        message = Message(body=self.message,
                           properties={'key': prop_data},
                           channel=None)
 
@@ -304,7 +297,7 @@ class MessageTests(unittest.TestCase):
                          message.properties['key']['hello'])
 
     def test_message_auto_decode_disabled(self):
-        body = 'Hello World'
+        body = self.message
         message = Message(body=body,
                           properties={'key': 'value',
                                       'headers': {b'name': b'eandersson'}},
@@ -338,7 +331,7 @@ class MessageTests(unittest.TestCase):
         self.assertEqual(result['key'], 'value')
 
     def test_message_dict(self):
-        body = b'Hello World'
+        body = self.message
         properties = {'key': 'value'}
         method = {b'alternative': 'value'}
         message = Message(body=body,
@@ -354,7 +347,7 @@ class MessageTests(unittest.TestCase):
         self.assertEqual(result['method'], method)
 
     def test_message_to_dict(self):
-        body = b'Hello World'
+        body = self.message
         properties = {'key': 'value'}
         method = {b'alternative': 'value'}
         message = Message(body=body,
@@ -370,7 +363,7 @@ class MessageTests(unittest.TestCase):
         self.assertEqual(result['method'], method)
 
     def test_message_to_tuple(self):
-        body = b'Hello World'
+        body = self.message
         message = Message(body=body,
                           properties={'key': 'value'},
                           method={'key': 'value'},

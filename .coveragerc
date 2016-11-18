@@ -1,0 +1,4 @@
+[run]
+branch = true
+source = amqpstorm
+omit = amqpstorm/tests/*

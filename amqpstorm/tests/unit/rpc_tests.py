@@ -1,40 +1,78 @@
-import logging
 import time
 
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
+import mock
 
-from amqpstorm.rpc import Rpc
 from amqpstorm.exception import AMQPChannelError
-
+from amqpstorm.rpc import Rpc
 from amqpstorm.tests.utility import FakeConnection
 from amqpstorm.tests.utility import FakePayload
+from amqpstorm.tests.utility import TestFramework
 
-logging.basicConfig(level=logging.DEBUG)
 
-
-class RpcTests(unittest.TestCase):
+class RpcTests(TestFramework):
     def test_rpc_register_request(self):
         rpc = Rpc(FakeConnection())
-        uuid = rpc.register_request(['Test'])
+        uuid = rpc.register_request(['travis-ci'])
         self.assertEqual(len(rpc._request), 1)
         for key in rpc._request:
             self.assertEqual(uuid, rpc._request[key])
 
+    def test_rpc_get_response_frame(self):
+        rpc = Rpc(FakeConnection())
+        rpc._response['travis-ci'] = ['travis-ci']
+        self.assertEqual(rpc._get_response_frame('travis-ci'), 'travis-ci')
+
+    def test_rpc_get_response_frame_empty(self):
+        rpc = Rpc(FakeConnection())
+        rpc._response['travis-ci'] = []
+        self.assertIsNone(rpc._get_response_frame('travis-ci'))
+
     def test_rpc_get_request(self):
         rpc = Rpc(FakeConnection())
-        uuid = rpc.register_request(['Test'])
-        self.assertTrue(rpc.on_frame(FakePayload(name='Test')))
+        uuid = rpc.register_request(['travis-ci'])
+        self.assertTrue(rpc.on_frame(FakePayload(name='travis-ci')))
         self.assertIsInstance(rpc.get_request(uuid=uuid, raw=True),
                               FakePayload)
 
+    @mock.patch('amqpstorm.rpc.Rpc._wait_for_request', return_value=False)
+    def test_rpc_get_request_no_reply(self, _):
+        rpc = Rpc(FakeConnection())
+        uuid = rpc.register_request(['travis-ci'])
+        self.assertIsNone(rpc.get_request(uuid=uuid, raw=False),
+                          FakePayload)
+
+    @mock.patch('amqpstorm.rpc.Rpc._wait_for_request', return_value=False)
+    def test_rpc_get_request_no_reply_raw(self, _):
+        rpc = Rpc(FakeConnection())
+        uuid = rpc.register_request(['travis-ci'])
+        self.assertIsNone(rpc.get_request(uuid=uuid, raw=True),
+                          FakePayload)
+
+    def test_rpc_get_request_timeout(self):
+        rpc = Rpc(FakeConnection(), timeout=0.1)
+        uuid = rpc.register_request(['travis-ci'])
+        self.assertRaisesRegexp(
+            AMQPChannelError,
+            'rpc requests %s \(travis-ci\) took too long'
+            % uuid,
+            rpc.get_request, uuid=uuid, raw=False
+        )
+
+    def test_rpc_get_request_timeout_raw(self):
+        rpc = Rpc(FakeConnection(), timeout=0.1)
+        uuid = rpc.register_request(['travis-ci'])
+        self.assertRaisesRegexp(
+            AMQPChannelError,
+            'rpc requests %s \(travis-ci\) took too long'
+            % uuid,
+            rpc.get_request, uuid=uuid, raw=False
+        )
+
     def test_rpc_get_request_multiple_1(self):
         rpc = Rpc(FakeConnection())
-        uuid = rpc.register_request(['Test'])
+        uuid = rpc.register_request(['travis-ci'])
         for index in range(1000):
-            rpc.on_frame(FakePayload(name='Test', value=index))
+            rpc.on_frame(FakePayload(name='travis-ci', value=index))
         for index in range(1000):
             result = rpc.get_request(uuid=uuid, raw=True, multiple=True)
             self.assertEqual(result.value, index)
@@ -43,9 +81,9 @@ class RpcTests(unittest.TestCase):
 
     def test_rpc_get_request_multiple_2(self):
         rpc = Rpc(FakeConnection())
-        uuid = rpc.register_request(['Test'])
+        uuid = rpc.register_request(['travis-ci'])
         for index in range(1000):
-            rpc.on_frame(FakePayload(name='Test', value=index))
+            rpc.on_frame(FakePayload(name='travis-ci', value=index))
             result = rpc.get_request(uuid=uuid, raw=True, multiple=True)
             self.assertEqual(result.value, index)
 
@@ -53,20 +91,20 @@ class RpcTests(unittest.TestCase):
 
     def test_rpc_remove(self):
         rpc = Rpc(FakeConnection())
-        uuid = rpc.register_request(['Test'])
+        uuid = rpc.register_request(['travis-ci'])
         self.assertEqual(len(rpc._request), 1)
         self.assertEqual(len(rpc._response), 1)
         self.assertEqual(len(rpc._response[uuid]), 0)
-        rpc.on_frame(FakePayload(name='Test'))
+        rpc.on_frame(FakePayload(name='travis-ci'))
         rpc.remove(uuid)
         self.assertEqual(len(rpc._request), 0)
         self.assertEqual(len(rpc._response), 0)
 
     def test_rpc_remove_multiple(self):
         rpc = Rpc(FakeConnection())
-        uuid = rpc.register_request(['Test'])
+        uuid = rpc.register_request(['travis-ci'])
         for index in range(1000):
-            rpc.on_frame(FakePayload(name='Test', value=index))
+            rpc.on_frame(FakePayload(name='travis-ci', value=index))
         self.assertEqual(len(rpc._request), 1)
         self.assertEqual(len(rpc._response[uuid]), 1000)
         rpc.remove(uuid)
@@ -75,14 +113,14 @@ class RpcTests(unittest.TestCase):
 
     def test_rpc_remove_request(self):
         rpc = Rpc(FakeConnection())
-        uuid = rpc.register_request(['Test'])
+        uuid = rpc.register_request(['travis-ci'])
         self.assertEqual(len(rpc._request), 1)
         rpc.remove_request(uuid)
         self.assertEqual(len(rpc._request), 0)
 
     def test_rpc_remove_response(self):
         rpc = Rpc(FakeConnection())
-        uuid = rpc.register_request(['Test'])
+        uuid = rpc.register_request(['travis-ci'])
         self.assertEqual(len(rpc._response), 1)
         self.assertEqual(len(rpc._response[uuid]), 0)
         rpc.remove_response(uuid)
@@ -102,25 +140,31 @@ class RpcTests(unittest.TestCase):
 
     def test_rpc_on_frame(self):
         rpc = Rpc(FakeConnection())
-        uuid = rpc.register_request(['Test'])
+        uuid = rpc.register_request(['travis-ci'])
         self.assertEqual(rpc._response[uuid], [])
-        rpc.on_frame(FakePayload(name='Test'))
+        rpc.on_frame(FakePayload(name='travis-ci'))
         self.assertIsInstance(rpc._response[uuid][0], FakePayload)
 
     def test_rpc_on_multiple_frames(self):
         rpc = Rpc(FakeConnection())
-        uuid = rpc.register_request(['Test'])
+        uuid = rpc.register_request(['travis-ci'])
         self.assertEqual(rpc._response[uuid], [])
-        rpc.on_frame(FakePayload(name='Test'))
-        rpc.on_frame(FakePayload(name='Test'))
-        rpc.on_frame(FakePayload(name='Test'))
+        rpc.on_frame(FakePayload(name='travis-ci'))
+        rpc.on_frame(FakePayload(name='travis-ci'))
+        rpc.on_frame(FakePayload(name='travis-ci'))
         self.assertIsInstance(rpc._response[uuid][0], FakePayload)
         self.assertIsInstance(rpc._response[uuid][1], FakePayload)
         self.assertIsInstance(rpc._response[uuid][2], FakePayload)
 
     def test_rpc_raises_on_timeout(self):
-        rpc = Rpc(FakeConnection(), timeout=0.1)
-        uuid = rpc.register_request(['Test'])
+        rpc = Rpc(FakeConnection(), timeout=0.01)
+        rpc.register_request(['travis-ci-1'])
+        uuid = rpc.register_request(['travis-ci-2'])
+        rpc.register_request(['travis-ci-3'])
         self.assertEqual(rpc._response[uuid], [])
-        time.sleep(0.25)
-        self.assertRaises(AMQPChannelError, rpc.get_request, uuid)
+        time.sleep(0.1)
+        self.assertRaisesRegexp(
+            AMQPChannelError,
+            'rpc requests %s \(travis-ci-2\) took too long' % uuid,
+            rpc.get_request, uuid
+        )

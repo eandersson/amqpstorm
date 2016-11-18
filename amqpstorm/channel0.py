@@ -50,14 +50,14 @@ class Channel0(object):
             self._set_connection_state(Stateful.OPEN)
         elif frame_in.name == 'Connection.Start':
             self.server_properties = frame_in.server_properties
-            self._send_start_ok_frame(frame_in)
+            self._send_start_ok(frame_in)
         elif frame_in.name == 'Connection.Tune':
-            self._send_tune_ok_frame()
+            self._send_tune_ok()
             self._send_open_connection()
         else:
             LOGGER.error('[Channel0] Unhandled Frame: %s', frame_in.name)
 
-    def send_close_connection_frame(self):
+    def send_close_connection(self):
         """Send Connection Close frame.
 
         :return:
@@ -122,10 +122,10 @@ class Channel0(object):
         return '\0%s\0%s' % (self._parameters['username'],
                              self._parameters['password'])
 
-    def _send_start_ok_frame(self, frame_in):
+    def _send_start_ok(self, frame_in):
         """Send Start OK frame.
 
-        :param pamqp_spec.Connection.StartOk frame_in: Amqp frame.
+        :param pamqp_spec.Connection.Start frame_in: Amqp frame.
         :return:
         """
         if 'PLAIN' not in try_utf8_decode(frame_in.mechanisms):
@@ -143,7 +143,7 @@ class Channel0(object):
             locale=LOCALE)
         self._write_frame(start_ok_frame)
 
-    def _send_tune_ok_frame(self):
+    def _send_tune_ok(self):
         """Send Tune OK frame.
 
         :return:
