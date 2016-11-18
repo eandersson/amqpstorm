@@ -3,7 +3,7 @@ from setuptools import find_packages
 
 setup(
     name='AMQPStorm',
-    version='2.1.4',
+    version='2.2.0',
     description='Thread-safe Python RabbitMQ Client & Management library.',
     long_description=open('README.rst').read(),
     author='Erik Olof Gunnar Andersson',

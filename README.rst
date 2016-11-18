@@ -21,6 +21,12 @@ Additional documentation is available on `docs.amqpstorm.io <https://www.amqpsto
 Changelog
 =========
 
+Version 2.2.0
+-------------
+- Connection.close should now be more responsive.
+- Channels are now reset when re-opening an existing connection.
+- Re-wrote large portions of the Test suit.
+
 Version 2.1.4
 -------------
 - Added parameter to override auto-decode on incoming Messages - Thanks Travis Griggs.
