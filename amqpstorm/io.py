@@ -178,8 +178,6 @@ class IO(object):
         :rtype: socket.socket
         """
         sock = socket.socket(socket_family, socket.SOCK_STREAM, 0)
-        if hasattr(socket, 'SOL_TCP'):
-            sock.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 1)
         sock.settimeout(self._parameters['timeout'] or None)
         if self.use_ssl:
             if not compatibility.SSL_SUPPORTED:

@@ -1,19 +1,12 @@
-import logging
 import time
 
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
-
-from amqpstorm.heartbeat import Heartbeat
 from amqpstorm.exception import AMQPConnectionError
+from amqpstorm.heartbeat import Heartbeat
+from amqpstorm.tests.utility import TestFramework
 from amqpstorm.tests.utility import fake_function
 
-logging.basicConfig(level=logging.DEBUG)
 
-
-class HeartbeatTests(unittest.TestCase):
+class HeartbeatTests(TestFramework):
     def test_heartbeat_start(self):
         heartbeat = Heartbeat(60, fake_function)
 
@@ -69,18 +62,18 @@ class HeartbeatTests(unittest.TestCase):
     def test_heartbeat_register_reads(self):
         heartbeat = Heartbeat(60, fake_function)
         time.sleep(0.01)
-        for _ in range(100):
+        for _ in range(32):
             heartbeat.register_read()
 
-        self.assertEqual(heartbeat._reads_since_check, 100)
+        self.assertEqual(heartbeat._reads_since_check, 32)
 
     def test_heartbeat_register_writes(self):
         heartbeat = Heartbeat(60, fake_function)
         time.sleep(0.01)
-        for _ in range(100):
+        for _ in range(32):
             heartbeat.register_write()
 
-        self.assertEqual(heartbeat._writes_since_check, 100)
+        self.assertEqual(heartbeat._writes_since_check, 32)
 
     def test_heartbeat_do_not_execute_life_signs_when_stopped(self):
         heartbeat = Heartbeat(60, fake_function)
@@ -115,10 +108,11 @@ class HeartbeatTests(unittest.TestCase):
         heartbeat = Heartbeat(60, send_heartbeat=send_heartbeat)
         heartbeat._running.set()
 
-        for _ in range(10):
+        for _ in range(8):
             heartbeat.register_read()
             self.assertTrue(heartbeat._check_for_life_signs())
-        self.assertEqual(self.beats, 10)
+
+        self.assertEqual(self.beats, 8)
 
         heartbeat.stop()
 
@@ -177,12 +171,14 @@ class HeartbeatTests(unittest.TestCase):
         # Miss one write/
         self.assertTrue(heartbeat._check_for_life_signs())
 
-        for _ in range(1000):
+        for _ in range(32):
             heartbeat.register_read()
             heartbeat.register_write()
 
             self.assertFalse(heartbeat._threshold)
             self.assertTrue(heartbeat._check_for_life_signs())
+
+            time.sleep(0.01)
 
         heartbeat.register_write()
 

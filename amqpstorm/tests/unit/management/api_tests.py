@@ -1,22 +1,10 @@
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
-
 from amqpstorm.management import ManagementApi
 
-
-class FakeClient(object):
-    """Fake HTTP client for Unit-Testing."""
-
-    def __init__(self, on_get):
-        self.on_get = on_get
-
-    def get(self, path):
-        return self.on_get(path)
+from amqpstorm.tests.utility import FakeHTTPClient
+from amqpstorm.tests.utility import TestFramework
 
 
-class ApiTests(unittest.TestCase):
+class ApiTests(TestFramework):
     def test_api_top(self):
         def on_get(name):
             if name == 'nodes':
@@ -32,7 +20,7 @@ class ApiTests(unittest.TestCase):
                 }
 
         api = ManagementApi('url', 'guest', 'guest')
-        api.http_client = FakeClient(on_get)
+        api.http_client = FakeHTTPClient(on_get)
 
         top = api.top()
         self.assertIsInstance(top, list)

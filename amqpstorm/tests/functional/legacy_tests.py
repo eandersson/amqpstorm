@@ -1,39 +1,21 @@
-import logging
 import time
-import uuid
-
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
 
 from amqpstorm import Channel
-from amqpstorm import Connection
-from amqpstorm.tests.functional import HOST
-from amqpstorm.tests.functional import USERNAME
-from amqpstorm.tests.functional import PASSWORD
-
-logging.basicConfig(level=logging.DEBUG)
-
-LOGGER = logging.getLogger(__name__)
+from amqpstorm.tests.utility import TestFunctionalFramework
+from amqpstorm.tests.utility import setup
 
 
-class LegacyStartStopConsumeTest(unittest.TestCase):
-    connection = None
-    channel = None
-    queue_name = None
+class LegacyFunctionalTests(TestFunctionalFramework):
+    def configure(self):
+        self.disable_logging_validation()
 
-    def setUp(self):
-        self.queue_name = self.__class__.__name__
-        self.connection = Connection(HOST, USERNAME, PASSWORD)
-        self.channel = self.connection.channel()
+    @setup(queue=True)
+    def test_functional_start_stop_consumer_tuple(self):
         self.channel.queue.declare(self.queue_name)
-        self.channel.queue.purge(self.queue_name)
         self.channel.confirm_deliveries()
 
-    def test_functional_start_stop_consumer_tuple(self):
         for _ in range(5):
-            self.channel.basic.publish(body=str(uuid.uuid4()),
+            self.channel.basic.publish(body=self.message,
                                        routing_key=self.queue_name)
 
         # Store and inbound messages.
@@ -60,27 +42,11 @@ class LegacyStartStopConsumeTest(unittest.TestCase):
         # Make sure all five messages were downloaded.
         self.assertEqual(len(inbound_messages), 5)
 
-    def tearDown(self):
-        self.channel.queue.delete(self.queue_name)
-        self.channel.close()
-        self.connection.close()
-
-
-class LegacyPublishAndConsumeMessagesTest(unittest.TestCase):
-    connection = None
-    channel = None
-    queue_name = None
-    message = str(uuid.uuid4())
-
-    def setUp(self):
-        self.queue_name = self.__class__.__name__
-        self.connection = Connection(HOST, USERNAME, PASSWORD)
-        self.channel = self.connection.channel()
+    @setup(queue=True)
+    def test_functional_publish_and_consume_five_messages_tuple(self):
         self.channel.queue.declare(self.queue_name)
-        self.channel.queue.purge(self.queue_name)
         self.channel.confirm_deliveries()
 
-    def test_functional_publish_and_consume_five_messages_tuple(self):
         for _ in range(5):
             self.channel.basic.publish(body=self.message,
                                        routing_key=self.queue_name)
@@ -108,33 +74,18 @@ class LegacyPublishAndConsumeMessagesTest(unittest.TestCase):
         # Make sure all five messages were downloaded.
         self.assertEqual(len(inbound_messages), 5)
 
-    def tearDown(self):
-        self.channel.queue.delete(self.queue_name)
-        self.channel.close()
-        self.connection.close()
-
-
-class LegacyGeneratorConsumeMessagesTest(unittest.TestCase):
-    connection = None
-    channel = None
-    queue_name = None
-
-    def setUp(self):
-        self.queue_name = self.__class__.__name__
-        self.connection = Connection(HOST, USERNAME, PASSWORD)
-        self.channel = self.connection.channel()
+    @setup(queue=True)
+    def test_functional_generator_consume(self):
         self.channel.queue.declare(self.queue_name)
-        self.channel.queue.purge(self.queue_name)
         self.channel.confirm_deliveries()
         for _ in range(5):
-            self.channel.basic.publish(body=str(uuid.uuid4()),
+            self.channel.basic.publish(body=self.message,
                                        routing_key=self.queue_name)
         self.channel.basic.consume(queue=self.queue_name,
                                    no_ack=True)
         # Sleep for 0.01s to make sure RabbitMQ has time to catch up.
         time.sleep(0.01)
 
-    def test_functional_generator_consume(self):
         # Store and inbound messages.
         inbound_messages = []
         for message in \
@@ -150,25 +101,10 @@ class LegacyGeneratorConsumeMessagesTest(unittest.TestCase):
         # Make sure all five messages were downloaded.
         self.assertEqual(len(inbound_messages), 5)
 
-    def tearDown(self):
-        self.channel.queue.delete(self.queue_name)
-        self.channel.close()
-        self.connection.close()
-
-
-class LegacyublishAndGetMessagesTest(unittest.TestCase):
-    connection = None
-    channel = None
-    queue_name = None
-    message = str(uuid.uuid4())
-
-    def setUp(self):
-        self.queue_name = self.__class__.__name__
-        self.connection = Connection(HOST, USERNAME, PASSWORD)
-        self.channel = self.connection.channel()
+    @setup(queue=True)
+    def test_functional_publish_and_get_five_messages(self):
         self.channel.queue.declare(self.queue_name)
 
-    def test_functional_publish_and_get_five_messages(self):
         # Publish 5 Messages.
         for _ in range(5):
             self.channel.basic.publish(body=self.message,
@@ -181,8 +117,3 @@ class LegacyublishAndGetMessagesTest(unittest.TestCase):
         for _ in range(5):
             payload = self.channel.basic.get(self.queue_name, to_dict=True)
             self.assertIsInstance(payload, dict)
-
-    def tearDown(self):
-        self.channel.queue.delete(self.queue_name)
-        self.channel.close()
-        self.connection.close()

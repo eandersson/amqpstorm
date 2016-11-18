@@ -1,18 +1,10 @@
-import logging
-
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
-
-from amqpstorm.base import Stateful
+from amqpstorm import AMQPChannelError
 from amqpstorm.base import BaseChannel
-from amqpstorm.exception import AMQPChannelError
 
-logging.basicConfig(level=logging.DEBUG)
+from amqpstorm.tests.utility import TestFramework
 
 
-class BasicChannelTests(unittest.TestCase):
+class BaseChannelTests(TestFramework):
     def test_base_channel_id(self):
         channel = BaseChannel(100)
 
@@ -26,9 +18,11 @@ class BasicChannelTests(unittest.TestCase):
 
     def test_base_channel_add_consumer_tag_none_raises(self):
         channel = BaseChannel(0)
-        self.assertRaisesRegexp(AMQPChannelError,
-                                'consumer tag needs to be a string',
-                                channel.add_consumer_tag, None)
+        self.assertRaisesRegexp(
+            AMQPChannelError,
+            'consumer tag needs to be a string',
+            channel.add_consumer_tag, None
+        )
         self.assertFalse(channel.consumer_tags)
 
     def test_base_channel_remove_empty_string(self):
@@ -74,49 +68,3 @@ class BasicChannelTests(unittest.TestCase):
         channel.remove_consumer_tag(None)
 
         self.assertEqual(len(channel.consumer_tags), 0)
-
-
-class StatefulTests(unittest.TestCase):
-    def test_stateful_default_is_closed(self):
-        stateful = Stateful()
-
-        self.assertTrue(stateful.is_closed)
-
-    def test_stateful_set_open(self):
-        stateful = Stateful()
-        stateful.set_state(Stateful.OPEN)
-
-        self.assertTrue(stateful.is_open)
-
-    def test_stateful_set_opening(self):
-        stateful = Stateful()
-        stateful.set_state(Stateful.OPENING)
-
-        self.assertTrue(stateful.is_opening)
-
-    def test_stateful_set_closed(self):
-        stateful = Stateful()
-        stateful.set_state(Stateful.CLOSED)
-
-        self.assertTrue(stateful.is_closed)
-
-    def test_stateful_set_closing(self):
-        stateful = Stateful()
-        stateful.set_state(Stateful.CLOSING)
-
-        self.assertTrue(stateful.is_closing)
-
-    def test_stateful_get_current_state(self):
-        stateful = Stateful()
-
-        stateful.set_state(Stateful.CLOSED)
-        self.assertEqual(stateful.current_state, Stateful.CLOSED)
-
-        stateful.set_state(Stateful.CLOSING)
-        self.assertEqual(stateful.current_state, Stateful.CLOSING)
-
-        stateful.set_state(Stateful.OPEN)
-        self.assertEqual(stateful.current_state, Stateful.OPEN)
-
-        stateful.set_state(Stateful.OPENING)
-        self.assertEqual(stateful.current_state, Stateful.OPENING)

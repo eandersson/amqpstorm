@@ -1,22 +1,13 @@
-import logging
 import uuid
 
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
-
 from amqpstorm.management import ManagementApi
-from amqpstorm.tests.functional import HTTP_URL
-from amqpstorm.tests.functional import USERNAME
-from amqpstorm.tests.functional import PASSWORD
-
-logging.basicConfig(level=logging.DEBUG)
-
-LOGGER = logging.getLogger(__name__)
+from amqpstorm.tests import HTTP_URL
+from amqpstorm.tests import PASSWORD
+from amqpstorm.tests import USERNAME
+from amqpstorm.tests.utility import TestFunctionalFramework
 
 
-class ApiUserFunctionalTests(unittest.TestCase):
+class ApiUserFunctionalTests(TestFunctionalFramework):
     def test_api_user_get(self):
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
 

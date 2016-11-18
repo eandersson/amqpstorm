@@ -1,22 +1,13 @@
-import logging
-
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
-
-from amqpstorm.management import ManagementApi
 from amqpstorm.management import ApiError
-from amqpstorm.tests.functional import HTTP_URL
-from amqpstorm.tests.functional import USERNAME
-from amqpstorm.tests.functional import PASSWORD
+from amqpstorm.management import ManagementApi
+from amqpstorm.tests import HTTP_URL
+from amqpstorm.tests import PASSWORD
+from amqpstorm.tests import USERNAME
+from amqpstorm.tests.utility import TestFunctionalFramework
+from amqpstorm.tests.utility import setup
 
-logging.basicConfig(level=logging.DEBUG)
 
-LOGGER = logging.getLogger(__name__)
-
-
-class ApiExchangeFunctionalTests(unittest.TestCase):
+class ApiExchangeFunctionalTests(TestFunctionalFramework):
     def test_api_exchange_get(self):
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
 
@@ -50,24 +41,22 @@ class ApiExchangeFunctionalTests(unittest.TestCase):
             self.assertIn('type', exchange)
             self.assertIn('auto_delete', exchange)
 
+    @setup(new_connection=False, exchange=True)
     def test_api_exchange_declare(self):
-        exchange = 'test_api_exchange_declare'
         exchange_type = 'direct'
 
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
-        try:
-            self.assertIsNone(api.exchange.declare(exchange, exchange_type,
-                                                   passive=False,
-                                                   durable=True))
+        self.assertIsNone(api.exchange.declare(self.exchange_name,
+                                               exchange_type,
+                                               passive=False,
+                                               durable=True))
 
-            result = api.exchange.get(exchange)
-            self.assertIsInstance(result, dict)
-            self.assertEqual(result['name'], exchange)
-            self.assertEqual(result['type'], exchange_type)
-            self.assertEqual(result['auto_delete'], False)
-            self.assertEqual(result['durable'], True)
-        finally:
-            api.exchange.delete(exchange)
+        result = api.exchange.get(self.exchange_name)
+        self.assertIsInstance(result, dict)
+        self.assertEqual(result['name'], self.exchange_name)
+        self.assertEqual(result['type'], exchange_type)
+        self.assertEqual(result['auto_delete'], False)
+        self.assertEqual(result['durable'], True)
 
     def test_api_exchange_declare_passive(self):
         exchange = 'test_queue_declare_passive'
@@ -85,6 +74,25 @@ class ApiExchangeFunctionalTests(unittest.TestCase):
             self.assertEqual(str(why), expected_error_message)
             self.assertEqual(why.error_type, 'NOT-FOUND')
             self.assertEqual(why.error_code, 404)
+
+    @setup(new_connection=False, exchange=True)
+    def test_api_exchange_delete(self):
+        exchange_type = 'direct'
+
+        api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
+        api.exchange.declare(self.exchange_name,
+                             exchange_type,
+                             passive=False,
+                             durable=True)
+
+        self.assertIsNone(api.exchange.delete(self.exchange_name))
+
+        self.assertRaisesRegexp(
+            ApiError,
+            'NOT-FOUND - The client attempted to work '
+            'with a server entity that does not exist.',
+            api.exchange.get, self.exchange_name
+        )
 
     def test_api_exchange_bind_and_unbind(self):
         source_name = 'amq.match'

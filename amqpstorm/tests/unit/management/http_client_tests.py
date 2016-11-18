@@ -1,12 +1,8 @@
 import requests
 
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
-
 from amqpstorm.management.http_client import ApiError
 from amqpstorm.management.http_client import HTTPClient
+from amqpstorm.tests.utility import TestFramework
 
 
 class FakeResponse(object):
@@ -28,7 +24,7 @@ class FakeResponse(object):
         return self._json
 
 
-class ApiHTTPTests(unittest.TestCase):
+class ApiHTTPTests(TestFramework):
     def test_api_valid_json(self):
         fake_payload = {
             'hello': 'travis-ci'
