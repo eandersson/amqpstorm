@@ -148,9 +148,10 @@ class PublishAndConsume5kTest(TestFunctionalFramework):
     def consume_messages(self):
         channel = self.connection.channel()
         channel.basic.consume(queue=self.queue_name,
-                              no_ack=True)
-        for _ in channel.build_inbound_messages(break_on_empty=False):
+                              no_ack=False)
+        for message in channel.build_inbound_messages(break_on_empty=False):
             self.increment_message_count()
+            message.ack()
             if self.messages_consumed == self.messages_to_send:
                 break
         channel.close()
