@@ -8,6 +8,11 @@ except ImportError:
     ssl = None
 
 try:
+    import simplejson as json  # noqa
+except ImportError:
+    import json  # noqa
+
+try:
     import urlparse  # noqa
 except ImportError:
     import urllib.parse as urlparse  # noqa
