@@ -10,6 +10,7 @@ from pamqp.header import ContentHeader
 from amqpstorm.channel import Basic
 from amqpstorm.channel import Channel
 from amqpstorm.compatibility import RANGE
+from amqpstorm.exception import AMQPChannelError
 from amqpstorm.tests.utility import FakeConnection
 from amqpstorm.tests.utility import TestFramework
 from amqpstorm.tests.utility import unittest
@@ -19,6 +20,7 @@ class BasicTests(TestFramework):
     def test_basic_qos(self):
         def on_qos_frame(*_):
             channel.rpc.on_frame(pamqp_spec.Basic.QosOk())
+
         connection = FakeConnection(on_write=on_qos_frame)
         channel = Channel(9, connection, 1)
         channel.set_state(Channel.OPEN)
@@ -26,9 +28,83 @@ class BasicTests(TestFramework):
 
         self.assertEqual(basic.qos(), {})
 
+    def test_basic_get(self):
+        message = self.message.encode('utf-8')
+        message_len = len(message)
+
+        def on_get_frame(*_):
+            channel.rpc.on_frame(pamqp_spec.Basic.GetOk())
+            channel.rpc.on_frame(ContentHeader(body_size=message_len))
+            channel.rpc.on_frame(ContentBody(value=message))
+
+        connection = FakeConnection(on_write=on_get_frame)
+        channel = Channel(9, connection, 1)
+        channel.set_state(Channel.OPEN)
+        basic = Basic(channel)
+
+        result = basic.get(queue='travis-ci')
+
+        self.assertFalse(channel.rpc._request)
+        self.assertFalse(channel.rpc._response)
+        self.assertEqual(result.body, message.decode('utf-8'))
+
+    def test_basic_get_to_dict(self):
+        message = self.message.encode('utf-8')
+        message_len = len(message)
+
+        def on_get_frame(*_):
+            channel.rpc.on_frame(pamqp_spec.Basic.GetOk())
+            channel.rpc.on_frame(ContentHeader(body_size=message_len))
+            channel.rpc.on_frame(ContentBody(value=message))
+
+        connection = FakeConnection(on_write=on_get_frame)
+        channel = Channel(9, connection, 1)
+        channel.set_state(Channel.OPEN)
+        basic = Basic(channel)
+
+        result = basic.get(queue='travis-ci', to_dict=True)
+
+        self.assertFalse(channel.rpc._request)
+        self.assertFalse(channel.rpc._response)
+        self.assertEqual(result['body'], message)
+
+    def test_basic_get_empty(self):
+        def on_get_frame(*_):
+            channel.rpc.on_frame(pamqp_spec.Basic.GetEmpty())
+
+        connection = FakeConnection(on_write=on_get_frame)
+        channel = Channel(9, connection, 1)
+        channel.set_state(Channel.OPEN)
+        basic = Basic(channel)
+
+        result = basic.get(queue='travis-ci')
+
+        self.assertFalse(channel.rpc._request)
+        self.assertFalse(channel.rpc._response)
+        self.assertIsNone(result)
+
+    def test_basic_get_fails(self):
+        def on_get_frame(*_):
+            pass
+
+        connection = FakeConnection(on_write=on_get_frame)
+        channel = Channel(9, connection, 0.1)
+        channel.set_state(Channel.OPEN)
+        basic = Basic(channel)
+
+        self.assertRaisesRegexp(
+            AMQPChannelError,
+            'rpc requests .* \(.*\) took too long',
+            basic.get, 'travis-ci'
+        )
+
+        self.assertFalse(channel.rpc._request)
+        self.assertFalse(channel.rpc._response)
+
     def test_basic_recover(self):
         def on_recover_frame(*_):
             channel.rpc.on_frame(pamqp_spec.Basic.RecoverOk())
+
         connection = FakeConnection(on_write=on_recover_frame)
         channel = Channel(9, connection, 1)
         channel.set_state(Channel.OPEN)
@@ -41,6 +117,7 @@ class BasicTests(TestFramework):
 
         def on_consume_frame(*_):
             channel.rpc.on_frame(pamqp_spec.Basic.ConsumeOk(tag))
+
         connection = FakeConnection(on_write=on_consume_frame)
         channel = Channel(9, connection, 1)
         channel.set_state(Channel.OPEN)
@@ -52,6 +129,7 @@ class BasicTests(TestFramework):
         def on_write(channel, frame):
             self.assertEqual(channel, 9)
             self.assertIsInstance(frame, pamqp_spec.Basic.Ack)
+
         connection = FakeConnection(on_write=on_write)
         channel = Channel(9, connection, 1)
         channel.set_state(Channel.OPEN)
@@ -63,6 +141,7 @@ class BasicTests(TestFramework):
         def on_write(channel, frame):
             self.assertEqual(channel, 9)
             self.assertIsInstance(frame, pamqp_spec.Basic.Nack)
+
         connection = FakeConnection(on_write=on_write)
         channel = Channel(9, connection, 1)
         channel.set_state(Channel.OPEN)
@@ -74,6 +153,7 @@ class BasicTests(TestFramework):
         def on_write(channel, frame):
             self.assertEqual(channel, 9)
             self.assertIsInstance(frame, pamqp_spec.Basic.Reject)
+
         connection = FakeConnection(on_write=on_write)
         channel = Channel(9, connection, 1)
         channel.set_state(Channel.OPEN)
@@ -189,55 +269,6 @@ class BasicTests(TestFramework):
 
         # Confirm that it matches the original string.
         self.assertEqual(result_body, message)
-
-    def test_basic_get(self):
-        message = self.message.encode('utf-8')
-        message_len = len(message)
-
-        def on_get_frame(*_):
-            channel.rpc.on_frame(pamqp_spec.Basic.GetOk())
-            channel.rpc.on_frame(ContentHeader(body_size=message_len))
-            channel.rpc.on_frame(ContentBody(value=message))
-
-        connection = FakeConnection(on_write=on_get_frame)
-        channel = Channel(9, connection, 1)
-        channel.set_state(Channel.OPEN)
-        basic = Basic(channel)
-
-        result = basic.get(queue='travis-ci')
-
-        self.assertEqual(result.body, message.decode('utf-8'))
-
-    def test_basic_get_to_dict(self):
-        message = self.message.encode('utf-8')
-        message_len = len(message)
-
-        def on_get_frame(*_):
-            channel.rpc.on_frame(pamqp_spec.Basic.GetOk())
-            channel.rpc.on_frame(ContentHeader(body_size=message_len))
-            channel.rpc.on_frame(ContentBody(value=message))
-
-        connection = FakeConnection(on_write=on_get_frame)
-        channel = Channel(9, connection, 1)
-        channel.set_state(Channel.OPEN)
-        basic = Basic(channel)
-
-        result = basic.get(queue='travis-ci', to_dict=True)
-
-        self.assertEqual(result['body'], message)
-
-    def test_basic_get_empty(self):
-        def on_get_frame(*_):
-            channel.rpc.on_frame(pamqp_spec.Basic.GetEmpty())
-
-        connection = FakeConnection(on_write=on_get_frame)
-        channel = Channel(9, connection, 1)
-        channel.set_state(Channel.OPEN)
-        basic = Basic(channel)
-
-        result = basic.get(queue='travis-ci')
-
-        self.assertIsNone(result)
 
     def test_basic_get_message(self):
         message = self.message.encode('utf-8')

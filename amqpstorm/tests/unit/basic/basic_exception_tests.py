@@ -234,8 +234,8 @@ class BasicExceptionTests(TestFramework):
 
         self.assertRaisesRegexp(
             exception.AMQPChannelError,
-            'rpc requests', basic._get_content_body,
-            uuid, len(self.message)
+            'rpc requests .* \(.*\) took too long',
+            basic._get_content_body, uuid, len(self.message)
         )
 
     def test_basic_publish_confirms_raises_on_timeout(self):
@@ -247,7 +247,7 @@ class BasicExceptionTests(TestFramework):
 
         self.assertRaisesRegexp(
             exception.AMQPChannelError,
-            "rpc requests",
+            'rpc requests .* \(.*\) took too long',
             basic.publish, body=self.message,
             routing_key='travis-ci'
         )
@@ -264,7 +264,7 @@ class BasicExceptionTests(TestFramework):
 
         self.assertRaisesRegexp(
             exception.AMQPChannelError,
-            "rpc requests",
+            'rpc requests .* \(.*\) took too long',
             basic.publish, body=self.message,
             routing_key='travis-ci'
         )

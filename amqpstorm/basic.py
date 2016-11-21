@@ -354,18 +354,22 @@ class Basic(Handler):
         :rtype: Message
         """
         message_uuid = self._channel.rpc.register_request(
-            ['ContentHeader', 'ContentBody'] + get_frame.valid_responses
+            get_frame.valid_responses + ['ContentHeader', 'ContentBody']
         )
-        self._channel.write_frame(get_frame)
-        get_ok_frame = self._channel.rpc.get_request(message_uuid, raw=True,
-                                                     multiple=True)
-        if isinstance(get_ok_frame, pamqp_spec.Basic.GetEmpty):
+        try:
+            self._channel.write_frame(get_frame)
+            get_ok_frame = self._channel.rpc.get_request(message_uuid,
+                                                         raw=True,
+                                                         multiple=True)
+            if isinstance(get_ok_frame, pamqp_spec.Basic.GetEmpty):
+                return None
+            content_header = self._channel.rpc.get_request(message_uuid,
+                                                           raw=True,
+                                                           multiple=True)
+            body = self._get_content_body(message_uuid,
+                                          content_header.body_size)
+        finally:
             self._channel.rpc.remove(message_uuid)
-            return None
-        content_header = self._channel.rpc.get_request(message_uuid, raw=True,
-                                                       multiple=True)
-        body = self._get_content_body(message_uuid, content_header.body_size)
-
         return Message(channel=self._channel,
                        body=body,
                        method=dict(get_ok_frame),
@@ -423,5 +427,4 @@ class Basic(Handler):
             if not body_piece.value:
                 break
             body += body_piece.value
-        self._channel.rpc.remove(message_uuid)
         return body

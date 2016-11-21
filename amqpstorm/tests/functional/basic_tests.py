@@ -18,6 +18,13 @@ class BasicFunctionalTests(TestFunctionalFramework):
         message.ack()
 
     @setup(queue=True)
+    def test_functional_basic_get_empty(self):
+        self.channel.queue.declare(self.queue_name)
+
+        message = self.channel.basic.get(self.queue_name)
+        self.assertIsNone(message)
+
+    @setup(queue=True)
     def test_functional_basic_cancel(self):
         self.channel.queue.declare(self.queue_name)
         consumer_tag = self.channel.basic.consume(None, self.queue_name)
