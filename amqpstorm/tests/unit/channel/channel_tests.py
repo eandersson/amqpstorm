@@ -62,6 +62,31 @@ class ChannelTests(TestFramework):
             self.assertIsInstance(msg.body, str)
             self.assertEqual(msg.body.encode('utf-8'), message)
 
+    def test_channel_build_inbound_messages_without_break_on_empty(self):
+        channel = Channel(0, FakeConnection(), 360)
+        channel.set_state(channel.OPEN)
+
+        message = self.message.encode('utf-8')
+        message_len = len(message)
+
+        deliver = pamqp_spec.Basic.Deliver()
+        header = ContentHeader(body_size=message_len)
+        body = ContentBody(value=message)
+
+        for _ in range(25):
+            channel._inbound.append(deliver)
+            channel._inbound.append(header)
+            channel._inbound.append(body)
+
+        messages_consumed = 0
+        for msg in channel.build_inbound_messages(break_on_empty=False):
+            messages_consumed += 1
+            self.assertIsInstance(msg.body, str)
+            self.assertEqual(msg.body.encode('utf-8'), message)
+            if messages_consumed >= 10:
+                channel.set_state(channel.CLOSED)
+        self.assertEqual(messages_consumed, 10)
+
     def test_channel_build_inbound_messages_as_tuple(self):
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(channel.OPEN)

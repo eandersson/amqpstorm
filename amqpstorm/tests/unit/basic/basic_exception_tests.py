@@ -241,7 +241,7 @@ class BasicExceptionTests(TestFramework):
     def test_basic_publish_confirms_raises_on_timeout(self):
         connection = FakeConnection()
         channel = Channel(9, connection, 0.01)
-        channel.confirming_deliveries = True
+        channel._confirming_deliveries = True
         channel.set_state(Channel.OPEN)
         basic = Basic(channel)
 
@@ -258,7 +258,7 @@ class BasicExceptionTests(TestFramework):
 
         connection = FakeConnection(on_write=on_publish_return_invalid_frame)
         channel = Channel(9, connection, 0.01)
-        channel.confirming_deliveries = True
+        channel._confirming_deliveries = True
         channel.set_state(Channel.OPEN)
         basic = Basic(channel)
 

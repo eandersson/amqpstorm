@@ -124,7 +124,7 @@ class BasicTests(TestFramework):
 
         connection = FakeConnection(on_write=on_publish_return_ack)
         channel = Channel(9, connection, 1)
-        channel.confirming_deliveries = True
+        channel._confirming_deliveries = True
         channel.set_state(Channel.OPEN)
         basic = Basic(channel)
 
@@ -137,7 +137,7 @@ class BasicTests(TestFramework):
 
         connection = FakeConnection(on_write=on_publish_return_nack)
         channel = Channel(9, connection, 1)
-        channel.confirming_deliveries = True
+        channel._confirming_deliveries = True
         channel.set_state(Channel.OPEN)
         basic = Basic(channel)
 

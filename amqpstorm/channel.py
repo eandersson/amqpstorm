@@ -28,17 +28,17 @@ CONTENT_FRAME = ['Basic.Deliver', 'ContentHeader', 'ContentBody']
 class Channel(BaseChannel):
     """RabbitMQ Channel."""
     __slots__ = [
-        'confirming_deliveries', 'consumer_callback', 'rpc', '_basic',
+        'consumer_callback', 'rpc', '_basic', '_confirming_deliveries',
         '_connection', '_exchange', '_inbound', '_queue', '_tx'
     ]
 
     def __init__(self, channel_id, connection, rpc_timeout):
         super(Channel, self).__init__(channel_id)
-        self.rpc = Rpc(self, timeout=rpc_timeout)
-        self.confirming_deliveries = False
         self.consumer_callback = None
-        self._inbound = []
+        self.rpc = Rpc(self, timeout=rpc_timeout)
+        self._confirming_deliveries = False
         self._connection = connection
+        self._inbound = []
         self._basic = Basic(self)
         self._exchange = Exchange(self)
         self._tx = Tx(self)
@@ -190,9 +190,17 @@ class Channel(BaseChannel):
 
         :return:
         """
-        self.confirming_deliveries = True
+        self._confirming_deliveries = True
         confirm_frame = pamqp_spec.Confirm.Select()
         return self.rpc_request(confirm_frame)
+
+    @property
+    def confirming_deliveries(self):
+        """Is the channel set to confirm deliveries.
+
+        :return:
+        """
+        return self._confirming_deliveries
 
     def on_frame(self, frame_in):
         """Handle frame sent to this specific channel.
