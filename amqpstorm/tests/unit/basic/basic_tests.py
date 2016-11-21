@@ -226,6 +226,19 @@ class BasicTests(TestFramework):
 
         self.assertEqual(result['body'], message)
 
+    def test_basic_get_empty(self):
+        def on_get_frame(*_):
+            channel.rpc.on_frame(pamqp_spec.Basic.GetEmpty())
+
+        connection = FakeConnection(on_write=on_get_frame)
+        channel = Channel(9, connection, 1)
+        channel.set_state(Channel.OPEN)
+        basic = Basic(channel)
+
+        result = basic.get(queue='travis-ci')
+
+        self.assertIsNone(result)
+
     def test_basic_get_message(self):
         message = self.message.encode('utf-8')
         message_len = len(message)

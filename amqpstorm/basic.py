@@ -353,23 +353,22 @@ class Basic(Handler):
 
         :rtype: Message
         """
-        uuid_get = \
-            self._channel.rpc.register_request(get_frame.valid_responses)
-        uuid_header = self._channel.rpc.register_request(['ContentHeader'])
-        uuid_body = self._channel.rpc.register_request(['ContentBody'])
+        message_uuid = self._channel.rpc.register_request(
+            ['ContentHeader', 'ContentBody'] + get_frame.valid_responses
+        )
         self._channel.write_frame(get_frame)
-        get_frame = self._channel.rpc.get_request(uuid_get, raw=True)
-
-        if not isinstance(get_frame, pamqp_spec.Basic.GetOk):
-            self._channel.rpc.remove(uuid_header)
-            self._channel.rpc.remove(uuid_body)
+        get_ok_frame = self._channel.rpc.get_request(message_uuid, raw=True,
+                                                     multiple=True)
+        if isinstance(get_ok_frame, pamqp_spec.Basic.GetEmpty):
+            self._channel.rpc.remove(message_uuid)
             return None
-        content_header = self._channel.rpc.get_request(uuid_header, raw=True)
-        body = self._get_content_body(uuid_body, content_header.body_size)
+        content_header = self._channel.rpc.get_request(message_uuid, raw=True,
+                                                       multiple=True)
+        body = self._get_content_body(message_uuid, content_header.body_size)
 
         return Message(channel=self._channel,
                        body=body,
-                       method=dict(get_frame),
+                       method=dict(get_ok_frame),
                        properties=dict(content_header.properties),
                        auto_decode=auto_decode)
 
@@ -409,7 +408,7 @@ class Basic(Handler):
                 end_frame = body_len
             yield pamqp_body.ContentBody(body[start_frame:end_frame])
 
-    def _get_content_body(self, uuid_body, body_size):
+    def _get_content_body(self, message_uuid, body_size):
         """Get Content Body using RPC requests.
 
         :param str uuid_body: Rpc Identifier.
@@ -419,10 +418,10 @@ class Basic(Handler):
         """
         body = bytes()
         while len(body) < body_size:
-            body_piece = self._channel.rpc.get_request(uuid_body, raw=True,
+            body_piece = self._channel.rpc.get_request(message_uuid, raw=True,
                                                        multiple=True)
             if not body_piece.value:
                 break
             body += body_piece.value
-        self._channel.rpc.remove(uuid_body)
+        self._channel.rpc.remove(message_uuid)
         return body
