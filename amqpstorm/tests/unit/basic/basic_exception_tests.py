@@ -1,4 +1,4 @@
-from pamqp import specification as pamqp_spec
+from pamqp import specification
 from pamqp.body import ContentBody
 
 from amqpstorm import Channel
@@ -254,7 +254,7 @@ class BasicExceptionTests(TestFramework):
 
     def test_basic_publish_confirms_raises_on_invalid_frame(self):
         def on_publish_return_invalid_frame(*_):
-            channel.rpc.on_frame(pamqp_spec.Basic.Cancel())
+            channel.rpc.on_frame(specification.Basic.Cancel())
 
         connection = FakeConnection(on_write=on_publish_return_invalid_frame)
         channel = Channel(9, connection, 0.01)

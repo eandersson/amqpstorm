@@ -29,7 +29,7 @@ class Rpc(object):
     def on_frame(self, frame_in):
         """On RPC Frame.
 
-        :param pamqp_spec.Frame frame_in: Amqp frame.
+        :param specification.Frame frame_in: Amqp frame.
         :return:
         """
         if frame_in.name not in self._request:

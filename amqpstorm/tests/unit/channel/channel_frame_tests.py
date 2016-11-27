@@ -1,5 +1,5 @@
 from pamqp import ContentHeader
-from pamqp import specification as pamqp_spec
+from pamqp import specification
 from pamqp.body import ContentBody
 
 import amqpstorm
@@ -19,7 +19,7 @@ class ChannelFrameTests(TestFramework):
         message = self.message.encode('utf-8')
         message_len = len(message)
 
-        deliver = pamqp_spec.Basic.Deliver()
+        deliver = specification.Basic.Deliver()
         header = ContentHeader(body_size=message_len)
         body = ContentBody(value=message)
 
@@ -36,7 +36,7 @@ class ChannelFrameTests(TestFramework):
                                           lazy=True)
         channel = Channel(0, connection, rpc_timeout=1)
 
-        channel.on_frame(pamqp_spec.Basic.Cancel('travis-ci'))
+        channel.on_frame(specification.Basic.Cancel('travis-ci'))
 
         self.assertEqual(
             self.get_last_log(),
@@ -48,7 +48,7 @@ class ChannelFrameTests(TestFramework):
         channel = Channel(0, None, rpc_timeout=1)
         channel.add_consumer_tag(tag)
 
-        channel.on_frame(pamqp_spec.Basic.CancelOk(tag))
+        channel.on_frame(specification.Basic.CancelOk(tag))
 
         self.assertFalse(channel.consumer_tags)
 
@@ -56,7 +56,7 @@ class ChannelFrameTests(TestFramework):
         tag = 'travis-ci'
         channel = Channel(0, None, rpc_timeout=1)
 
-        channel.on_frame(pamqp_spec.Basic.ConsumeOk(tag))
+        channel.on_frame(specification.Basic.ConsumeOk(tag))
 
         self.assertEqual(channel.consumer_tags[0], tag)
 
@@ -67,10 +67,14 @@ class ChannelFrameTests(TestFramework):
         channel = Channel(0, connection, rpc_timeout=1)
         channel.set_state(channel.OPEN)
 
-        channel.on_frame(pamqp_spec.Basic.Return(reply_code=500,
-                                                 reply_text='travis-ci',
-                                                 exchange='exchange',
-                                                 routing_key='routing_key'))
+        channel.on_frame(
+            specification.Basic.Return(
+                reply_code=500,
+                reply_text='travis-ci',
+                exchange='exchange',
+                routing_key='routing_key'
+            )
+        )
 
         self.assertRaisesRegexp(
             AMQPMessageError,
@@ -86,8 +90,12 @@ class ChannelFrameTests(TestFramework):
         channel = Channel(0, connection, rpc_timeout=1)
         channel.set_state(channel.OPEN)
 
-        channel.on_frame(pamqp_spec.Channel.Close(reply_code=500,
-                                                  reply_text='travis-ci'))
+        channel.on_frame(
+            specification.Channel.Close(
+                reply_code=500,
+                reply_text='travis-ci'
+            )
+        )
 
         self.assertRaisesRegexp(
             AMQPChannelError,
@@ -101,11 +109,11 @@ class ChannelFrameTests(TestFramework):
         channel = Channel(0, connection, rpc_timeout=1)
         channel.set_state(channel.OPEN)
 
-        channel.on_frame(pamqp_spec.Channel.Flow())
+        channel.on_frame(specification.Channel.Flow())
 
         self.assertIsInstance(
             connection.get_last_frame(),
-            pamqp_spec.Channel.FlowOk
+            specification.Channel.FlowOk
         )
 
     def test_channel_unhandled_frame(self):

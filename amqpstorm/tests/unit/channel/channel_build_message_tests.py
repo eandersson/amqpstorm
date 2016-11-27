@@ -1,7 +1,7 @@
 import threading
 
 from pamqp import ContentHeader
-from pamqp import specification as pamqp_spec
+from pamqp import specification
 from pamqp.body import ContentBody
 
 from amqpstorm import AMQPChannelError
@@ -18,7 +18,7 @@ class ChannelBuildMessageTests(TestFramework):
         message = self.message.encode('utf-8')
         message_len = len(message)
 
-        deliver = pamqp_spec.Basic.Deliver()
+        deliver = specification.Basic.Deliver()
         header = ContentHeader(body_size=message_len)
         body = ContentBody(value=message)
 
@@ -34,7 +34,7 @@ class ChannelBuildMessageTests(TestFramework):
         message = self.message.encode('utf-8')
         message_len = len(message)
 
-        deliver = pamqp_spec.Basic.Deliver()
+        deliver = specification.Basic.Deliver()
         header = ContentHeader(body_size=message_len)
         body = ContentBody(value=message)
 
@@ -50,7 +50,7 @@ class ChannelBuildMessageTests(TestFramework):
         message = self.message
         message_len = len(message)
 
-        deliver = pamqp_spec.Basic.Deliver()
+        deliver = specification.Basic.Deliver()
         header = ContentHeader(body_size=message_len)
 
         channel._inbound = [deliver, deliver, header]
@@ -66,7 +66,7 @@ class ChannelBuildMessageTests(TestFramework):
         message = self.message
         message_len = len(message)
 
-        deliver = pamqp_spec.Basic.Deliver()
+        deliver = specification.Basic.Deliver()
         header = ContentHeader(body_size=message_len)
         body = ContentBody(value=message)
 
@@ -80,20 +80,20 @@ class ChannelBuildMessageTests(TestFramework):
     def test_channel_build_message_headers(self):
         channel = Channel(0, None, 360)
 
-        deliver = pamqp_spec.Basic.Deliver()
+        deliver = specification.Basic.Deliver()
         header = ContentHeader(body_size=10)
 
         channel._inbound = [deliver, header]
         result = channel._build_message_headers()
 
-        self.assertIsInstance(result[0], pamqp_spec.Basic.Deliver)
+        self.assertIsInstance(result[0], specification.Basic.Deliver)
         self.assertIsInstance(result[1], ContentHeader)
         self.assertEqual(result[1].body_size, 10)
 
     def test_channel_build_message_headers_out_of_order(self):
         channel = Channel(0, None, 360)
 
-        deliver = pamqp_spec.Basic.Deliver()
+        deliver = specification.Basic.Deliver()
         header = ContentHeader(body_size=10)
 
         channel._inbound = [header, deliver]
@@ -203,7 +203,7 @@ class ChannelBuildMessageTests(TestFramework):
         message = self.message.encode('utf-8')
         message_len = len(message)
 
-        deliver = pamqp_spec.Basic.Deliver()
+        deliver = specification.Basic.Deliver()
         header = ContentHeader(body_size=message_len)
         body = ContentBody(value=message)
 
@@ -219,7 +219,7 @@ class ChannelBuildMessageTests(TestFramework):
         message = self.message.encode('utf-8')
         message_len = len(message)
 
-        deliver = pamqp_spec.Basic.Deliver()
+        deliver = specification.Basic.Deliver()
         header = ContentHeader(body_size=message_len)
         body = ContentBody(value=message)
 
@@ -240,7 +240,7 @@ class ChannelBuildMessageTests(TestFramework):
         message = self.message.encode('utf-8')
         message_len = len(message)
 
-        deliver = pamqp_spec.Basic.Deliver()
+        deliver = specification.Basic.Deliver()
         header = ContentHeader(body_size=message_len)
         body = ContentBody(value=message)
 

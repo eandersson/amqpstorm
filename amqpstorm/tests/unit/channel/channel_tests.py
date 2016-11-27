@@ -1,5 +1,5 @@
 from pamqp import ContentHeader
-from pamqp import specification as pamqp_spec
+from pamqp import specification
 from pamqp.body import ContentBody
 
 from amqpstorm import Channel
@@ -52,7 +52,7 @@ class ChannelTests(TestFramework):
         message = self.message.encode('utf-8')
         message_len = len(message)
 
-        deliver = pamqp_spec.Basic.Deliver()
+        deliver = specification.Basic.Deliver()
         header = ContentHeader(body_size=message_len)
         body = ContentBody(value=message)
 
@@ -69,7 +69,7 @@ class ChannelTests(TestFramework):
         message = self.message.encode('utf-8')
         message_len = len(message)
 
-        deliver = pamqp_spec.Basic.Deliver()
+        deliver = specification.Basic.Deliver()
         header = ContentHeader(body_size=message_len)
         body = ContentBody(value=message)
 
@@ -94,7 +94,7 @@ class ChannelTests(TestFramework):
         message = self.message.encode('utf-8')
         message_len = len(message)
 
-        deliver = pamqp_spec.Basic.Deliver()
+        deliver = specification.Basic.Deliver()
         header = ContentHeader(body_size=message_len)
         body = ContentBody(value=message)
 
@@ -112,7 +112,7 @@ class ChannelTests(TestFramework):
         message = self.message.encode('utf-8')
         message_len = len(message)
 
-        deliver = pamqp_spec.Basic.Deliver()
+        deliver = specification.Basic.Deliver()
         header = ContentHeader(body_size=message_len)
         body = ContentBody(value=message)
 
@@ -132,7 +132,7 @@ class ChannelTests(TestFramework):
         message = self.message.encode('utf-8')
         message_len = len(message)
 
-        deliver = pamqp_spec.Basic.Deliver()
+        deliver = specification.Basic.Deliver()
         header = ContentHeader(body_size=message_len)
         body = ContentBody(value=message)
 
@@ -155,7 +155,7 @@ class ChannelTests(TestFramework):
         message = self.message.encode('utf-8')
         message_len = len(message)
 
-        deliver = pamqp_spec.Basic.Deliver()
+        deliver = specification.Basic.Deliver()
         header = ContentHeader(body_size=message_len)
         body = ContentBody(value=message)
 
@@ -177,7 +177,7 @@ class ChannelTests(TestFramework):
         message = self.message.encode('utf-8')
         message_len = len(message)
 
-        deliver = pamqp_spec.Basic.Deliver()
+        deliver = specification.Basic.Deliver()
         header = ContentHeader(body_size=message_len)
         body = ContentBody(value=message)
 
@@ -192,8 +192,8 @@ class ChannelTests(TestFramework):
 
     def test_channel_open(self):
         def on_open_ok(_, frame_out):
-            self.assertIsInstance(frame_out, pamqp_spec.Channel.Open)
-            channel.rpc.on_frame(pamqp_spec.Channel.OpenOk())
+            self.assertIsInstance(frame_out, specification.Channel.Open)
+            channel.rpc.on_frame(specification.Channel.OpenOk())
 
         channel = Channel(0, FakeConnection(on_write=on_open_ok), 360)
 
@@ -204,10 +204,10 @@ class ChannelTests(TestFramework):
 
     def test_channel_close(self):
         def on_close_ok(_, frame_out):
-            if isinstance(frame_out, pamqp_spec.Basic.Cancel):
-                channel.rpc.on_frame(pamqp_spec.Basic.CancelOk())
+            if isinstance(frame_out, specification.Basic.Cancel):
+                channel.rpc.on_frame(specification.Basic.CancelOk())
                 return
-            channel.rpc.on_frame(pamqp_spec.Channel.CloseOk())
+            channel.rpc.on_frame(specification.Channel.CloseOk())
 
         channel = Channel(0, FakeConnection(on_write=on_close_ok), 360)
 
@@ -250,7 +250,7 @@ class ChannelTests(TestFramework):
 
     def test_channel_confirm_deliveries(self):
         def on_select_ok(*_):
-            channel.rpc.on_frame(pamqp_spec.Confirm.SelectOk())
+            channel.rpc.on_frame(specification.Confirm.SelectOk())
 
         connection = FakeConnection(on_write=on_select_ok)
         channel = Channel(0, connection, 0.01)
@@ -268,8 +268,8 @@ class ChannelTests(TestFramework):
         channel.set_state(channel.OPEN)
         channel._consumer_tags = [1, 2, 3]
 
-        close_frame = pamqp_spec.Channel.Close(reply_code=200,
-                                               reply_text='travis-ci')
+        close_frame = specification.Channel.Close(reply_code=200,
+                                                  reply_text='travis-ci')
         # Close Channel.
         channel._close_channel(close_frame)
 
