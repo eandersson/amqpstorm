@@ -16,7 +16,7 @@ AMQPStorm is a library designed to be consistent, stable and thread-safe.
 Documentation
 =============
 
-Additional documentation is available on `docs.amqpstorm.io <https://www.amqpstorm.io>`_.
+Additional documentation is available on `amqpstorm.io <https://www.amqpstorm.io>`_.
 
 Changelog
 =========
