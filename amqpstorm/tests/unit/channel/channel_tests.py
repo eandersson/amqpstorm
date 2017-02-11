@@ -227,8 +227,7 @@ class ChannelTests(TestFramework):
     def test_channel_close_gracefully_with_queued_error(self):
         def on_close_ok(_, frame_out):
             if isinstance(frame_out, specification.Basic.Cancel):
-                channel.rpc.on_frame(specification.Basic.CancelOk())
-                return
+                raise AMQPChannelError("travis-ci")
             channel.rpc.on_frame(specification.Channel.CloseOk())
 
         channel = Channel(0, FakeConnection(on_write=on_close_ok), 360)
