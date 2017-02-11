@@ -431,10 +431,17 @@ class Channel(BaseChannel):
     def _close_channel(self, frame_in):
         """Close Channel.
 
-        :param specification.Channel.Close frame_in: Amqp frame.
+        :param specification.Channel.Close frame_in: Channel Close frame.
         :return:
         """
         self.set_state(self.CLOSED)
+        if self._connection.is_open:
+            try:
+                self._connection.write_frame(
+                    self.channel_id, specification.Channel.CloseOk()
+                )
+            except AMQPConnectionError:
+                pass
         if frame_in.reply_code != 200:
             reply_text = try_utf8_decode(frame_in.reply_text)
             message = (

@@ -6,6 +6,7 @@ import amqpstorm
 from amqpstorm import Channel
 from amqpstorm.exception import AMQPChannelError
 from amqpstorm.exception import AMQPMessageError
+from amqpstorm.exception import AMQPConnectionError
 from amqpstorm.tests.utility import FakeConnection
 from amqpstorm.tests.utility import FakeFrame
 from amqpstorm.tests.utility import TestFramework
@@ -84,9 +85,7 @@ class ChannelFrameTests(TestFramework):
         )
 
     def test_channel_close_frame(self):
-        connection = amqpstorm.Connection('localhost', 'guest', 'guest',
-                                          lazy=True)
-        connection.set_state(connection.OPEN)
+        connection = FakeConnection(state=FakeConnection.OPEN)
         channel = Channel(0, connection, rpc_timeout=1)
         channel.set_state(channel.OPEN)
 
@@ -97,10 +96,56 @@ class ChannelFrameTests(TestFramework):
             )
         )
 
+        self.assertIsInstance(
+            connection.get_last_frame(),
+            specification.Channel.CloseOk
+        )
+
         self.assertRaisesRegexp(
             AMQPChannelError,
             'Channel 0 was closed by remote server: travis-ci',
             channel.check_for_errors
+        )
+
+    def test_channel_close_frame_when_connection_closed(self):
+        connection = FakeConnection(state=FakeConnection.CLOSED)
+        channel = Channel(0, connection, rpc_timeout=1)
+        channel.set_state(channel.OPEN)
+
+        channel.on_frame(
+            specification.Channel.Close(
+                reply_code=500,
+                reply_text='travis-ci'
+            )
+        )
+
+        self.assertIsNone(connection.get_last_frame())
+        self.assertEqual(
+            str(channel.exceptions[0]),
+            'Channel 0 was closed by remote server: travis-ci'
+        )
+
+    def test_channel_close_frame_socket_write_fail_silently(self):
+        connection = FakeConnection(state=FakeConnection.OPEN)
+        channel = Channel(0, connection, rpc_timeout=1)
+        channel.set_state(channel.OPEN)
+
+        def raise_on_write(*_):
+            raise AMQPConnectionError('travis-ci')
+
+        connection.write_frame = raise_on_write
+
+        channel.on_frame(
+            specification.Channel.Close(
+                reply_code=500,
+                reply_text='travis-ci'
+            )
+        )
+
+        self.assertIsNone(connection.get_last_frame())
+        self.assertEqual(
+            str(channel.exceptions[0]),
+            'Channel 0 was closed by remote server: travis-ci'
         )
 
     def test_channel_flow_frame(self):
