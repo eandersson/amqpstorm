@@ -4,6 +4,7 @@ import threading
 import time
 
 from amqpstorm import AMQPConnectionError
+from amqpstorm import AMQPMessageError
 from amqpstorm import Connection
 from amqpstorm import UriConnection
 from amqpstorm import compatibility
@@ -71,6 +72,28 @@ class ReliabilityFunctionalTests(TestFunctionalFramework):
             self.assertIsNone(self.connection._io.socket)
             self.assertIsNone(self.connection._io.poller)
             self.assertFalse(self.connection._io._running.is_set())
+
+    @setup(new_connection=True, new_channel=False, queue=True)
+    def test_functional_close_gracefully_after_publish_mandatory_fails(self):
+        for index in range(3):
+            channel = self.connection.channel()
+
+            # Make sure that it's a new channel.
+            self.assertEqual(index + 1, int(channel))
+
+            # Try to publish 25 bad messages.
+            for _ in range(25):
+                try:
+                    channel.basic.publish('', self.queue_name, '', None, True,
+                                          False)
+                except AMQPMessageError:
+                    pass
+
+            time.sleep(0.1)
+
+            self.assertTrue(channel.exceptions)
+
+            channel.close()
 
     @setup(new_connection=False, queue=True)
     def test_functional_open_close_channel_loop(self):

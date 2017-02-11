@@ -1,6 +1,10 @@
 Changelog
 =========
 
+Version 2.2.1
+-------------
+
+
 Version 2.2.0
 -------------
 - Connection.close should now be more responsive.

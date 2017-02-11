@@ -21,6 +21,9 @@ Additional documentation is available on `amqpstorm.io <https://www.amqpstorm.io
 Changelog
 =========
 
+Version 2.2.1
+-------------
+
 Version 2.2.0
 -------------
 - Connection.close should now be more responsive.

@@ -162,36 +162,46 @@ class ChannelExceptionTests(TestFramework):
             else:
                 self.assertRaises(AMQPChannelError, generator.__next__)
 
-    def test_channel_basic_return_raises_when_500(self):
+    def test_channel_raises_with_return_reply_code_500(self):
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(channel.OPEN)
 
-        basic_return = specification.Basic.Return(reply_code=500,
-                                                  reply_text='Error')
+        basic_return = specification.Basic.Return(
+            reply_code=500,
+            reply_text='Error'
+        )
         channel._basic_return(basic_return)
 
         self.assertRaisesRegexp(
-            AMQPMessageError, "Message not delivered: Error \(500\) to queue "
-                              "'' from exchange ''",
+            AMQPMessageError,
+            "Message not delivered: Error \(500\) to queue "
+            "'' from exchange ''",
             channel.check_for_errors
         )
 
-    def test_channel_close_raises_when_500(self):
-        channel = Channel(0, FakeConnection(), 360)
+    def test_channel_raise_with_close_reply_code_500(self):
+        connection = FakeConnection()
+        channel = Channel(0, connection, 360)
 
         # Set up Fake Channel.
         channel._inbound = [1, 2, 3]
         channel.set_state(channel.OPEN)
         channel._consumer_tags = [1, 2, 3]
 
-        close_frame = specification.Channel.Close(reply_code=500,
-                                                  reply_text='travis-ci')
-        # Close Channel.
+        close_frame = specification.Channel.Close(
+            reply_code=500,
+            reply_text='travis-ci'
+        )
         channel._close_channel(close_frame)
 
         self.assertEqual(channel._inbound, [])
         self.assertEqual(channel._consumer_tags, [])
         self.assertEqual(channel._state, channel.CLOSED)
+
+        self.assertIsInstance(
+            connection.get_last_frame(),
+            specification.Channel.CloseOk
+        )
 
         self.assertRaisesRegexp(
             AMQPChannelError,

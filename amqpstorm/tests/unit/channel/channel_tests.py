@@ -224,6 +224,29 @@ class ChannelTests(TestFramework):
         self.assertEqual(channel._state, channel.CLOSED)
         self.assertFalse(channel.exceptions)
 
+    def test_channel_close_gracefully_with_queued_error(self):
+        def on_close_ok(_, frame_out):
+            if isinstance(frame_out, specification.Basic.Cancel):
+                channel.rpc.on_frame(specification.Basic.CancelOk())
+                return
+            channel.rpc.on_frame(specification.Channel.CloseOk())
+
+        channel = Channel(0, FakeConnection(on_write=on_close_ok), 360)
+
+        # Set up Fake Channel.
+        channel._inbound = [1, 2, 3]
+        channel.set_state(channel.OPEN)
+        channel._consumer_tags = ['1', '2', '3']
+        channel.exceptions.append(AMQPChannelError('travis-ci'))
+
+        # Close Channel.
+        channel.close()
+
+        self.assertEqual(channel._inbound, [])
+        self.assertEqual(channel._consumer_tags, [])
+        self.assertEqual(channel._state, channel.CLOSED)
+        self.assertTrue(channel.exceptions)
+
     def test_channel_close_when_already_closed(self):
         fake_connection = FakeConnection()
         channel = Channel(0, fake_connection, 360)

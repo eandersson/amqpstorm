@@ -1,4 +1,5 @@
 import time
+import threading
 
 import mock
 
@@ -167,4 +168,53 @@ class RpcTests(TestFramework):
             AMQPChannelError,
             'rpc requests %s \(travis-ci-2\) took too long' % uuid,
             rpc.get_request, uuid
+        )
+
+    def test_wait_for_request(self):
+        rpc = Rpc(FakeConnection(), timeout=1)
+        uuid = rpc.register_request(['travis-ci'])
+
+        def delivery_payload():
+            time.sleep(0.1)
+            rpc.on_frame(FakePayload(name='travis-ci'))
+
+        thread = threading.Thread(target=delivery_payload)
+        thread.start()
+
+        rpc._wait_for_request(uuid, adapter=rpc._default_adapter)
+
+    def test_with_for_request_with_custom_adapter(self):
+        class Adapter(object):
+            def check_for_errors(self):
+                pass
+        rpc = Rpc(FakeConnection(), timeout=1)
+        uuid = rpc.register_request(['travis-ci'])
+
+        def delivery_payload():
+            time.sleep(0.1)
+            rpc.on_frame(FakePayload(name='travis-ci'))
+
+        thread = threading.Thread(target=delivery_payload)
+        thread.start()
+
+        rpc._wait_for_request(uuid, Adapter())
+
+    def test_with_for_request_with_custom_adapter_and_error(self):
+        class Adapter(object):
+            def check_for_errors(self):
+                raise AMQPChannelError('travis-ci')
+        rpc = Rpc(FakeConnection(), timeout=1)
+        uuid = rpc.register_request(['travis-ci'])
+
+        def delivery_payload():
+            time.sleep(0.1)
+            rpc.on_frame(FakePayload(name='travis-ci'))
+
+        thread = threading.Thread(target=delivery_payload)
+        thread.start()
+
+        adapter = Adapter()
+        self.assertRaises(
+            AMQPChannelError,
+            rpc._wait_for_request, uuid, adapter
         )

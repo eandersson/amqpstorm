@@ -146,10 +146,14 @@ class Channel(BaseChannel):
                 return
             self.set_state(self.CLOSING)
             LOGGER.debug('Channel #%d Closing', self.channel_id)
-            self.stop_consuming()
+            try:
+                self.stop_consuming()
+            except AMQPChannelError:
+                self.remove_consumer_tag()
             self.rpc_request(specification.Channel.Close(
                 reply_code=reply_code,
-                reply_text=reply_text)
+                reply_text=reply_text),
+                adapter=self._connection
             )
         finally:
             if self._inbound:
@@ -268,7 +272,7 @@ class Channel(BaseChannel):
             self.consumer_callback(message)
         sleep(IDLE_WAIT)
 
-    def rpc_request(self, frame_out):
+    def rpc_request(self, frame_out, adapter=None):
         """Perform a RPC Request.
 
         :param specification.Frame frame_out: Amqp frame.
@@ -276,8 +280,8 @@ class Channel(BaseChannel):
         """
         with self.rpc.lock:
             uuid = self.rpc.register_request(frame_out.valid_responses)
-            self.write_frame(frame_out)
-            return self.rpc.get_request(uuid)
+            self._connection.write_frame(self.channel_id, frame_out)
+            return self.rpc.get_request(uuid, adapter=adapter)
 
     def start_consuming(self, to_tuple=False, auto_decode=True):
         """Start consuming messages.
