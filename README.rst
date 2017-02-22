@@ -23,6 +23,8 @@ Changelog
 
 Version 2.2.1
 -------------
+- Fixed potential Channel leak [#36] - Thanks Adam Mills.
+- Fixed threading losing select module during python shutdown [#37] - Thanks Adam Mills.
 
 Version 2.2.0
 -------------
