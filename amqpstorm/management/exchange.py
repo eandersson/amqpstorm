@@ -44,6 +44,7 @@ class Exchange(ManagementHandler):
         """
         if show_all:
             return self.http_client.get(API_EXCHANGES)
+        virtual_host = quote(virtual_host, '')
         return self.http_client.get(
             API_EXCHANGES_VIRTUAL_HOST % virtual_host
         )

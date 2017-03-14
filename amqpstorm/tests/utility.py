@@ -1,5 +1,6 @@
 import functools
 import logging
+import time
 import uuid
 
 from amqpstorm.connection import Channel
@@ -220,6 +221,26 @@ class TestFunctionalFramework(TestFramework):
 def fake_function():
     """Fake Function used for Unit-Testing."""
     pass
+
+
+def retry_function_wrapper(callable_function, retry_limit=10,
+                           sleep_interval=1):
+    """Retry wrapper used to retry functions before failing.
+
+    :param callable_function: Function to call.
+    :param retry_limit: Re-try limit.
+    :param sleep_interval: Sleep interval between retries.
+
+    :return:
+    """
+    retries = retry_limit
+    while retries > 0:
+        # noinspection PyCallingNonCallable
+        result = callable_function()
+        if result:
+            return result
+        retries -= 1
+        time.sleep(sleep_interval)
 
 
 def setup(new_connection=True, new_channel=True, queue=False, exchange=False,

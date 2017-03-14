@@ -8,6 +8,7 @@ from amqpstorm.tests import HTTP_URL
 from amqpstorm.tests import PASSWORD
 from amqpstorm.tests import USERNAME
 from amqpstorm.tests.utility import TestFunctionalFramework
+from amqpstorm.tests.utility import retry_function_wrapper
 from amqpstorm.tests.utility import setup
 
 
@@ -23,9 +24,11 @@ class ApiConnectionFunctionalTests(TestFunctionalFramework):
     def test_api_connection_list(self):
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
 
-        result = api.connection.list()
-        self.assertIsInstance(result, list)
-        self.assertIsInstance(result[0], dict)
+        connections = retry_function_wrapper(api.connection.list)
+        self.assertIsNotNone(connections)
+
+        self.assertEqual(len(connections), 1)
+        self.assertIsInstance(connections[0], dict)
 
     def test_api_connection_close(self):
         reason = 'travis-ci'
@@ -36,7 +39,10 @@ class ApiConnectionFunctionalTests(TestFunctionalFramework):
 
         connection = Connection(HOST, USERNAME, PASSWORD, timeout=1)
 
-        self.assertEqual(len(api.connection.list()), 1)
+        connections = retry_function_wrapper(api.connection.list)
+        self.assertIsNotNone(connections)
+
+        self.assertEqual(len(connections), 1)
 
         for conn in api.connection.list():
             self.assertEqual(api.connection.close(conn['name'],

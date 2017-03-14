@@ -6,6 +6,7 @@ from amqpstorm.tests import HOST
 from amqpstorm.tests import PASSWORD
 from amqpstorm.tests import USERNAME
 from amqpstorm.tests.utility import TestFunctionalFramework
+from amqpstorm.tests.utility import retry_function_wrapper
 from amqpstorm.tests.utility import setup
 
 
@@ -15,7 +16,10 @@ class WebFunctionalTests(TestFunctionalFramework):
 
     @setup()
     def test_functional_client_properties(self):
-        client_properties = self.api.connection.list()[0]['client_properties']
+        connections = retry_function_wrapper(self.api.connection.list)
+        self.assertIsNotNone(connections)
+
+        client_properties = connections[0]['client_properties']
 
         result = self.connection._channel0._client_properties()
 
@@ -57,7 +61,10 @@ class WebFunctionalTests(TestFunctionalFramework):
 
     @setup()
     def test_functional_connection_forcefully_closed(self):
-        for connection in self.api.connection.list():
+        connection_list = retry_function_wrapper(self.api.connection.list)
+        self.assertIsNotNone(connection_list)
+
+        for connection in connection_list:
             self.api.connection.close(connection['name'])
 
         time.sleep(0.1)

@@ -5,8 +5,8 @@ from pamqp.body import ContentBody
 import amqpstorm
 from amqpstorm import Channel
 from amqpstorm.exception import AMQPChannelError
-from amqpstorm.exception import AMQPMessageError
 from amqpstorm.exception import AMQPConnectionError
+from amqpstorm.exception import AMQPMessageError
 from amqpstorm.tests.utility import FakeConnection
 from amqpstorm.tests.utility import FakeFrame
 from amqpstorm.tests.utility import TestFramework

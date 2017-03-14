@@ -3,6 +3,7 @@ from amqpstorm.tests import HTTP_URL
 from amqpstorm.tests import PASSWORD
 from amqpstorm.tests import USERNAME
 from amqpstorm.tests.utility import TestFunctionalFramework
+from amqpstorm.tests.utility import retry_function_wrapper
 from amqpstorm.tests.utility import setup
 
 
@@ -11,10 +12,8 @@ class ApiChannelFunctionalTests(TestFunctionalFramework):
     def test_channel_get(self):
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
 
-        channels = api.channel.list()
-
-        self.assertIsInstance(channels, list)
-        self.assertGreater(len(channels), 0)
+        channels = retry_function_wrapper(api.channel.list)
+        self.assertIsNotNone(channels)
 
         for channel in channels:
             self.assertIsInstance(api.channel.get(channel['name']), dict)
@@ -23,6 +22,10 @@ class ApiChannelFunctionalTests(TestFunctionalFramework):
     def test_channel_list(self):
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
 
-        result = api.channel.list()
-        self.assertIsInstance(result, list)
-        self.assertIsInstance(result[0], dict)
+        channels = retry_function_wrapper(api.channel.list)
+        self.assertIsNotNone(channels)
+
+        self.assertIsInstance(channels, list)
+        self.assertIsInstance(channels[0], dict)
+
+        self.channel.close()

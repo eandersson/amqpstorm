@@ -1,5 +1,5 @@
-import time
 import threading
+import time
 
 import mock
 
@@ -187,6 +187,7 @@ class RpcTests(TestFramework):
         class Adapter(object):
             def check_for_errors(self):
                 pass
+
         rpc = Rpc(FakeConnection(), timeout=1)
         uuid = rpc.register_request(['travis-ci'])
 
@@ -203,6 +204,7 @@ class RpcTests(TestFramework):
         class Adapter(object):
             def check_for_errors(self):
                 raise AMQPChannelError('travis-ci')
+
         rpc = Rpc(FakeConnection(), timeout=1)
         uuid = rpc.register_request(['travis-ci'])
 
