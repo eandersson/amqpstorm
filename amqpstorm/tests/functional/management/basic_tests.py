@@ -32,6 +32,25 @@ class ApiBasicFunctionalTests(TestFunctionalFramework):
         self.assertIsInstance(result[0], Message)
         self.assertEqual(result[0].body, self.message)
 
+        # Make sure the message wasn't re-queued.
+        self.assertFalse(api.basic.get(self.queue_name, requeue=False))
+
+    @setup(queue=True)
+    def test_api_basic_get_message_requeue(self):
+        api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
+
+        api.queue.declare(self.queue_name)
+        self.assertEqual(api.basic.publish(self.message, self.queue_name),
+                         {'routed': True})
+
+        result = api.basic.get(self.queue_name, requeue=True)
+        self.assertIsInstance(result, list)
+        self.assertIsInstance(result[0], Message)
+        self.assertEqual(result[0].body, self.message)
+
+        # Make sure the message was re-queued.
+        self.assertTrue(api.basic.get(self.queue_name, requeue=False))
+
     @setup(queue=True)
     def test_api_basic_get_message_to_dict(self):
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
