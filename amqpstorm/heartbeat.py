@@ -102,7 +102,8 @@ class Heartbeat(object):
             self._reads_since_check = 0
             self._writes_since_check = 0
             self._lock.release()
-        self._start_new_timer()
+        if self._timer:
+            self._start_new_timer()
         return True
 
     def _start_new_timer(self):
