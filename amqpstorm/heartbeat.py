@@ -58,10 +58,11 @@ class Heartbeat(object):
 
         :return:
         """
-        self._running.clear()
-        if self._timer:
-            self._timer.cancel()
-        self._timer = None
+        with self._lock:
+            self._running.clear()
+            if self._timer:
+                self._timer.cancel()
+            self._timer = None
 
     def _check_for_life_signs(self):
         """Check Connection for life signs.
@@ -75,9 +76,9 @@ class Heartbeat(object):
 
         :rtype: bool
         """
+        self._lock.acquire()
         if not self._running.is_set():
             return False
-        self._lock.acquire()
         try:
             if self._writes_since_check == 0:
                 self.send_heartbeat()
@@ -102,7 +103,8 @@ class Heartbeat(object):
             self._reads_since_check = 0
             self._writes_since_check = 0
             self._lock.release()
-        self._start_new_timer()
+        if self._timer:
+            self._start_new_timer()
         return True
 
     def _start_new_timer(self):
