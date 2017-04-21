@@ -49,7 +49,7 @@ class Channel0Tests(TestFramework):
                              reply_code=200)
         )
 
-        self.assertEqual(connection.exceptions, [])
+        self.assertFalse(connection.exceptions)
         self.assertTrue(connection.is_closed)
 
     def test_channel0_forcefully_closed_connection(self):
@@ -72,7 +72,7 @@ class Channel0Tests(TestFramework):
         channel = Channel0(connection)
         channel._send_start_ok(Connection.Start(mechanisms=b'PLAIN'))
 
-        self.assertNotEqual(connection.frames_out, [])
+        self.assertTrue(connection.frames_out)
 
         channel_id, frame_out = connection.frames_out.pop()
 
@@ -86,7 +86,7 @@ class Channel0Tests(TestFramework):
         channel = Channel0(connection)
         channel._send_tune_ok()
 
-        self.assertNotEqual(connection.frames_out, [])
+        self.assertTrue(connection.frames_out)
 
         channel_id, frame_out = connection.frames_out.pop()
 
@@ -98,19 +98,26 @@ class Channel0Tests(TestFramework):
         channel = Channel0(connection)
         channel.send_heartbeat()
 
-        self.assertNotEqual(connection.frames_out, [])
+        self.assertTrue(connection.frames_out)
 
         channel_id, frame_out = connection.frames_out.pop()
 
         self.assertEqual(channel_id, 0)
         self.assertIsInstance(frame_out, Heartbeat)
 
+    def test_channel0_do_not_send_heartbeat_when_connection_closed(self):
+        connection = FakeConnection(state=FakeConnection.CLOSED)
+        channel = Channel0(connection)
+        channel.send_heartbeat()
+
+        self.assertFalse(connection.frames_out)
+
     def test_channel0_send_close_connection(self):
         connection = FakeConnection()
         channel = Channel0(connection)
         channel.send_close_connection()
 
-        self.assertNotEqual(connection.frames_out, [])
+        self.assertTrue(connection.frames_out)
 
         channel_id, frame_out = connection.frames_out.pop()
 
