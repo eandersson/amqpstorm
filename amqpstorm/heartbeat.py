@@ -76,12 +76,12 @@ class Heartbeat(object):
 
         :rtype: bool
         """
-        self._lock.acquire()
         if not self._running.is_set():
             return False
+        if self._writes_since_check == 0:
+            self.send_heartbeat()
+        self._lock.acquire()
         try:
-            if self._writes_since_check == 0:
-                self.send_heartbeat()
             if self._reads_since_check == 0:
                 self._threshold += 1
                 if self._threshold >= 2:

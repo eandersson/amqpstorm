@@ -69,6 +69,8 @@ class Channel0(object):
 
         :return:
         """
+        if not self._connection.is_open:
+            return
         self._write_frame(Heartbeat())
 
     def _close_connection(self, frame_in):
