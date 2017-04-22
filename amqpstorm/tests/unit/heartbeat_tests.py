@@ -146,6 +146,22 @@ class HeartbeatTests(TestFramework):
 
         heartbeat.stop()
 
+    def test_heartbeat_running_cleared_after_raise(self):
+        heartbeat = Heartbeat(60, fake_function)
+        exceptions = []
+        heartbeat.start(exceptions)
+
+        self.assertTrue(heartbeat._running.is_set())
+
+        heartbeat.register_write()
+        heartbeat._check_for_life_signs()
+        heartbeat.register_write()
+        heartbeat._check_for_life_signs()
+
+        self.assertFalse(heartbeat._running.is_set())
+
+        heartbeat.stop()
+
     def test_heartbeat_raise_when_check_for_life_when_exceptions_not_set(self):
         heartbeat = Heartbeat(60, fake_function)
         heartbeat._running.set()

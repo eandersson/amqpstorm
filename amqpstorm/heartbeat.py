@@ -85,7 +85,7 @@ class Heartbeat(object):
             if self._reads_since_check == 0:
                 self._threshold += 1
                 if self._threshold >= 2:
-                    self._running.set()
+                    self._running.clear()
                     message = (
                         'Connection dead, no heartbeat or data received in >= '
                         '%ds' % (
