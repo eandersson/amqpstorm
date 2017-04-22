@@ -44,11 +44,6 @@ class HeartbeatTests(TestFramework):
         self.assertIsNone(heartbeat._timer)
 
     def test_heartbeat_interval(self):
-        heartbeat = Heartbeat(0, fake_function)
-
-        self.assertEqual(heartbeat._interval, 0)
-        self.assertEqual(heartbeat._threshold, 0)
-
         heartbeat = Heartbeat(60, fake_function)
 
         self.assertEqual(heartbeat._interval, 60)
@@ -58,6 +53,19 @@ class HeartbeatTests(TestFramework):
 
         self.assertEqual(heartbeat._interval, 360)
         self.assertEqual(heartbeat._threshold, 0)
+
+    def test_heartbeat_no_interval(self):
+        heartbeat = Heartbeat(0, fake_function)
+
+        self.assertEqual(heartbeat._interval, 0)
+        self.assertEqual(heartbeat._threshold, 0)
+        self.assertFalse(heartbeat.start([]))
+
+        heartbeat = Heartbeat(None, fake_function)
+
+        self.assertEqual(heartbeat._interval, None)
+        self.assertEqual(heartbeat._threshold, 0)
+        self.assertFalse(heartbeat.start([]))
 
     def test_heartbeat_register_reads(self):
         heartbeat = Heartbeat(60, fake_function)
@@ -92,7 +100,9 @@ class HeartbeatTests(TestFramework):
     def test_heartbeat_basic_raise_on_missed_heartbeats(self):
         heartbeat = Heartbeat(0.01, fake_function)
         exceptions = []
-        heartbeat.start(exceptions)
+
+        self.assertTrue(heartbeat.start(exceptions))
+
         time.sleep(0.1)
 
         self.assertGreater(len(heartbeat._exceptions), 0)
@@ -134,7 +144,9 @@ class HeartbeatTests(TestFramework):
     def test_heartbeat_raise_after_threshold(self):
         heartbeat = Heartbeat(60, fake_function)
         exceptions = []
-        heartbeat.start(exceptions)
+
+        self.assertTrue(heartbeat.start(exceptions))
+
         heartbeat.register_write()
 
         self.assertTrue(heartbeat._check_for_life_signs())
@@ -149,8 +161,8 @@ class HeartbeatTests(TestFramework):
     def test_heartbeat_running_cleared_after_raise(self):
         heartbeat = Heartbeat(60, fake_function)
         exceptions = []
-        heartbeat.start(exceptions)
 
+        self.assertTrue(heartbeat.start(exceptions))
         self.assertTrue(heartbeat._running.is_set())
 
         heartbeat.register_write()
@@ -211,3 +223,43 @@ class HeartbeatTests(TestFramework):
         self.assertEqual(heartbeat._threshold, 0)
 
         heartbeat.stop()
+
+    def test_heartbeat_raise_exception(self):
+        heartbeat = Heartbeat(60, None)
+
+        self.assertRaisesRegexp(
+            AMQPConnectionError,
+            'Connection dead, no heartbeat or data received in >= 120s',
+            heartbeat._raise_or_append_exception
+        )
+
+        heartbeat = Heartbeat(120, None)
+
+        self.assertRaisesRegexp(
+            AMQPConnectionError,
+            'Connection dead, no heartbeat or data received in >= 240',
+            heartbeat._raise_or_append_exception
+        )
+
+    def test_heartbeat_append_exception(self):
+        heartbeat = Heartbeat(60, None)
+        heartbeat._exceptions = []
+
+        def check(exception):
+            heartbeat._raise_or_append_exception()
+            if exception:
+                raise exception.pop()
+
+        self.assertRaisesRegexp(
+            AMQPConnectionError,
+            'Connection dead, no heartbeat or data received in >= 120s',
+            check, heartbeat._exceptions
+        )
+
+        heartbeat._interval = 120
+
+        self.assertRaisesRegexp(
+            AMQPConnectionError,
+            'Connection dead, no heartbeat or data received in >= 240',
+            check, heartbeat._exceptions
+        )
