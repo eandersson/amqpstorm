@@ -45,8 +45,8 @@ class Heartbeat(object):
         """
         if not self._interval:
             return False
+        self._running.set()
         with self._lock:
-            self._running.set()
             self._threshold = 0
             self._reads_since_check = 0
             self._writes_since_check = 0

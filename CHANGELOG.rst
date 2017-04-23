@@ -1,6 +1,10 @@
 Changelog
 =========
 
+Version 2.2.2
+-------------
+- Fixed potential Heartbeat deadlock when forcefully killing process - Thanks Charles Pierre.
+
 Version 2.2.1
 -------------
 - Fixed potential Channel leak [#36] - Thanks Adam Mills.
