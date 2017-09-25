@@ -303,6 +303,39 @@ class GenericTest(TestFunctionalFramework):
         self.assertEqual(len(inbound_messages), 1)
 
     @setup(queue=True)
+    def test_functional_redelivered(self):
+        self.channel.queue.declare(self.queue_name)
+        self.channel.confirm_deliveries()
+        self.channel.basic.publish(body=self.message,
+                                   routing_key=self.queue_name)
+
+        def on_message(message):
+            self.assertEqual(message.redelivered, False)
+            message.reject()
+
+        self.channel.basic.consume(callback=on_message,
+                                   queue=self.queue_name,
+                                   no_ack=False)
+        self.channel.process_data_events()
+
+        # Sleep for 0.01s to make sure RabbitMQ has time to catch up.
+        time.sleep(0.01)
+
+        # Store and inbound messages.
+        inbound_messages = []
+
+        def on_message(message):
+            inbound_messages.append(message)
+            self.assertEqual(message.redelivered, True)
+            message.ack()
+
+        self.channel.basic.consume(callback=on_message,
+                                   queue=self.queue_name,
+                                   no_ack=False)
+        self.channel.process_data_events()
+        self.assertEqual(len(inbound_messages), 1)
+
+    @setup(queue=True)
     def test_functional_get_and_redeliver(self):
         self.channel.queue.declare(self.queue_name)
         self.channel.confirm_deliveries()

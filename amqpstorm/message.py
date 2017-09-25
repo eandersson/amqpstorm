@@ -313,6 +313,15 @@ class Message(BaseMessage):
         """
         self._update_properties('reply_to', value)
 
+    @property
+    def redelivered(self):
+        """Indicates if this message may have been delivered before (but not
+        acknowledged)"
+
+        :rtype: bool or None
+        """
+        return self._method['redelivered'] if self._method else None
+
     def json(self):
         """Deserialize the message body, if it is JSON.
 

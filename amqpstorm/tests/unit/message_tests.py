@@ -114,6 +114,19 @@ class MessageTests(TestFramework):
 
         self.assertEqual(reply_to, message.reply_to)
 
+    def test_message_redelivered(self):
+        message = Message.create(None, '')
+
+        self.assertIsNone(message.redelivered)
+
+        message = Message.create(body='',
+                                 channel=FakeChannel())
+        message._method = {
+            'redelivered': True
+        }
+
+        self.assertEqual(message.redelivered, True)
+
     def test_message_do_not_override_properties(self):
         reply_to = self.message,
         correlation_id = str(uuid.uuid4())
