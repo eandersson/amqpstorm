@@ -319,7 +319,6 @@ class Message(BaseMessage):
         acknowledged)"
 
         :rtype: bool or None
-
         """
         return self._method['redelivered'] if self._method else None
 
