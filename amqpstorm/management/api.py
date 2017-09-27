@@ -3,6 +3,7 @@ from amqpstorm.management.basic import Basic
 from amqpstorm.management.channel import Channel
 from amqpstorm.management.connection import Connection
 from amqpstorm.management.exchange import Exchange
+from amqpstorm.management.healthchecks import HealthChecks
 from amqpstorm.management.http_client import HTTPClient
 from amqpstorm.management.queue import Queue
 from amqpstorm.management.user import User
@@ -23,6 +24,7 @@ class ManagementApi(object):
         self._channel = Channel(self.http_client)
         self._connection = Connection(self.http_client)
         self._exchange = Exchange(self.http_client)
+        self._healthchecks = HealthChecks(self.http_client)
         self._queue = Queue(self.http_client)
         self._user = User(self.http_client)
         self._virtual_host = VirtualHost(self.http_client)
@@ -58,6 +60,14 @@ class ManagementApi(object):
         :rtype: amqpstorm.management.exchange.Exchange
         """
         return self._exchange
+
+    @property
+    def healthchecks(self):
+        """RabbitMQ Healthchecks.
+
+        :rtype: amqpstorm.management.healthchecks.Healthchecks
+        """
+        return self._healthchecks
 
     @property
     def queue(self):
