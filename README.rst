@@ -21,6 +21,12 @@ Additional documentation is available on `amqpstorm.io <https://www.amqpstorm.io
 Changelog
 =========
 
+Version 2.3.0 Beta 1
+--------------------
+- Added redelivered property to message [#41] - Thanks tkram01.
+- Added support for Management Api Healthchecks [#39] - Thanks Julien Carpentier.
+- Exposed requests verify and certs flags to Management Api [#40] - Thanks Julien Carpentier.
+
 Version 2.2.2
 -------------
 - Fixed potential Heartbeat deadlock when forcefully killing process - Thanks Charles Pierre.

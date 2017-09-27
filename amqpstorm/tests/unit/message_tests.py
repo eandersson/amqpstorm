@@ -115,17 +115,33 @@ class MessageTests(TestFramework):
         self.assertEqual(reply_to, message.reply_to)
 
     def test_message_redelivered(self):
-        message = Message.create(None, '')
-
-        self.assertIsNone(message.redelivered)
-
         message = Message.create(body='',
                                  channel=FakeChannel())
         message._method = {
             'redelivered': True
         }
 
-        self.assertEqual(message.redelivered, True)
+        self.assertTrue(message.redelivered)
+
+    def test_message_not_redelivered(self):
+        message = Message.create(body='',
+                                 channel=FakeChannel())
+        message._method = {
+            'redelivered': False
+        }
+
+        self.assertFalse(message.redelivered)
+
+    def test_message_redelivered_and_method_none(self):
+        message = Message.create(None, '')
+        message._method = dict()
+
+        self.assertIsNone(message.redelivered)
+
+    def test_message_redelivered_and_method_empty(self):
+        message = Message.create(None, '')
+
+        self.assertIsNone(message.redelivered)
 
     def test_message_do_not_override_properties(self):
         reply_to = self.message,
