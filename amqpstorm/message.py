@@ -320,7 +320,9 @@ class Message(BaseMessage):
 
         :rtype: bool or None
         """
-        return self._method['redelivered'] if self._method else None
+        if not self._method:
+            return None
+        return self._method.get('redelivered')
 
     def json(self):
         """Deserialize the message body, if it is JSON.

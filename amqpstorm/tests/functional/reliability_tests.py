@@ -89,6 +89,7 @@ class ReliabilityFunctionalTests(TestFunctionalFramework):
                 except AMQPMessageError:
                     pass
 
+            # Sleep for 0.1s to make sure RabbitMQ has time to catch up.
             time.sleep(0.1)
 
             self.assertTrue(channel.exceptions)
