@@ -2,27 +2,86 @@
 A Scalable and threaded Consumer that will automatically re-connect on failure.
 """
 import logging
-import time
 import threading
+import time
+
+from pamqp import ContentHeader
+from pamqp import specification
 
 import amqpstorm
 from amqpstorm import Connection
+from amqpstorm.basic import Basic
+from amqpstorm.tests import utility
 
 logging.basicConfig(level=logging.DEBUG)
 LOGGER = logging.getLogger()
+
+
+def send_fake_messages(channel):
+    while True:
+        time.sleep(1)
+        craft_fake_message('hello', channel)
+
+
+def craft_fake_message(msg, channel):
+    message = msg.encode('utf-8')
+    message_len = len(message)
+
+    deliver = specification.Basic.Deliver()
+    header = ContentHeader(body_size=message_len)
+
+    with channel._lock:
+        channel.on_frame(deliver)
+        channel.on_frame(header)
+
+        for body in Basic._create_content_body(message):
+            channel.on_frame(body)
+
+
+class FakeConnection(utility.FakeConnection):
+    def __init__(self):
+        super(FakeConnection, self).__init__()
+
+    def channel(self, rpc_timeout=60, lazy=True):
+        channel = super(FakeConnection, self).channel(rpc_timeout, lazy)
+        channel.set_state(channel.OPEN)
+
+        # Once a fake channel has been set up, start dumping messages into it.
+        t = threading.Thread(target=send_fake_messages, args=(channel,))
+        t.setDaemon(True)
+        t.start()
+
+        return channel
+
+    def write_frame(self, channel_id, frame_out):
+        # Respond to the client with fake messages.
+        if isinstance(frame_out, specification.Basic.Consume):
+            self._channels[channel_id].rpc.on_frame(
+                specification.Basic.ConsumeOk('1')
+            )
+        elif isinstance(frame_out, specification.Basic.Qos):
+            self._channels[channel_id].rpc.on_frame(
+                specification.Basic.QosOk()
+            )
+        elif isinstance(frame_out, specification.Queue.Declare):
+            self._channels[channel_id].rpc.on_frame(
+                specification.Queue.DeclareOk()
+            )
 
 
 class ScalableConsumer(object):
     def __init__(self, hostname='127.0.0.1',
                  username='guest', password='guest',
                  queue='simple_queue',
-                 number_of_consumers=1, max_retries=None):
+                 number_of_consumers=1, max_retries=None,
+                 connection_type='amqp'):
         self.hostname = hostname
         self.username = username
         self.password = password
         self.queue = queue
         self.number_of_consumers = number_of_consumers
         self.max_retries = max_retries
+        self.connection_type = connection_type
         self._connection = None
         self._consumers = []
         self._stopped = threading.Event()
@@ -88,9 +147,13 @@ class ScalableConsumer(object):
             if self._stopped.is_set():
                 break
             try:
-                self._connection = Connection(self.hostname,
-                                              self.username,
-                                              self.password)
+                if self.connection_type == 'memory':
+                    self._connection = FakeConnection()
+                else:
+                    self._connection = Connection(self.hostname,
+                                                  self.username,
+                                                  self.password)
+
                 break
             except amqpstorm.AMQPError as why:
                 LOGGER.warning(why)
@@ -189,5 +252,8 @@ class Consumer(object):
 
 
 if __name__ == '__main__':
-    CONSUMER = ScalableConsumer()
+    # Testing / Memory only
+    # CONSUMER = ScalableConsumer(connection_type='memory')
+    # Normal / RabbitMQ
+    CONSUMER = ScalableConsumer(connection_type='amqp')
     CONSUMER.start()

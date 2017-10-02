@@ -113,7 +113,7 @@ class Connection(Stateful):
         """
         return self._io.socket
 
-    def channel(self, rpc_timeout=60):
+    def channel(self, rpc_timeout=60, lazy=False):
         """Open Channel.
 
         :param int rpc_timeout: Timeout before we give up waiting for an RPC
@@ -134,7 +134,8 @@ class Connection(Stateful):
             channel_id = len(self._channels) + 1
             channel = Channel(channel_id, self, rpc_timeout)
             self._channels[channel_id] = channel
-            channel.open()
+            if not lazy:
+                channel.open()
         LOGGER.debug('Channel #%d Opened', channel_id)
         return self._channels[channel_id]
 
