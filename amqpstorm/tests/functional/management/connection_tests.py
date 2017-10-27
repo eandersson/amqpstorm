@@ -3,8 +3,13 @@ import time
 from amqpstorm import Connection
 from amqpstorm.exception import AMQPConnectionError
 from amqpstorm.management import ManagementApi
-from amqpstorm.tests import HOST, HTTP_URL, PASSWORD, USERNAME
-from amqpstorm.tests.utility import TestFunctionalFramework, retry_function_wrapper, setup
+from amqpstorm.tests import HOST
+from amqpstorm.tests import HTTP_URL
+from amqpstorm.tests import PASSWORD
+from amqpstorm.tests import USERNAME
+from amqpstorm.tests.utility import TestFunctionalFramework
+from amqpstorm.tests.utility import retry_function_wrapper
+from amqpstorm.tests.utility import setup
 
 
 class ApiConnectionFunctionalTests(TestFunctionalFramework):
