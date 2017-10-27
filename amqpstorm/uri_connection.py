@@ -22,7 +22,7 @@ class UriConnection(Connection):
     """
     __slots__ = []
 
-    def __init__(self, uri, client_properties=None, lazy=False):
+    def __init__(self, uri, lazy=False, client_properties=None):
         """
         :param str uri: AMQP Connection string
 
