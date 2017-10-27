@@ -42,7 +42,7 @@ class FakeConnection(Connection):
 
     def __init__(self, state=Connection.OPEN, on_write=None, client_properties=None):
         super(FakeConnection, self).__init__('localhost', 'guest', 'guest',
-                                             lazy=True, client_properties=client_properties)
+                                             client_properties=client_properties, lazy=True)
         self.frames_out = []
         self.parameters = {
             'hostname': 'localhost',
