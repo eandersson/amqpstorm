@@ -40,8 +40,9 @@ class Connection(Stateful):
         :param int|float timeout: Socket timeout
         :param bool ssl: Enable SSL
         :param dict ssl_options: SSL kwargs (from ssl.wrap_socket)
-        :param bool lazy: Lazy initialize the connection
         :param dict client_properties: None or dict of client properties
+        :param bool lazy: Lazy initialize the connection
+
 
         :raises AMQPConnectionError: Raises if the connection
                                      encountered an error.
