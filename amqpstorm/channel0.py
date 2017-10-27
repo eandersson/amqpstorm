@@ -2,11 +2,16 @@
 
 import logging
 import platform
+
 from pamqp import specification
 from pamqp.heartbeat import Heartbeat
 
 from amqpstorm import __version__
-from amqpstorm.base import AUTH_MECHANISM, FRAME_MAX, LOCALE, MAX_CHANNELS, Stateful
+from amqpstorm.base import AUTH_MECHANISM
+from amqpstorm.base import FRAME_MAX
+from amqpstorm.base import LOCALE
+from amqpstorm.base import MAX_CHANNELS
+from amqpstorm.base import Stateful
 from amqpstorm.compatibility import try_utf8_decode
 from amqpstorm.exception import AMQPConnectionError
 
