@@ -2,16 +2,11 @@
 
 import logging
 import platform
-
 from pamqp import specification
 from pamqp.heartbeat import Heartbeat
 
 from amqpstorm import __version__
-from amqpstorm.base import AUTH_MECHANISM
-from amqpstorm.base import FRAME_MAX
-from amqpstorm.base import LOCALE
-from amqpstorm.base import MAX_CHANNELS
-from amqpstorm.base import Stateful
+from amqpstorm.base import AUTH_MECHANISM, FRAME_MAX, LOCALE, MAX_CHANNELS, Stateful
 from amqpstorm.compatibility import try_utf8_decode
 from amqpstorm.exception import AMQPConnectionError
 
@@ -21,13 +16,14 @@ LOGGER = logging.getLogger(__name__)
 class Channel0(object):
     """Internal Channel0 handler."""
 
-    def __init__(self, connection):
+    def __init__(self, connection, client_properties=None):
         super(Channel0, self).__init__()
         self.is_blocked = False
         self.server_properties = {}
         self._connection = connection
         self._heartbeat = connection.parameters['heartbeat']
         self._parameters = connection.parameters
+        self._override_client_properties = client_properties
 
     def on_frame(self, frame_in):
         """Handle frames sent to Channel0.
@@ -184,13 +180,12 @@ class Channel0(object):
         self._connection.write_frame(0, frame_out)
         LOGGER.debug('Frame Sent: %s', frame_out.name)
 
-    @staticmethod
-    def _client_properties():
+    def _client_properties(self):
         """AMQPStorm Client Properties.
 
         :rtype: dict
         """
-        return {
+        client_properties = {
             'product': 'AMQPStorm',
             'platform': 'Python %s (%s)' % (platform.python_version(),
                                             platform.python_implementation()),
@@ -204,3 +199,6 @@ class Channel0(object):
             'information': 'See https://github.com/eandersson/amqpstorm',
             'version': __version__
         }
+        if self._override_client_properties:
+            client_properties.update(self._override_client_properties)
+        return client_properties
