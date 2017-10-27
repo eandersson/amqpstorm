@@ -7,8 +7,10 @@ from amqpstorm.management.exception import ApiError
 
 
 class HTTPClient(object):
-    def __init__(self, api_url, username, password, timeout):
+    def __init__(self, api_url, username, password, verify, cert, timeout):
         self._auth = HTTPBasicAuth(username, password)
+        self._verify = verify
+        self._cert = cert
         self._timeout = timeout
         self._base_url = api_url
 
@@ -85,10 +87,15 @@ class HTTPClient(object):
         headers = headers or {}
         headers['content-type'] = 'application/json'
         try:
-            response = requests.request(method, url,
-                                        auth=self._auth, data=payload,
-                                        headers=headers,
-                                        timeout=self._timeout)
+            response = requests.request(
+                method, url,
+                auth=self._auth,
+                data=payload,
+                headers=headers,
+                cert=self._cert,
+                verify=self._verify,
+                timeout=self._timeout
+            )
         except requests.RequestException as why:
             raise ApiConnectionError(str(why))
 

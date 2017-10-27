@@ -22,6 +22,7 @@ class TxFunctionalTests(TestFunctionalFramework):
         self.channel.queue.declare(self.queue_name)
         self.channel.basic.publish(self.message, self.queue_name)
 
+        # Sleep for 0.1s to make sure RabbitMQ has time to catch up.
         time.sleep(0.1)
 
         queue_status = self.channel.queue.declare(self.queue_name,
@@ -42,6 +43,7 @@ class TxFunctionalTests(TestFunctionalFramework):
         for _ in range(10):
             self.channel.basic.publish(self.message, self.queue_name)
 
+        # Sleep for 0.1s to make sure RabbitMQ has time to catch up.
         time.sleep(0.1)
 
         queue_status = self.channel.queue.declare(self.queue_name,

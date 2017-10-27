@@ -35,6 +35,7 @@ class WebFunctionalTests(TestFunctionalFramework):
         self.api.basic.publish(body=self.message,
                                routing_key=self.queue_name)
 
+        # Sleep for 1s to make sure RabbitMQ has time to catch up.
         time.sleep(1)
 
         result = self.channel.basic.get(self.queue_name)
@@ -49,6 +50,7 @@ class WebFunctionalTests(TestFunctionalFramework):
                                    routing_key=self.queue_name)
 
         self.channel.basic.consume(queue=self.queue_name, no_ack=True)
+
         queue_deleted = False
         messages_received = 0
         for _ in self.channel.build_inbound_messages(break_on_empty=True):
@@ -67,7 +69,8 @@ class WebFunctionalTests(TestFunctionalFramework):
         for connection in connection_list:
             self.api.connection.close(connection['name'])
 
-        time.sleep(0.1)
+        # Sleep for 1s to make sure RabbitMQ has time to catch up.
+        time.sleep(1)
 
         self.assertRaisesRegexp(
             AMQPConnectionError,
