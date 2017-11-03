@@ -18,7 +18,7 @@ install:
   - pip install -r test-requirements.txt
 script: nosetests -v -l DEBUG --logging-level=DEBUG --with-coverage --cover-package=amqpstorm --with-timer --timer-top-n 10
 before_script:
-  - if [[ $TRAVIS_PYTHON_VERSION != '2.6' ]]; then flake8 --ignore=F821 .; fi
+  - flake8 --ignore=F821 .
 after_success:
   - bash <(curl -s https://codecov.io/bash)
 services:

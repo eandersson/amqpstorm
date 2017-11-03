@@ -9,7 +9,7 @@ Introduction
 AMQPStorm is a library designed to be consistent, stable and thread-safe.
 
 - 100% Unit-test Coverage!
-- Supports Python 2.6, 2.7 and Python 3.3+.
+- Supports Python 2.7 and Python 3.3+.
 - Fully tested against Python Implementations; CPython, PyPy and Pyston.
 - When using a SSL connection, TLSv1 or higher is required.
 
@@ -21,10 +21,11 @@ Additional documentation is available on `amqpstorm.io <https://www.amqpstorm.io
 Changelog
 =========
 
-Version 2.3.0 Beta 1
+Version 2.3.0 Beta 2
 --------------------
 - Added redelivered property to message [#41] - Thanks tkram01.
 - Added support for Management Api Healthchecks [#39] - Thanks Julien Carpentier.
+- Fixed incompatibility with Sun Solaris 10 [#46] - Thanks Giuliox.
 - Exposed requests verify and certs flags to Management Api [#40] - Thanks Julien Carpentier.
 
 Version 2.2.2
