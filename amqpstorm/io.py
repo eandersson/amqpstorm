@@ -143,7 +143,8 @@ class IO(object):
             family = socket.AF_INET
         try:
             addresses = socket.getaddrinfo(self._parameters['hostname'],
-                                           self._parameters['port'], family)
+                                           self._parameters['port'], family,
+                                           socket.SOCK_STREAM)
         except socket.gaierror as why:
             raise AMQPConnectionError(why)
         return addresses

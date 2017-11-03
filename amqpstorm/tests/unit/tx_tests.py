@@ -100,7 +100,7 @@ class TxTests(TestFramework):
             with tx:
                 tx.commit()
                 raise Exception('travis-ci')
-        except:
+        except Exception:
             self.assertEqual(self.get_last_log(),
                              'Leaving Transaction on exception: travis-ci')
 

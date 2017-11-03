@@ -144,8 +144,8 @@ class IOTests(TestFramework):
     def test_io_has_ipv6(self):
         restore_func = socket.getaddrinfo
 
-        def mock_getaddrinfo(hostname, port, family):
-            return [hostname, port, family]
+        def mock_getaddrinfo(hostname, port, family, socktype):
+            return [hostname, port, family, socktype]
 
         try:
             amqpstorm.io.socket.getaddrinfo = mock_getaddrinfo
@@ -157,6 +157,7 @@ class IOTests(TestFramework):
 
             result = io._get_socket_addresses()
             self.assertEqual(result[2], socket.AF_UNSPEC)
+            self.assertEqual(result[3], socket.SOCK_STREAM)
         finally:
             amqpstorm.io.socket.getaddrinfo = restore_func
 
@@ -164,8 +165,8 @@ class IOTests(TestFramework):
         restore_func = socket.getaddrinfo
         restore_has_ipv6 = amqpstorm.io.socket.has_ipv6
 
-        def mock_getaddrinfo(hostname, port, family):
-            return [hostname, port, family]
+        def mock_getaddrinfo(hostname, port, family, socktype):
+            return [hostname, port, family, socktype]
 
         try:
             amqpstorm.io.socket.getaddrinfo = mock_getaddrinfo
@@ -178,6 +179,7 @@ class IOTests(TestFramework):
 
             result = io._get_socket_addresses()
             self.assertEqual(result[2], socket.AF_INET)
+            self.assertEqual(result[3], socket.SOCK_STREAM)
         finally:
             amqpstorm.io.socket.getaddrinfo = restore_func
             amqpstorm.io.socket.has_ipv6 = restore_has_ipv6
