@@ -88,9 +88,9 @@ class LegacyFunctionalTests(TestFunctionalFramework):
 
         # Store and inbound messages.
         inbound_messages = []
-        for message in \
-                self.channel.build_inbound_messages(break_on_empty=True,
-                                                    to_tuple=True):
+        for message in self.channel.build_inbound_messages(
+                break_on_empty=True,
+                to_tuple=True):
             self.assertIsInstance(message, tuple)
             self.assertIsInstance(message[0], bytes)
             self.assertIsInstance(message[1], Channel)

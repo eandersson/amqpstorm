@@ -82,8 +82,8 @@ class GenericTest(TestFunctionalFramework):
                                        routing_key=self.queue_name)
 
         inbound_messages = []
-        for message in \
-                self.channel.build_inbound_messages(break_on_empty=True):
+        for message in self.channel.build_inbound_messages(
+                break_on_empty=True):
             self.assertEqual(message.body, body)
             inbound_messages.append(message)
         self.assertEqual(len(inbound_messages), messages_to_publish)
@@ -104,8 +104,8 @@ class GenericTest(TestFunctionalFramework):
                                        routing_key=self.queue_name)
 
         inbound_messages = []
-        for message in \
-                self.channel.build_inbound_messages(break_on_empty=True):
+        for message in self.channel.build_inbound_messages(
+                break_on_empty=True):
             self.assertEqual(message.body, body)
             inbound_messages.append(message)
         self.assertEqual(len(inbound_messages), messages_to_publish)
@@ -457,10 +457,11 @@ class GenericTest(TestFunctionalFramework):
             if why.error_code == 312:
                 self.channel.queue.declare(self.queue_name)
 
-        result = \
-            self.channel.basic.publish(body=self.message,
-                                       routing_key=self.queue_name,
-                                       mandatory=True)
+        result = self.channel.basic.publish(
+            body=self.message,
+            routing_key=self.queue_name,
+            mandatory=True
+        )
         self.assertTrue(result)
 
         payload = self.channel.queue.declare(self.queue_name,

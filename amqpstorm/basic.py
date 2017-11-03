@@ -206,8 +206,8 @@ class Basic(Handler):
 
         :return:
         """
-        if delivery_tag is not None \
-                and not compatibility.is_integer(delivery_tag):
+        if (delivery_tag is not None and
+                not compatibility.is_integer(delivery_tag)):
             raise AMQPInvalidArgument('delivery_tag should be an integer '
                                       'or None')
         elif not isinstance(multiple, bool):
@@ -230,8 +230,8 @@ class Basic(Handler):
 
         :return:
         """
-        if delivery_tag is not None \
-                and not compatibility.is_integer(delivery_tag):
+        if (delivery_tag is not None and
+                not compatibility.is_integer(delivery_tag)):
             raise AMQPInvalidArgument('delivery_tag should be an integer '
                                       'or None')
         elif not isinstance(multiple, bool):
@@ -256,8 +256,8 @@ class Basic(Handler):
 
         :return:
         """
-        if delivery_tag is not None \
-                and not compatibility.is_integer(delivery_tag):
+        if (delivery_tag is not None and
+                not compatibility.is_integer(delivery_tag)):
             raise AMQPInvalidArgument('delivery_tag should be an integer '
                                       'or None')
         elif not isinstance(requeue, bool):

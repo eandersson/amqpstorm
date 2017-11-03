@@ -25,8 +25,9 @@ class UriConnectionExceptionTests(TestFramework):
         self.assertRaises(AttributeError, UriConnection, ())
 
     def test_uri_invalid_ssl_options(self):
-        connection = \
-            UriConnection('amqps://guest:guest@localhost:5672/%2F', True)
+        connection = UriConnection(
+            'amqps://guest:guest@localhost:5672/%2F', True
+        )
         ssl_kwargs = {
             'unit_test': ['not_required'],
         }
@@ -37,8 +38,9 @@ class UriConnectionExceptionTests(TestFramework):
                       self.get_last_log())
 
     def test_uri_get_invalid_ssl_version(self):
-        connection = \
-            UriConnection('amqps://guest:guest@localhost:5672/%2F', True)
+        connection = UriConnection(
+            'amqps://guest:guest@localhost:5672/%2F', True
+        )
 
         self.assertEqual(connection._get_ssl_version('protocol_test'),
                          ssl.PROTOCOL_TLSv1)
@@ -47,8 +49,9 @@ class UriConnectionExceptionTests(TestFramework):
                       self.get_last_log())
 
     def test_uri_get_invalid_ssl_validation(self):
-        connection = \
-            UriConnection('amqps://guest:guest@localhost:5672/%2F', True)
+        connection = UriConnection(
+            'amqps://guest:guest@localhost:5672/%2F', True
+        )
 
         self.assertEqual(ssl.CERT_NONE,
                          connection._get_ssl_validation('cert_test'))

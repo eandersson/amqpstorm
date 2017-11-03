@@ -118,8 +118,9 @@ class IO(object):
                 try:
                     if not self.socket:
                         raise socket.error('connection/socket error')
-                    bytes_written = \
+                    bytes_written = (
                         self.socket.send(frame_data[total_bytes_written:])
+                    )
                     if bytes_written == 0:
                         raise socket.error('connection/socket error')
                     total_bytes_written += bytes_written
@@ -196,8 +197,9 @@ class IO(object):
         :rtype: SSLSocket
         """
         if 'ssl_version' not in self._parameters['ssl_options']:
-            self._parameters['ssl_options']['ssl_version'] = \
+            self._parameters['ssl_options']['ssl_version'] = (
                 compatibility.DEFAULT_SSL_VERSION
+            )
         return ssl.wrap_socket(sock, do_handshake_on_connect=True,
                                **self._parameters['ssl_options'])
 
