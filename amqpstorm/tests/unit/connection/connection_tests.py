@@ -7,6 +7,7 @@ from pamqp import specification
 from pamqp.specification import Basic as spec_basic
 
 from amqpstorm import Connection
+from amqpstorm.base import MAX_CHANNELS
 from amqpstorm.exception import AMQPConnectionError
 from amqpstorm.io import IO
 from amqpstorm.tests.utility import FakeChannel
@@ -412,3 +413,10 @@ class ConnectionTests(TestFramework):
         connection.write_frame = on_open_ok
 
         connection.channel()
+
+    def test_connection_open_multiple_channels(self):
+        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
+                                lazy=True)
+        connection.set_state(connection.OPEN)
+        for index in range(MAX_CHANNELS):
+            self.assertEqual(int(connection.channel(lazy=True)), index + 1)
