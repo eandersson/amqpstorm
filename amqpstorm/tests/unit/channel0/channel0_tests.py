@@ -28,6 +28,22 @@ class Channel0Tests(TestFramework):
         self.assertEqual(result['information'], information)
         self.assertEqual(result['platform'], python_version)
 
+    def test_channel0_override_client_credentials(self):
+        channel = Channel0(FakeConnection(), client_properties={'platform': 'Atari', 'license': 'MIT'})
+        result = channel._client_properties()
+
+        information = 'See https://github.com/eandersson/amqpstorm'
+
+        self.assertIsInstance(result, dict)
+        self.assertTrue(result['capabilities']['authentication_failure_close'])
+        self.assertTrue(result['capabilities']['consumer_cancel_notify'])
+        self.assertTrue(result['capabilities']['publisher_confirms'])
+        self.assertTrue(result['capabilities']['connection.blocked'])
+        self.assertTrue(result['capabilities']['basic.nack'])
+        self.assertEqual(result['information'], information)
+        self.assertEqual(result['platform'], 'Atari')
+        self.assertEqual(result['license'], 'MIT')
+
     def test_channel0_credentials(self):
         connection = FakeConnection()
         connection.parameters['username'] = 'guest'

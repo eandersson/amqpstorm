@@ -40,9 +40,9 @@ class SslTLSNone(object):
 class FakeConnection(Connection):
     """Fake Connection for Unit-Testing."""
 
-    def __init__(self, state=Connection.OPEN, on_write=None):
+    def __init__(self, state=Connection.OPEN, on_write=None, client_properties=None):
         super(FakeConnection, self).__init__('localhost', 'guest', 'guest',
-                                             lazy=True)
+                                             client_properties=client_properties, lazy=True)
         self.frames_out = []
         self.parameters = {
             'hostname': 'localhost',
