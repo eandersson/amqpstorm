@@ -55,6 +55,28 @@ class BasicFunctionalTests(TestFunctionalFramework):
         self.assertFalse(self.channel.basic.get(self.queue_name, to_dict=True))
 
     @setup(queue=True)
+    def test_functional_basic_ack_multiple(self):
+        self.channel.queue.declare(self.queue_name)
+        for _ in range(5):
+            self.channel.basic.publish(self.message, self.queue_name)
+
+        for _ in range(5):
+            message = self.channel.basic.get(self.queue_name, to_dict=True)
+
+        self.channel.basic.ack(
+            delivery_tag=message['method']['delivery_tag'],
+            multiple=True
+        )
+
+        # Close AND Open Channel to force potential unacked messages to be
+        # flushed.
+        self.channel.close()
+        self.channel.open()
+
+        # Make sure the message wasn't requeued.
+        self.assertFalse(self.channel.basic.get(self.queue_name, to_dict=True))
+
+    @setup(queue=True)
     def test_functional_basic_nack(self):
         self.channel.queue.declare(self.queue_name)
         self.channel.basic.publish(self.message, self.queue_name)
@@ -66,6 +88,29 @@ class BasicFunctionalTests(TestFunctionalFramework):
             delivery_tag=message['method']['delivery_tag'])
 
         self.assertEqual(result, None)
+
+        # Make sure the message wasn't requeued.
+        self.assertFalse(self.channel.basic.get(self.queue_name, to_dict=True))
+
+    @setup(queue=True)
+    def test_functional_basic_nack_multiple(self):
+        self.channel.queue.declare(self.queue_name)
+        for _ in range(5):
+            self.channel.basic.publish(self.message, self.queue_name)
+
+        for _ in range(5):
+            message = self.channel.basic.get(self.queue_name, to_dict=True)
+
+        self.channel.basic.nack(
+            delivery_tag=message['method']['delivery_tag'],
+            requeue=False,
+            multiple=True
+        )
+
+        # Close AND Open Channel to force potential unacked messages to be
+        # flushed.
+        self.channel.close()
+        self.channel.open()
 
         # Make sure the message wasn't requeued.
         self.assertFalse(self.channel.basic.get(self.queue_name, to_dict=True))

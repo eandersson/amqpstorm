@@ -90,13 +90,13 @@ class FakeBasic(object):
     def __init__(self, channel):
         self.channel = channel
 
-    def ack(self, delivery_tag=None, multiple=False):
+    def ack(self, delivery_tag=0, multiple=False):
         self.channel.result.append((delivery_tag, multiple))
 
-    def nack(self, delivery_tag=None, multiple=False, requeue=True):
+    def nack(self, delivery_tag=0, multiple=False, requeue=True):
         self.channel.result.append((delivery_tag, multiple, requeue))
 
-    def reject(self, delivery_tag=None, requeue=True):
+    def reject(self, delivery_tag=0, requeue=True):
         self.channel.result.append((delivery_tag, requeue))
 
 

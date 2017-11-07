@@ -175,8 +175,14 @@ class BasicExceptionTests(TestFramework):
 
         self.assertRaisesRegexp(
             exception.AMQPInvalidArgument,
-            'delivery_tag should be an integer or None',
+            'delivery_tag should be an integer',
             basic.ack, 'travis-ci'
+        )
+
+        self.assertRaisesRegexp(
+            exception.AMQPInvalidArgument,
+            'delivery_tag should be an integer',
+            basic.ack, None
         )
 
         self.assertRaisesRegexp(
@@ -192,7 +198,7 @@ class BasicExceptionTests(TestFramework):
 
         self.assertRaisesRegexp(
             exception.AMQPInvalidArgument,
-            'delivery_tag should be an integer or None',
+            'delivery_tag should be an integer',
             basic.nack, 'travis-ci'
         )
 
@@ -215,8 +221,14 @@ class BasicExceptionTests(TestFramework):
 
         self.assertRaisesRegexp(
             exception.AMQPInvalidArgument,
-            'delivery_tag should be an integer or None',
+            'delivery_tag should be an integer',
             basic.reject, 'travis-ci'
+        )
+
+        self.assertRaisesRegexp(
+            exception.AMQPInvalidArgument,
+            'delivery_tag should be an integer',
+            basic.reject, None
         )
 
         self.assertRaisesRegexp(

@@ -193,7 +193,7 @@ class Basic(Handler):
                 return self._publish_confirm(frames_out)
         self._channel.write_frames(frames_out)
 
-    def ack(self, delivery_tag=None, multiple=False):
+    def ack(self, delivery_tag=0, multiple=False):
         """Acknowledge Message.
 
         :param int/long delivery_tag: Server-assigned delivery tag
@@ -206,17 +206,15 @@ class Basic(Handler):
 
         :return:
         """
-        if (delivery_tag is not None and
-                not compatibility.is_integer(delivery_tag)):
-            raise AMQPInvalidArgument('delivery_tag should be an integer '
-                                      'or None')
+        if not compatibility.is_integer(delivery_tag):
+            raise AMQPInvalidArgument('delivery_tag should be an integer')
         elif not isinstance(multiple, bool):
             raise AMQPInvalidArgument('multiple should be a boolean')
         ack_frame = specification.Basic.Ack(delivery_tag=delivery_tag,
                                             multiple=multiple)
         self._channel.write_frame(ack_frame)
 
-    def nack(self, delivery_tag=None, multiple=False, requeue=True):
+    def nack(self, delivery_tag=0, multiple=False, requeue=True):
         """Negative Acknowledgement.
 
         :param int/long delivery_tag: Server-assigned delivery tag
@@ -230,10 +228,8 @@ class Basic(Handler):
 
         :return:
         """
-        if (delivery_tag is not None and
-                not compatibility.is_integer(delivery_tag)):
-            raise AMQPInvalidArgument('delivery_tag should be an integer '
-                                      'or None')
+        if not compatibility.is_integer(delivery_tag):
+            raise AMQPInvalidArgument('delivery_tag should be an integer')
         elif not isinstance(multiple, bool):
             raise AMQPInvalidArgument('multiple should be a boolean')
         elif not isinstance(requeue, bool):
@@ -243,7 +239,7 @@ class Basic(Handler):
                                               requeue=requeue)
         self._channel.write_frame(nack_frame)
 
-    def reject(self, delivery_tag=None, requeue=True):
+    def reject(self, delivery_tag=0, requeue=True):
         """Reject Message.
 
         :param int/long delivery_tag: Server-assigned delivery tag
@@ -256,10 +252,8 @@ class Basic(Handler):
 
         :return:
         """
-        if (delivery_tag is not None and
-                not compatibility.is_integer(delivery_tag)):
-            raise AMQPInvalidArgument('delivery_tag should be an integer '
-                                      'or None')
+        if not compatibility.is_integer(delivery_tag):
+            raise AMQPInvalidArgument('delivery_tag should be an integer')
         elif not isinstance(requeue, bool):
             raise AMQPInvalidArgument('requeue should be a boolean')
         reject_frame = specification.Basic.Reject(delivery_tag=delivery_tag,
