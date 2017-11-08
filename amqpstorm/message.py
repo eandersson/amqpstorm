@@ -110,7 +110,7 @@ class Message(BaseMessage):
             raise AMQPMessageError(
                 'Message.ack only available on incoming messages'
             )
-        self._channel.basic.ack(delivery_tag=self._method['delivery_tag'])
+        self._channel.basic.ack(delivery_tag=self.delivery_tag)
 
     def nack(self, requeue=True):
         """Negative Acknowledgement.
@@ -126,7 +126,7 @@ class Message(BaseMessage):
             raise AMQPMessageError(
                 'Message.nack only available on incoming messages'
             )
-        self._channel.basic.nack(delivery_tag=self._method['delivery_tag'],
+        self._channel.basic.nack(delivery_tag=self.delivery_tag,
                                  requeue=requeue)
 
     def reject(self, requeue=True):
@@ -143,7 +143,7 @@ class Message(BaseMessage):
             raise AMQPMessageError(
                 'Message.reject only available on incoming messages'
             )
-        self._channel.basic.reject(delivery_tag=self._method['delivery_tag'],
+        self._channel.basic.reject(delivery_tag=self.delivery_tag,
                                    requeue=requeue)
 
     def publish(self, routing_key, exchange='', mandatory=False,
@@ -316,13 +316,23 @@ class Message(BaseMessage):
     @property
     def redelivered(self):
         """Indicates if this message may have been delivered before (but not
-        acknowledged)"
+        acknowledged).
 
-        :rtype: bool or None
+        :rtype: bool|None
         """
         if not self._method:
             return None
         return self._method.get('redelivered')
+
+    @property
+    def delivery_tag(self):
+        """Server-assigned delivery tag.
+
+        :rtype: int|None
+        """
+        if not self._method:
+            return None
+        return self._method.get('delivery_tag')
 
     def json(self):
         """Deserialize the message body, if it is JSON.

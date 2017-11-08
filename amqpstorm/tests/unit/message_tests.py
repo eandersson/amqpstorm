@@ -132,6 +132,15 @@ class MessageTests(TestFramework):
 
         self.assertFalse(message.redelivered)
 
+    def test_message_redelivered_is_none(self):
+        message = Message.create(body='',
+                                 channel=FakeChannel())
+        message._method = {
+            'redelivered': None
+        }
+
+        self.assertIsNone(message.redelivered)
+
     def test_message_redelivered_and_method_none(self):
         message = Message.create(None, '')
         message._method = dict()
@@ -142,6 +151,35 @@ class MessageTests(TestFramework):
         message = Message.create(None, '')
 
         self.assertIsNone(message.redelivered)
+
+    def test_message_delivery_tag(self):
+        message = Message.create(body='',
+                                 channel=FakeChannel())
+        message._method = {
+            'delivery_tag': 5
+        }
+
+        self.assertEqual(message.delivery_tag, 5)
+
+    def test_message_delivery_tag_is_none(self):
+        message = Message.create(body='',
+                                 channel=FakeChannel())
+        message._method = {
+            'delivery_tag': None
+        }
+
+        self.assertIsNone(message.delivery_tag)
+
+    def test_message_delivery_tag_and_method_none(self):
+        message = Message.create(None, '')
+        message._method = dict()
+
+        self.assertIsNone(message.delivery_tag)
+
+    def test_message_rdelivery_tag_and_method_empty(self):
+        message = Message.create(None, '')
+
+        self.assertIsNone(message.delivery_tag)
 
     def test_message_do_not_override_properties(self):
         reply_to = self.message,
