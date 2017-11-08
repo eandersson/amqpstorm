@@ -169,8 +169,7 @@ class IO(object):
             return sock
         raise AMQPConnectionError(
             'Could not connect to %s:%d' % (
-                self._parameters['hostname'],
-                self._parameters['port']
+                self._parameters['hostname'], self._parameters['port']
             )
         )
 
@@ -200,8 +199,10 @@ class IO(object):
             self._parameters['ssl_options']['ssl_version'] = (
                 compatibility.DEFAULT_SSL_VERSION
             )
-        return ssl.wrap_socket(sock, do_handshake_on_connect=True,
-                               **self._parameters['ssl_options'])
+        return ssl.wrap_socket(
+            sock, do_handshake_on_connect=True,
+            **self._parameters['ssl_options']
+        )
 
     def _create_inbound_thread(self):
         """Internal Thread that handles all incoming traffic.

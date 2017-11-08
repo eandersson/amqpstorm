@@ -21,11 +21,13 @@ Additional documentation is available on `amqpstorm.io <https://www.amqpstorm.io
 Changelog
 =========
 
-Version 2.3.0 Beta 2
---------------------
+Version 2.3.0
+-------------
+- Added delivery_tag property to message.
 - Added redelivered property to message [#41] - Thanks tkram01.
 - Added support for Management Api Healthchecks [#39] - Thanks Julien Carpentier.
 - Fixed incompatibility with Sun Solaris 10 [#46] - Thanks Giuliox.
+- Fixed delivery_tag being set to None by default [#47] - tkram01.
 - Exposed requests verify and certs flags to Management Api [#40] - Thanks Julien Carpentier.
 
 Version 2.2.2

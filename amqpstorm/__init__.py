@@ -1,18 +1,10 @@
 """AMQPStorm."""
-__version__ = '2.3.0b2'  # noqa
+__version__ = '2.3.0'  # noqa
 __author__ = 'eandersson'  # noqa
 
 import logging
 
-
-class NullHandler(logging.Handler):
-    """Logging Null Handler."""
-
-    def emit(self, record):
-        pass
-
-
-logging.getLogger('amqpstorm').addHandler(NullHandler())
+logging.getLogger('amqpstorm').addHandler(logging.NullHandler())
 
 from amqpstorm.channel import Channel  # noqa
 from amqpstorm.connection import Connection  # noqa
