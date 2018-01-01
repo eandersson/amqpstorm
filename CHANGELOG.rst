@@ -1,6 +1,10 @@
 Changelog
 =========
 
+Version 2.4.0
+-------------
+- basic.consume now allows for multiple callbacks [#48].
+
 Version 2.3.0
 -------------
 - Added delivery_tag property to message.

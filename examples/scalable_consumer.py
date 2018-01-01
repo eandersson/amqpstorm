@@ -110,8 +110,9 @@ class ScalableConsumer(object):
         :return:
         """
         # Do we need to start more consumers.
-        consumer_to_start = \
-            min(max(self.number_of_consumers - len(self._consumers), 0), 2)
+        consumer_to_start = min(
+            max(self.number_of_consumers - len(self._consumers), 0), 2
+        )
         for _ in range(consumer_to_start):
             consumer = Consumer(self.queue)
             self._start_consumer(consumer)
@@ -163,7 +164,7 @@ class Consumer(object):
             self.channel.basic.qos(1)
             self.channel.queue.declare(self.queue)
             self.channel.basic.consume(self, self.queue, no_ack=False)
-            self.channel.start_consuming(to_tuple=False)
+            self.channel.start_consuming()
             if not self.channel.consumer_tags:
                 # Only close the channel if there is nothing consuming.
                 # This is to allow messages that are still being processed

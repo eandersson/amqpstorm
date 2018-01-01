@@ -262,6 +262,7 @@ class GenericTest(TestFunctionalFramework):
 
         # Store and inbound messages.
         inbound_messages = []
+
         for message in self.channel.build_inbound_messages(
                 break_on_empty=True):
             self.assertIsInstance(message, Message)
@@ -277,29 +278,44 @@ class GenericTest(TestFunctionalFramework):
         self.channel.basic.publish(body=self.message,
                                    routing_key=self.queue_name)
 
-        def on_message(message):
+        def on_message_first(message):
+            self.channel.stop_consuming()
             message.reject()
 
-        self.channel.basic.consume(callback=on_message,
+        self.channel.basic.consume(callback=on_message_first,
                                    queue=self.queue_name,
                                    no_ack=False)
         self.channel.process_data_events()
-
-        # Sleep for 0.01s to make sure RabbitMQ has time to catch up.
-        time.sleep(0.01)
 
         # Store and inbound messages.
         inbound_messages = []
 
-        def on_message(message):
+        # Close current channel and open a new one.
+        self.channel.close()
+
+        # Sleep for 0.1s to make sure RabbitMQ has time to catch up.
+        time.sleep(0.1)
+
+        channel = self.connection.channel()
+
+        def on_message_second(message):
             inbound_messages.append(message)
             self.assertEqual(message.body, self.message)
-            message.ack()
 
-        self.channel.basic.consume(callback=on_message,
-                                   queue=self.queue_name,
-                                   no_ack=False)
-        self.channel.process_data_events()
+        channel.basic.consume(callback=on_message_second,
+                              queue=self.queue_name,
+                              no_ack=True)
+        channel.process_data_events()
+
+        # Sleep for 0.1s to make sure RabbitMQ has time to catch up.
+        time.sleep(0.1)
+
+        start_time = time.time()
+        while len(inbound_messages) != 1:
+            if time.time() - start_time >= 30:
+                break
+            time.sleep(0.1)
+
         self.assertEqual(len(inbound_messages), 1)
 
     @setup(queue=True)
@@ -308,7 +324,8 @@ class GenericTest(TestFunctionalFramework):
 
         self.channel.confirm_deliveries()
         self.channel.basic.publish(body=self.message,
-                                   routing_key=self.queue_name)
+                                   routing_key=self.queue_name,
+                                   mandatory=True)
 
         # Sleep for 0.1s to make sure RabbitMQ has time to catch up.
         time.sleep(0.1)
@@ -323,14 +340,17 @@ class GenericTest(TestFunctionalFramework):
             inbound_messages.append(message)
             self.assertTrue(message.redelivered)
 
-        # Sleep for 0.1s to make sure RabbitMQ has time to catch up.
-        time.sleep(0.1)
-
         self.channel.basic.consume(callback=on_message,
                                    queue=self.queue_name,
                                    no_ack=True)
 
-        self.channel.process_data_events()
+        start_time = time.time()
+        while len(inbound_messages) == 0:
+            self.channel.process_data_events()
+            if time.time() - start_time >= 30:
+                break
+            time.sleep(0.1)
+
         self.assertEqual(len(inbound_messages), 1)
 
     @setup(queue=True)

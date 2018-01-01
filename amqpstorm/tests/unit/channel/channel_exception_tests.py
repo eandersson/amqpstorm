@@ -32,7 +32,7 @@ class ChannelExceptionTests(TestFramework):
 
         self.assertRaisesRegexp(
             AMQPChannelError,
-            'no consumer_callback defined',
+            'no consumer callback defined',
             channel.process_data_events
         )
 

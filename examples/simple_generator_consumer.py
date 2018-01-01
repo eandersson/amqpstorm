@@ -5,7 +5,7 @@ from amqpstorm import Connection
 logging.basicConfig(level=logging.DEBUG)
 
 
-def consumer():
+def start_consumer():
     with Connection('127.0.0.1', 'guest', 'guest') as connection:
         with connection.channel() as channel:
             channel.queue.declare('simple_queue')
@@ -16,4 +16,4 @@ def consumer():
 
 
 if __name__ == '__main__':
-    consumer()
+    start_consumer()

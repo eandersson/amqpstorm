@@ -6,10 +6,6 @@ import amqpstorm
 
 from amqpstorm import Message
 
-CONNECTION = amqpstorm.Connection('127.0.0.1', 'guest', 'guest')
-CHANNEL = CONNECTION.channel()
-CHANNEL.queue.declare(queue='rpc_queue')
-
 
 def fib(number):
     if number == 0:
@@ -38,8 +34,12 @@ def on_request(message):
 
 
 if __name__ == '__main__':
+    CONNECTION = amqpstorm.Connection('127.0.0.1', 'guest', 'guest')
+    CHANNEL = CONNECTION.channel()
+
+    CHANNEL.queue.declare(queue='rpc_queue')
     CHANNEL.basic.qos(prefetch_count=1)
     CHANNEL.basic.consume(on_request, queue='rpc_queue')
 
     print(" [x] Awaiting RPC requests")
-    CHANNEL.start_consuming(to_tuple=False)
+    CHANNEL.start_consuming()

@@ -63,20 +63,25 @@ class WebFunctionalTests(TestFunctionalFramework):
 
     @setup()
     def test_functional_connection_forcefully_closed(self):
+        self.channel.confirm_deliveries()
         connection_list = retry_function_wrapper(self.api.connection.list)
         self.assertIsNotNone(connection_list)
 
         for connection in connection_list:
             self.api.connection.close(connection['name'])
 
-        # Sleep for 1s to make sure RabbitMQ has time to catch up.
-        time.sleep(1)
+        start_time = time.time()
+        while len(self.api.connection.list()) > 0:
+            if time.time() - start_time >= 60:
+                break
+            time.sleep(1)
 
         self.assertRaisesRegexp(
             AMQPConnectionError,
             'Connection was closed by remote server: '
             'CONNECTION_FORCED - Closed via management api',
-            self.channel.basic.publish, 'body', 'routing_key'
+            self.channel.basic.publish, 'body', 'routing_key', '',
+            None, True, False
         )
 
         self.assertRaisesRegexp(

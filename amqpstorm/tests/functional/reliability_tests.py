@@ -198,8 +198,9 @@ class PublishAndConsume5kTest(TestFunctionalFramework):
             consumer_thread.start()
 
         start_time = time.time()
-        while (self.messages_consumed != self.messages_to_send and
-                time.time() - start_time < 60):
+        while self.messages_consumed != self.messages_to_send:
+            if time.time() - start_time >= 60:
+                break
             time.sleep(0.1)
 
         self.assertEqual(self.messages_consumed, self.messages_to_send,

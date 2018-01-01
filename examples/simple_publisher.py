@@ -6,7 +6,7 @@ from amqpstorm import Message
 logging.basicConfig(level=logging.DEBUG)
 
 
-def publisher():
+def publish_message():
     with Connection('127.0.0.1', 'guest', 'guest') as connection:
         with connection.channel() as channel:
             # Declare the Queue, 'simple_queue'.
@@ -26,4 +26,4 @@ def publisher():
 
 
 if __name__ == '__main__':
-    publisher()
+    publish_message()

@@ -129,11 +129,12 @@ class Basic(Handler):
             raise AMQPInvalidArgument('no_local should be a boolean')
         elif arguments is not None and not isinstance(arguments, dict):
             raise AMQPInvalidArgument('arguments should be a dict or None')
-        self._channel.consumer_callback = callback
         consume_rpc_result = self._consume_rpc_request(arguments, consumer_tag,
                                                        exclusive, no_ack,
                                                        no_local, queue)
-        return self._consume_add_and_get_tag(consume_rpc_result)
+        tag = self._consume_add_and_get_tag(consume_rpc_result)
+        self._channel._consumer_callbacks[tag] = callback
+        return tag
 
     def cancel(self, consumer_tag=''):
         """Cancel a queue consumer.
