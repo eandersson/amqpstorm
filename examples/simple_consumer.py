@@ -23,7 +23,7 @@ def on_message(message):
     # message.reject(requeue=True)
 
 
-def consumer():
+def start_consumer():
     with Connection('127.0.0.1', 'guest', 'guest') as connection:
         with connection.channel() as channel:
             # Declare the Queue, 'simple_queue'.
@@ -42,12 +42,10 @@ def consumer():
 
             try:
                 # Start consuming messages.
-                # to_tuple equal to False means that messages consumed
-                # are returned as a Message object, rather than a tuple.
-                channel.start_consuming(to_tuple=False)
+                channel.start_consuming()
             except KeyboardInterrupt:
                 channel.close()
 
 
 if __name__ == '__main__':
-    consumer()
+    start_consumer()

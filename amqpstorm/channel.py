@@ -28,14 +28,14 @@ CONTENT_FRAME = ['Basic.Deliver', 'ContentHeader', 'ContentBody']
 class Channel(BaseChannel):
     """RabbitMQ Channel."""
     __slots__ = [
-        'consumer_callback', 'rpc', '_basic', '_confirming_deliveries',
+        '_consumer_callbacks', 'rpc', '_basic', '_confirming_deliveries',
         '_connection', '_exchange', '_inbound', '_queue', '_tx'
     ]
 
     def __init__(self, channel_id, connection, rpc_timeout):
         super(Channel, self).__init__(channel_id)
-        self.consumer_callback = None
         self.rpc = Rpc(self, timeout=rpc_timeout)
+        self._consumer_callbacks = {}
         self._confirming_deliveries = False
         self._connection = connection
         self._inbound = []
@@ -259,18 +259,17 @@ class Channel(BaseChannel):
 
         :return:
         """
-        if not self.consumer_callback:
-            raise AMQPChannelError('no consumer_callback defined')
+        if not self._consumer_callbacks:
+            raise AMQPChannelError('no consumer callback defined')
         for message in self.build_inbound_messages(break_on_empty=True,
-                                                   to_tuple=to_tuple,
                                                    auto_decode=auto_decode):
+            consumer_tag = message._method.get('consumer_tag')
             if to_tuple:
                 # noinspection PyCallingNonCallable
-                self.consumer_callback(*message)
+                self._consumer_callbacks[consumer_tag](*message.to_tuple())
                 continue
             # noinspection PyCallingNonCallable
-            self.consumer_callback(message)
-        sleep(IDLE_WAIT)
+            self._consumer_callbacks[consumer_tag](message)
 
     def rpc_request(self, frame_out, adapter=None):
         """Perform a RPC Request.
@@ -297,10 +296,13 @@ class Channel(BaseChannel):
         :return:
         """
         while not self.is_closed:
-            self.process_data_events(to_tuple=to_tuple,
-                                     auto_decode=auto_decode)
+            self.process_data_events(
+                to_tuple=to_tuple,
+                auto_decode=auto_decode
+            )
             if not self.consumer_tags:
                 break
+            sleep(IDLE_WAIT)
 
     def stop_consuming(self):
         """Stop consuming messages.

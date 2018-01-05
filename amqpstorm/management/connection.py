@@ -40,7 +40,6 @@ class Connection(ManagementHandler):
 
         :rtype: None
         """
-
         close_payload = json.dumps({
             'name': connection,
             'reason': reason

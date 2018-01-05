@@ -21,6 +21,10 @@ Additional documentation is available on `amqpstorm.io <https://www.amqpstorm.io
 Changelog
 =========
 
+Version 2.4.0
+-------------
+- basic.consume now allows for multiple callbacks [#48].
+
 Version 2.3.0
 -------------
 - Added delivery_tag property to message.

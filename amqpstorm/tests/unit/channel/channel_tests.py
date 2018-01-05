@@ -112,7 +112,7 @@ class ChannelTests(TestFramework):
         message = self.message.encode('utf-8')
         message_len = len(message)
 
-        deliver = specification.Basic.Deliver()
+        deliver = specification.Basic.Deliver(consumer_tag='travis-ci')
         header = ContentHeader(body_size=message_len)
         body = ContentBody(value=message)
 
@@ -122,7 +122,7 @@ class ChannelTests(TestFramework):
             self.assertIsInstance(msg.body, str)
             self.assertEqual(msg.body.encode('utf-8'), message)
 
-        channel.consumer_callback = callback
+        channel._consumer_callbacks['travis-ci'] = callback
         channel.process_data_events()
 
     def test_channel_process_data_events_as_tuple(self):
@@ -132,7 +132,7 @@ class ChannelTests(TestFramework):
         message = self.message.encode('utf-8')
         message_len = len(message)
 
-        deliver = specification.Basic.Deliver()
+        deliver = specification.Basic.Deliver(consumer_tag='travis-ci')
         header = ContentHeader(body_size=message_len)
         body = ContentBody(value=message)
 
@@ -145,7 +145,7 @@ class ChannelTests(TestFramework):
             self.assertIsInstance(properties, dict)
             self.assertEqual(body, message)
 
-        channel.consumer_callback = callback
+        channel._consumer_callbacks['travis-ci'] = callback
         channel.process_data_events(to_tuple=True)
 
     def test_channel_start_consuming(self):
@@ -155,7 +155,7 @@ class ChannelTests(TestFramework):
         message = self.message.encode('utf-8')
         message_len = len(message)
 
-        deliver = specification.Basic.Deliver()
+        deliver = specification.Basic.Deliver(consumer_tag='travis-ci')
         header = ContentHeader(body_size=message_len)
         body = ContentBody(value=message)
 
@@ -166,28 +166,40 @@ class ChannelTests(TestFramework):
             self.assertEqual(msg.body.encode('utf-8'), message)
             channel.set_state(channel.CLOSED)
 
-        channel.consumer_callback = callback
-        channel.add_consumer_tag('travis-ci')
+        channel._consumer_callbacks['travis-ci'] = callback
         channel.start_consuming()
 
-    def test_channel_start_consuming_no_consumer_tag(self):
+    def test_channel_start_consuming_multiple_callbacks(self):
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(channel.OPEN)
 
         message = self.message.encode('utf-8')
         message_len = len(message)
 
-        deliver = specification.Basic.Deliver()
+        deliver_one = specification.Basic.Deliver(consumer_tag='travis-ci-1')
+        deliver_two = specification.Basic.Deliver(consumer_tag='travis-ci-2')
         header = ContentHeader(body_size=message_len)
         body = ContentBody(value=message)
 
-        channel._inbound = [deliver, header, body]
+        channel._inbound = [
+            deliver_one, header, body,
+            deliver_two, header, body
+        ]
 
-        def callback(msg):
+        def callback_one(msg):
+            self.assertEqual(msg.method.get('consumer_tag'), 'travis-ci-1')
             self.assertIsInstance(msg.body, str)
             self.assertEqual(msg.body.encode('utf-8'), message)
 
-        channel.consumer_callback = callback
+        def callback_two(msg):
+            self.assertEqual(msg.method.get('consumer_tag'), 'travis-ci-2')
+            self.assertIsInstance(msg.body, str)
+            self.assertEqual(msg.body.encode('utf-8'), message)
+            channel.set_state(channel.CLOSED)
+
+        channel._consumer_callbacks['travis-ci-1'] = callback_one
+        channel._consumer_callbacks['travis-ci-2'] = callback_two
+
         channel.start_consuming()
 
     def test_channel_open(self):
