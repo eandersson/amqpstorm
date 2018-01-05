@@ -61,9 +61,11 @@ class WebFunctionalTests(TestFunctionalFramework):
 
         self.assertFalse(self.channel._inbound)
 
-    @setup()
+    @setup(queue=True)
     def test_functional_connection_forcefully_closed(self):
         self.channel.confirm_deliveries()
+        self.channel.queue.declare(self.queue_name)
+
         connection_list = retry_function_wrapper(self.api.connection.list)
         self.assertIsNotNone(connection_list)
 
@@ -80,7 +82,7 @@ class WebFunctionalTests(TestFunctionalFramework):
             AMQPConnectionError,
             'Connection was closed by remote server: '
             'CONNECTION_FORCED - Closed via management api',
-            self.channel.basic.publish, 'body', 'routing_key', '',
+            self.channel.basic.publish, 'body', self.queue_name, '',
             None, True, False
         )
 

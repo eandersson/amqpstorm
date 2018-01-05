@@ -17,7 +17,10 @@ class ApiConnectionFunctionalTests(TestFunctionalFramework):
     def test_api_connection_get(self):
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
 
-        for conn in api.connection.list():
+        connections = api.connection.list()
+        self.assertIsNotNone(connections)
+
+        for conn in connections:
             self.assertIsInstance(api.connection.get(conn['name']), dict)
 
     @setup()
