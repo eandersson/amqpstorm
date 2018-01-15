@@ -17,8 +17,8 @@ class ApiConnectionFunctionalTests(TestFunctionalFramework):
     def test_api_connection_get(self):
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
 
-        connections = api.connection.list()
-        self.assertIsNotNone(connections)
+        connections = retry_function_wrapper(api.connection.list)
+        self.assertTrue(connections)
 
         for conn in connections:
             self.assertIsInstance(api.connection.get(conn['name']), dict)
