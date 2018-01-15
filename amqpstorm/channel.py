@@ -300,9 +300,10 @@ class Channel(BaseChannel):
                 to_tuple=to_tuple,
                 auto_decode=auto_decode
             )
-            if not self.consumer_tags:
-                break
-            sleep(IDLE_WAIT)
+            if self.consumer_tags:
+                sleep(IDLE_WAIT)
+                continue
+            break
 
     def stop_consuming(self):
         """Stop consuming messages.
