@@ -162,6 +162,9 @@ class CompatibilitySslTests(unittest.TestCase):
             compatibility.ssl = restore_func
 
     def test_compatibility_ssl_not_defined(self):
+        """This tests mimics the behavior of Python built locally without
+        SSL support.
+        """
         restore_func = sys.modules['ssl']
         try:
             sys.modules['ssl'] = None
@@ -173,4 +176,43 @@ class CompatibilitySslTests(unittest.TestCase):
             self.assertFalse(compatibility.SSL_VERSIONS)
         finally:
             sys.modules['ssl'] = restore_func
+            imp.reload(compatibility)
+
+    def test_compatibility_no_supported_ssl_version(self):
+        """This tests mimics the behavior of a Python build without
+        support for TLS v1, v1_1 or v1_2.
+        """
+        restore_tls_v1_2 = sys.modules['ssl'].PROTOCOL_TLSv1_2
+        restore_tls_v1_1 = sys.modules['ssl'].PROTOCOL_TLSv1_1
+        restore_tls_v1 = sys.modules['ssl'].PROTOCOL_TLSv1
+        try:
+            del sys.modules['ssl'].PROTOCOL_TLSv1_2
+            del sys.modules['ssl'].PROTOCOL_TLSv1_1
+            del sys.modules['ssl'].PROTOCOL_TLSv1
+            imp.reload(compatibility)
+            self.assertIsNone(compatibility.DEFAULT_SSL_VERSION)
+            self.assertFalse(compatibility.SSL_SUPPORTED)
+            self.assertFalse(compatibility.SSL_CERT_MAP)
+            self.assertFalse(compatibility.SSL_VERSIONS)
+        finally:
+            sys.modules['ssl'].PROTOCOL_TLSv1_2 = restore_tls_v1_2
+            sys.modules['ssl'].PROTOCOL_TLSv1_1 = restore_tls_v1_1
+            sys.modules['ssl'].PROTOCOL_TLSv1 = restore_tls_v1
+            imp.reload(compatibility)
+
+    def test_compatibility_only_tls_v1_supported(self):
+        """This tests mimics the behavior of Python 2.7.8 or earlier that
+        only supported TLS v1 and SSLv23.
+        """
+        restore_tls_v1_2 = sys.modules['ssl'].PROTOCOL_TLSv1_2
+        restore_tls_v1 = sys.modules['ssl'].PROTOCOL_TLSv1_1
+        try:
+            del sys.modules['ssl'].PROTOCOL_TLSv1_2
+            del sys.modules['ssl'].PROTOCOL_TLSv1_1
+            imp.reload(compatibility)
+            self.assertEqual(compatibility.get_default_ssl_version(),
+                             ssl.PROTOCOL_TLSv1)
+        finally:
+            sys.modules['ssl'].PROTOCOL_TLSv1_2 = restore_tls_v1_2
+            sys.modules['ssl'].PROTOCOL_TLSv1_1 = restore_tls_v1
             imp.reload(compatibility)

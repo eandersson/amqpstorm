@@ -3,7 +3,6 @@ sudo: required
 language: python
 python:
   - 2.7
-  - 2.7.9
   - 3.4
   - 3.5
   - 3.6
