@@ -8,9 +8,9 @@ from amqpstorm.exception import AMQPChannelError
 
 AUTH_MECHANISM = 'PLAIN'
 IDLE_WAIT = 0.01
-FRAME_MAX = 131072
-MAX_CHANNELS = 65535
 LOCALE = locale.getdefaultlocale()[0] or 'en_US'
+MAX_FRAME_SIZE = 131072
+MAX_CHANNELS = 65535
 
 
 class Stateful(object):

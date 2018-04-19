@@ -5,6 +5,8 @@ from pamqp.specification import Connection
 
 import amqpstorm
 from amqpstorm import AMQPConnectionError
+from amqpstorm.base import MAX_CHANNELS
+from amqpstorm.base import MAX_FRAME_SIZE
 from amqpstorm.channel0 import Channel0
 from amqpstorm.tests.utility import FakeConnection
 from amqpstorm.tests.utility import TestFramework
@@ -84,7 +86,7 @@ class Channel0Tests(TestFramework):
     def test_channel0_send_tune_ok(self):
         connection = FakeConnection()
         channel = Channel0(connection)
-        channel._send_tune_ok()
+        channel._send_tune_ok(Connection.Tune())
 
         self.assertTrue(connection.frames_out)
 
@@ -92,6 +94,40 @@ class Channel0Tests(TestFramework):
 
         self.assertEqual(channel_id, 0)
         self.assertIsInstance(frame_out, Connection.TuneOk)
+
+    def test_channel0_send_tune_ok_negotiate(self):
+        connection = FakeConnection()
+        channel = Channel0(connection)
+        channel._send_tune_ok(Connection.Tune(frame_max=MAX_FRAME_SIZE,
+                                              channel_max=MAX_CHANNELS))
+
+        self.assertEqual(channel.max_frame_size, MAX_FRAME_SIZE)
+        self.assertEqual(channel.max_allowed_channels, MAX_CHANNELS)
+
+    def test_channel0_send_tune_ok_negotiate_use_max(self):
+        """Test to make sure that we use the highest acceptable value when
+        the server returns zero.
+        """
+        connection = FakeConnection()
+        channel = Channel0(connection)
+        channel._send_tune_ok(Connection.Tune())
+
+        self.assertEqual(channel.max_frame_size, MAX_FRAME_SIZE)
+        self.assertEqual(channel.max_allowed_channels, MAX_CHANNELS)
+
+    def test_channel0_send_tune_ok_negotiate_use_client(self):
+        """"Test to make sure that we use the highest acceptable value from
+        the servers perspective.
+        """
+        connection = FakeConnection()
+        channel = Channel0(connection)
+        channel._send_tune_ok(Connection.Tune(
+            frame_max=16384,
+            channel_max=200
+        ))
+
+        self.assertEqual(channel.max_frame_size, 16384)
+        self.assertEqual(channel.max_allowed_channels, 200)
 
     def test_channel0_send_heartbeat(self):
         connection = FakeConnection()

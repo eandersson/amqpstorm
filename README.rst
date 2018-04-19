@@ -21,6 +21,11 @@ Additional documentation is available on `amqpstorm.io <https://www.amqpstorm.io
 Changelog
 =========
 
+Version 2.4.1
+-------------
+- Added client/server negotiation to better determine the maximum supported channels and maximum allowed frame size [#52] - Thanks gastlich.
+- We now raise an exception if the maximum allowed channel count is ever reached.
+
 Version 2.4.0
 -------------
 - basic.consume now allows for multiple callbacks [#48].
@@ -88,13 +93,13 @@ Credits
 Special thanks to gmr (Gavin M. Roy) for creating pamqp, and in addition amqpstorm is heavily influenced by his pika and rabbitpy libraries.
 
 .. |Version| image:: https://badge.fury.io/py/amqpstorm.svg?
-   :target: http://badge.fury.io/py/amqpstorm
+:target: http://badge.fury.io/py/amqpstorm
 
 .. |CodeClimate| image:: https://codeclimate.com/github/eandersson/amqpstorm/badges/gpa.svg
-   :target: https://codeclimate.com/github/eandersson/amqpstorm
+:target: https://codeclimate.com/github/eandersson/amqpstorm
 
 .. |Travis| image:: https://travis-ci.org/eandersson/amqpstorm.svg
-   :target: https://travis-ci.org/eandersson/amqpstorm
+:target: https://travis-ci.org/eandersson/amqpstorm
 
 .. |Coverage| image:: https://codecov.io/gh/eandersson/amqpstorm/branch/master/graph/badge.svg
-   :target: https://codecov.io/gh/eandersson/amqpstorm
+:target: https://codecov.io/gh/eandersson/amqpstorm

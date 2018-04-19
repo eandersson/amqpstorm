@@ -39,7 +39,7 @@ class Channel(BaseChannel):
         self._confirming_deliveries = False
         self._connection = connection
         self._inbound = []
-        self._basic = Basic(self)
+        self._basic = Basic(self, self._connection.max_frame_size)
         self._exchange = Exchange(self)
         self._tx = Tx(self)
         self._queue = Queue(self)

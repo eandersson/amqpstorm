@@ -8,8 +8,8 @@ from pamqp import header as pamqp_header
 from pamqp import specification
 
 from amqpstorm import compatibility
-from amqpstorm.base import FRAME_MAX
 from amqpstorm.base import Handler
+from amqpstorm.base import MAX_FRAME_SIZE
 from amqpstorm.exception import AMQPChannelError
 from amqpstorm.exception import AMQPInvalidArgument
 from amqpstorm.message import Message
@@ -19,7 +19,11 @@ LOGGER = logging.getLogger(__name__)
 
 class Basic(Handler):
     """RabbitMQ Basic Operations."""
-    __slots__ = []
+    __slots__ = ['_max_frame_size']
+
+    def __init__(self, channel, max_frame_size=None):
+        super(Basic, self).__init__(channel)
+        self._max_frame_size = max_frame_size or MAX_FRAME_SIZE
 
     def qos(self, prefetch_count=0, prefetch_size=0, global_=False):
         """Specify quality of service.
@@ -387,8 +391,7 @@ class Basic(Handler):
             return True
         return False
 
-    @staticmethod
-    def _create_content_body(body):
+    def _create_content_body(self, body):
         """Split body based on the maximum frame size.
 
             This function is based on code from Rabbitpy.
@@ -398,10 +401,10 @@ class Basic(Handler):
 
         :rtype: collections.Iterable
         """
-        frames = int(math.ceil(len(body) / float(FRAME_MAX)))
+        frames = int(math.ceil(len(body) / float(self._max_frame_size)))
         for offset in compatibility.RANGE(0, frames):
-            start_frame = FRAME_MAX * offset
-            end_frame = start_frame + FRAME_MAX
+            start_frame = self._max_frame_size * offset
+            end_frame = start_frame + self._max_frame_size
             body_len = len(body)
             if end_frame > body_len:
                 end_frame = body_len

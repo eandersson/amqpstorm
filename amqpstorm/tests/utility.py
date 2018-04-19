@@ -3,6 +3,8 @@ import logging
 import time
 import uuid
 
+from mock import Mock
+
 from amqpstorm.connection import Channel
 from amqpstorm.connection import Connection
 from amqpstorm.management import ManagementApi
@@ -76,7 +78,7 @@ class FakeChannel(Channel):
     result = list()
 
     def __init__(self, state=Channel.OPEN):
-        super(FakeChannel, self).__init__(0, None, 0.01)
+        super(FakeChannel, self).__init__(0, Mock(name='Connection'), 0.01)
         self.set_state(state)
         self._basic = FakeBasic(self)
 

@@ -8,9 +8,9 @@ from pamqp.heartbeat import Heartbeat
 
 from amqpstorm import __version__
 from amqpstorm.base import AUTH_MECHANISM
-from amqpstorm.base import FRAME_MAX
 from amqpstorm.base import LOCALE
 from amqpstorm.base import MAX_CHANNELS
+from amqpstorm.base import MAX_FRAME_SIZE
 from amqpstorm.base import Stateful
 from amqpstorm.compatibility import try_utf8_decode
 from amqpstorm.exception import AMQPConnectionError
@@ -24,6 +24,8 @@ class Channel0(object):
     def __init__(self, connection):
         super(Channel0, self).__init__()
         self.is_blocked = False
+        self.max_allowed_channels = MAX_CHANNELS
+        self.max_frame_size = MAX_FRAME_SIZE
         self.server_properties = {}
         self._connection = connection
         self._heartbeat = connection.parameters['heartbeat']
@@ -52,7 +54,7 @@ class Channel0(object):
             self.server_properties = frame_in.server_properties
             self._send_start_ok(frame_in)
         elif frame_in.name == 'Connection.Tune':
-            self._send_tune_ok()
+            self._send_tune_ok(frame_in)
             self._send_open_connection()
         else:
             LOGGER.error('[Channel0] Unhandled Frame: %s', frame_in.name)
@@ -108,6 +110,18 @@ class Channel0(object):
             try_utf8_decode(frame_in.reason)
         )
 
+    def _negotiate(self, server_value, client_value):
+        """Negotiate the highest supported value. Fall back on the
+        client side value if zero.
+
+        :param int server_value: Server Side value
+        :param int client_value: Client Side value
+
+        :rtype: int
+        :return:
+        """
+        return min(server_value, client_value) or client_value
+
     def _unblocked_connection(self):
         """Connection is Unblocked.
 
@@ -128,6 +142,7 @@ class Channel0(object):
         """Send Start OK frame.
 
         :param specification.Connection.Start frame_in: Amqp frame.
+
         :return:
         """
         if 'PLAIN' not in try_utf8_decode(frame_in.mechanisms):
@@ -146,14 +161,25 @@ class Channel0(object):
         )
         self._write_frame(start_ok_frame)
 
-    def _send_tune_ok(self):
+    def _send_tune_ok(self, frame_in):
         """Send Tune OK frame.
+
+        :param specification.Connection.Tune frame_in: Tune frame.
 
         :return:
         """
+        self.max_allowed_channels = self._negotiate(frame_in.channel_max,
+                                                    MAX_CHANNELS)
+        self.max_frame_size = self._negotiate(frame_in.frame_max,
+                                              MAX_FRAME_SIZE)
+        LOGGER.debug(
+            'Negotiated max frame size %d, max channels %d',
+            self.max_frame_size, self.max_allowed_channels
+        )
+
         tune_ok_frame = specification.Connection.TuneOk(
-            channel_max=MAX_CHANNELS,
-            frame_max=FRAME_MAX,
+            channel_max=self.max_allowed_channels,
+            frame_max=self.max_frame_size,
             heartbeat=self._heartbeat)
         self._write_frame(tune_ok_frame)
 

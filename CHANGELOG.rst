@@ -1,6 +1,11 @@
 Changelog
 =========
 
+Version 2.4.1
+-------------
+- Added client/server negotiation to better determine the maximum supported channels and frame size [#52] - Thanks gastlich.
+- We now raise an exception if the maximum allowed channel count is ever reached.
+
 Version 2.4.0
 -------------
 - basic.consume now allows for multiple callbacks [#48].
