@@ -95,9 +95,11 @@ class Channel0Tests(TestFramework):
         self.assertEqual(channel_id, 0)
         self.assertIsInstance(frame_out, Connection.TuneOk)
 
+        self.assertEqual(frame_out.channel_max, MAX_CHANNELS)
+        self.assertEqual(frame_out.frame_max, MAX_FRAME_SIZE)
+
     def test_channel0_send_tune_ok_negotiate(self):
-        connection = FakeConnection()
-        channel = Channel0(connection)
+        channel = Channel0(FakeConnection())
         channel._send_tune_ok(Connection.Tune(frame_max=MAX_FRAME_SIZE,
                                               channel_max=MAX_CHANNELS))
 
@@ -108,19 +110,17 @@ class Channel0Tests(TestFramework):
         """Test to make sure that we use the highest acceptable value when
         the server returns zero.
         """
-        connection = FakeConnection()
-        channel = Channel0(connection)
+        channel = Channel0(FakeConnection())
         channel._send_tune_ok(Connection.Tune())
 
         self.assertEqual(channel.max_frame_size, MAX_FRAME_SIZE)
         self.assertEqual(channel.max_allowed_channels, MAX_CHANNELS)
 
-    def test_channel0_send_tune_ok_negotiate_use_client(self):
+    def test_channel0_send_tune_ok_negotiate_use_server(self):
         """"Test to make sure that we use the highest acceptable value from
         the servers perspective.
         """
-        connection = FakeConnection()
-        channel = Channel0(connection)
+        channel = Channel0(FakeConnection())
         channel._send_tune_ok(Connection.Tune(
             frame_max=16384,
             channel_max=200
