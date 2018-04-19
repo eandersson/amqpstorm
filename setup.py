@@ -1,5 +1,5 @@
-from setuptools import setup
 from setuptools import find_packages
+from setuptools import setup
 
 setup(
     name='AMQPStorm',
@@ -14,7 +14,7 @@ setup(
     url='https://www.amqpstorm.io',
     install_requires=['pamqp>=1.6.1,<2.0'],
     extra_require={
-        'management_api': ['requests']
+        'management': ['requests']
     },
     package_data={'': ['README.rst', 'LICENSE', 'CHANGELOG.rst']},
     classifiers=[

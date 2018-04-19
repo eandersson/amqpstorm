@@ -2,12 +2,12 @@
 A Scalable and threaded Consumer that will automatically re-connect on failure.
 """
 import logging
-import time
 import threading
+import time
 
 import amqpstorm
-from amqpstorm import Message
 from amqpstorm import Connection
+from amqpstorm import Message
 
 logging.basicConfig(level=logging.DEBUG)
 

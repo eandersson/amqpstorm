@@ -10,8 +10,8 @@ from errno import EWOULDBLOCK
 from time import sleep
 
 from amqpstorm import compatibility
-from amqpstorm.base import FRAME_MAX
 from amqpstorm.base import IDLE_WAIT
+from amqpstorm.base import MAX_FRAME_SIZE
 from amqpstorm.compatibility import ssl
 from amqpstorm.exception import AMQPConnectionError
 
@@ -253,7 +253,7 @@ class IO(object):
         :rtype: bytes
         """
         if self.use_ssl:
-            data_in = self.socket.read(FRAME_MAX)
+            data_in = self.socket.read(MAX_FRAME_SIZE)
         else:
-            data_in = self.socket.recv(FRAME_MAX)
+            data_in = self.socket.recv(MAX_FRAME_SIZE)
         return data_in

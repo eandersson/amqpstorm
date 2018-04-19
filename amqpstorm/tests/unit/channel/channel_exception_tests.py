@@ -1,4 +1,5 @@
 import mock
+from mock import Mock
 from pamqp import specification
 
 import amqpstorm
@@ -14,7 +15,7 @@ from amqpstorm.tests.utility import TestFramework
 
 class ChannelExceptionTests(TestFramework):
     def test_chanel_invalid_close_parameter(self):
-        channel = Channel(0, None, 360)
+        channel = Channel(0, Mock(name='Connection'), 360)
 
         self.assertRaisesRegexp(
             AMQPInvalidArgument,
@@ -28,7 +29,7 @@ class ChannelExceptionTests(TestFramework):
         )
 
     def test_chanel_callback_not_set(self):
-        channel = Channel(0, None, 360)
+        channel = Channel(0, Mock(name='Connection'), 360)
 
         self.assertRaisesRegexp(
             AMQPChannelError,

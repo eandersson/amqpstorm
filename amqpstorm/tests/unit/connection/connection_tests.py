@@ -414,9 +414,38 @@ class ConnectionTests(TestFramework):
 
         connection.channel()
 
-    def test_connection_open_multiple_channels(self):
+    def test_connection_get_first_channel_id(self):
+        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
+                                lazy=True)
+        self.assertEqual(
+            connection._get_next_available_channel_id(), 1
+        )
+
+    def test_connection_get_next_channel_id(self):
+        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
+                                lazy=True)
+        connection._channels[1] = None
+        self.assertEqual(
+            connection._get_next_available_channel_id(), 2
+        )
+
+    def test_connection_open_many_channels(self):
         connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
                                 lazy=True)
         connection.set_state(connection.OPEN)
-        for index in range(MAX_CHANNELS):
+
+        for index in range(MAX_CHANNELS - 1):
             self.assertEqual(int(connection.channel(lazy=True)), index + 1)
+
+    def test_connection_maximum_channels_reached(self):
+        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
+                                lazy=True)
+        connection.set_state(connection.OPEN)
+
+        for index in range(MAX_CHANNELS - 1):
+            self.assertEqual(int(connection.channel(lazy=True)), index + 1)
+
+        self.assertRaisesRegexp(
+            AMQPConnectionError,
+            'reached the maximum number of channels %d' % MAX_CHANNELS,
+            connection.channel, lazy=True)

@@ -98,6 +98,22 @@ class Connection(Stateful):
         return self._channel0.is_blocked
 
     @property
+    def max_allowed_channels(self):
+        """Returns the maximum allowed channels for the connection.
+
+        :rtype: int
+        """
+        return self._channel0.max_allowed_channels
+
+    @property
+    def max_frame_size(self):
+        """Returns the maximum allowed frame size for the connection.
+
+        :rtype: int
+        """
+        return self._channel0.max_frame_size
+
+    @property
     def server_properties(self):
         """Returns the RabbitMQ Server Properties.
 
@@ -131,7 +147,7 @@ class Connection(Stateful):
             raise AMQPConnectionError('socket/connection closed')
 
         with self.lock:
-            channel_id = len(self._channels) + 1
+            channel_id = self._get_next_available_channel_id()
             channel = Channel(channel_id, self, rpc_timeout)
             self._channels[channel_id] = channel
             if not lazy:
@@ -230,6 +246,20 @@ class Connection(Stateful):
                 continue
             self._channels[channel_id].set_state(Channel.CLOSED)
             self._channels[channel_id].close()
+
+    def _get_next_available_channel_id(self):
+        """Returns the next available available channel id.
+
+        :raises AMQPConnectionError: Raises if there is no available channel.
+
+        :rtype: int
+        """
+        channel_id = len(self._channels) + 1
+        if channel_id == self.max_allowed_channels:
+            raise AMQPConnectionError(
+                'reached the maximum number of channels %d' %
+                self.max_allowed_channels)
+        return channel_id
 
     def _handle_amqp_frame(self, data_in):
         """Unmarshal a single AMQP frame and return the result.
