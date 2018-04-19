@@ -414,6 +414,21 @@ class ConnectionTests(TestFramework):
 
         connection.channel()
 
+    def test_connection_get_first_channel_id(self):
+        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
+                                lazy=True)
+        self.assertEqual(
+            connection._get_next_available_channel_id(), 1
+        )
+
+    def test_connection_get_next_channel_id(self):
+        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
+                                lazy=True)
+        connection._channels[1] = None
+        self.assertEqual(
+            connection._get_next_available_channel_id(), 2
+        )
+
     def test_connection_open_many_channels(self):
         connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
                                 lazy=True)
