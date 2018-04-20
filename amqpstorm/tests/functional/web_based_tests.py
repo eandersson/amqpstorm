@@ -61,10 +61,10 @@ class WebFunctionalTests(TestFunctionalFramework):
 
         self.assertFalse(self.channel._inbound)
 
-    @setup(queue=True)
+    @setup()
     def test_functional_connection_forcefully_closed(self):
         self.channel.confirm_deliveries()
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, auto_delete=True)
 
         connection_list = retry_function_wrapper(self.api.connection.list)
         self.assertIsNotNone(connection_list)
