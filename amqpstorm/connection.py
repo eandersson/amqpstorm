@@ -275,7 +275,7 @@ class Connection(Stateful):
                 'reached the maximum number of channels %d' %
                 self.max_allowed_channels)
 
-        for index in compatibility.RANGE(1, num_channels + 1):
+        for index in compatibility.RANGE(1, num_channels):
             if index in self._channels:
                 continue
             return index
