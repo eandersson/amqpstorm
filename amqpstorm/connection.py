@@ -255,9 +255,7 @@ class Connection(Stateful):
 
         :return:
         """
-        for channel_id in self._channels:
-            if not self._channels[channel_id].is_open:
-                continue
+        for channel_id in list(self._channels):
             self._channels[channel_id].set_state(Channel.CLOSED)
             self._channels[channel_id].close()
             self._cleanup_channel(channel_id)
@@ -275,12 +273,13 @@ class Connection(Stateful):
                 'reached the maximum number of channels %d' %
                 self.max_allowed_channels)
 
+        if num_channels <= self.max_allowed_channels:
+            return num_channels
+
         for index in compatibility.RANGE(1, num_channels):
             if index in self._channels:
                 continue
             return index
-
-        return num_channels
 
     def _handle_amqp_frame(self, data_in):
         """Unmarshal a single AMQP frame and return the result.
