@@ -63,6 +63,7 @@ class Connection(Stateful):
         self._io = IO(self.parameters, exceptions=self._exceptions,
                       on_read=self._read_buffer)
         self._channel0 = Channel0(self)
+        self._last_channel_id = 0
         self._channels = {}
         self.heartbeat = Heartbeat(self.parameters['heartbeat'],
                                    self._channel0.send_heartbeat)
@@ -267,12 +268,22 @@ class Connection(Stateful):
 
         :rtype: int
         """
-        for index in compatibility.RANGE(1, self.max_allowed_channels):
+
+        if self._last_channel_id == self.max_allowed_channels:
+            self._last_channel_id = 0
+
+        for index in range(self._last_channel_id + 1, self.max_allowed_channels):
             if index in self._channels:
                 continue
+            self._last_channel_id = index
             return index
-        raise AMQPConnectionError('reached the maximum number of channels %d' %
-                                    self.max_allowed_channels)
+
+        if self._last_channel_id != 0:
+            self._last_channel_id = 0
+            return self._get_next_available_channel_id()
+            
+        raise AMQPConnectionError(
+            'reached the maximum number of channels %d' % self.max_allowed_channels)
 
     def _handle_amqp_frame(self, data_in):
         """Unmarshal a single AMQP frame and return the result.
