@@ -267,12 +267,19 @@ class Connection(Stateful):
 
         :rtype: int
         """
-        for index in compatibility.RANGE(1, self.max_allowed_channels):
+        num_channels = len(self._channels) + 1
+        if num_channels == self.max_allowed_channels:
+            raise AMQPConnectionError(
+                'reached the maximum number of channels %d' %
+                self.max_allowed_channels)
+
+        if num_channels <= self.max_allowed_channels:
+            return num_channels
+
+        for index in compatibility.RANGE(1, num_channels):
             if index in self._channels:
                 continue
             return index
-        raise AMQPConnectionError('reached the maximum number of channels %d' %
-                                    self.max_allowed_channels)
 
     def _handle_amqp_frame(self, data_in):
         """Unmarshal a single AMQP frame and return the result.
