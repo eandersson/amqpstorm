@@ -12,7 +12,6 @@ from amqpstorm import compatibility
 from amqpstorm.base import MAX_CHANNELS
 from amqpstorm.exception import AMQPConnectionError
 from amqpstorm.io import IO
-from amqpstorm.tests.utility import FakeChannel
 from amqpstorm.tests.utility import TestFramework
 
 
@@ -441,6 +440,17 @@ class ConnectionTests(TestFramework):
         connection._channels[1] = None
         self.assertEqual(
             connection._get_next_available_channel_id(), 2
+        )
+
+    def test_connection_avoid_conflicts_with_channel_ids(self):
+        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
+                                lazy=True)
+        connection._channels[65535] = None
+        connection._channels[3] = None
+        connection._channels[2] = None
+        connection._channels[1] = None
+        self.assertEqual(
+            connection._get_next_available_channel_id(), 4
         )
 
     def test_connection_open_many_channels(self):

@@ -272,7 +272,8 @@ class Connection(Stateful):
 
         last_channel_id = int(next(reversed(self._channels)))
         next_channel_id = last_channel_id + 1
-        if next_channel_id < self.max_allowed_channels:
+        if (next_channel_id < self.max_allowed_channels and
+           next_channel_id not in self._channels):
             return next_channel_id
 
         for index in compatibility.RANGE(1, self.max_allowed_channels):
