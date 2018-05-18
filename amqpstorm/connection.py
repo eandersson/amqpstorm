@@ -236,16 +236,29 @@ class Connection(Stateful):
         self.heartbeat.register_write()
         self._io.write_to_socket(data_out)
 
+    def _cleanup_channel(self, channel_id):
+        if channel_id not in self._channels:
+            return
+
+        channel = self._channels[channel_id]
+        if not channel.is_closed:
+            return
+
+        with self.lock:
+            try:
+                del self._channels[channel_id]
+            except KeyError:
+                LOGGER.error('Channel %i not in channels', channel_id)
+
     def _close_remaining_channels(self):
         """Close any open channels.
 
         :return:
         """
-        for channel_id in self._channels:
-            if not self._channels[channel_id].is_open:
-                continue
+        for channel_id in list(self._channels):
             self._channels[channel_id].set_state(Channel.CLOSED)
             self._channels[channel_id].close()
+            self._cleanup_channel(channel_id)
 
     def _get_next_available_channel_id(self):
         """Returns the next available available channel id.
@@ -254,12 +267,19 @@ class Connection(Stateful):
 
         :rtype: int
         """
-        channel_id = len(self._channels) + 1
-        if channel_id == self.max_allowed_channels:
+        num_channels = len(self._channels) + 1
+        if num_channels == self.max_allowed_channels:
             raise AMQPConnectionError(
                 'reached the maximum number of channels %d' %
                 self.max_allowed_channels)
-        return channel_id
+
+        if num_channels <= self.max_allowed_channels:
+            return num_channels
+
+        for index in compatibility.RANGE(1, num_channels):
+            if index in self._channels:
+                continue
+            return index
 
     def _handle_amqp_frame(self, data_in):
         """Unmarshal a single AMQP frame and return the result.

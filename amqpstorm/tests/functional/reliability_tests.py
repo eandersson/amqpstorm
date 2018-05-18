@@ -78,9 +78,6 @@ class ReliabilityFunctionalTests(TestFunctionalFramework):
         for index in range(3):
             channel = self.connection.channel()
 
-            # Make sure that it's a new channel.
-            self.assertEqual(index + 1, int(channel))
-
             # Try to publish 25 bad messages.
             for _ in range(25):
                 try:
