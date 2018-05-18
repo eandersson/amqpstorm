@@ -1,5 +1,6 @@
 """AMQPStorm Connection."""
 
+import collections
 import logging
 import time
 from time import sleep
@@ -204,7 +205,7 @@ class Connection(Stateful):
         LOGGER.debug('Connection Opening')
         self.set_state(self.OPENING)
         self._exceptions = []
-        self._channels = {}
+        self._channels = collections.OrderedDict()
         self._io.open()
         self._send_handshake()
         self._wait_for_connection_state(state=Stateful.OPEN)
@@ -268,7 +269,6 @@ class Connection(Stateful):
 
         :rtype: int
         """
-
         if self._last_channel_id == self.max_allowed_channels:
             self._last_channel_id = 0
 

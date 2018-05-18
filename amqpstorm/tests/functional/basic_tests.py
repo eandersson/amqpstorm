@@ -70,11 +70,6 @@ class BasicFunctionalTests(TestFunctionalFramework):
             multiple=True
         )
 
-        # Close AND Open Channel to force potential unacked messages to be
-        # flushed.
-        self.channel.close()
-        self.channel.open()
-
         # Make sure the message wasn't requeued.
         self.assertFalse(self.channel.basic.get(self.queue_name))
 
@@ -111,11 +106,6 @@ class BasicFunctionalTests(TestFunctionalFramework):
             requeue=False,
             multiple=True
         )
-
-        # Close AND Open Channel to force potential unacked messages to be
-        # flushed.
-        self.channel.close()
-        self.channel.open()
 
         # Make sure the message wasn't requeued.
         self.assertFalse(self.channel.basic.get(self.queue_name))
