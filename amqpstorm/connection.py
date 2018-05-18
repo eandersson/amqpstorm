@@ -1,5 +1,6 @@
 """AMQPStorm Connection."""
 
+import collections
 import logging
 import time
 from time import sleep
@@ -63,7 +64,7 @@ class Connection(Stateful):
         self._io = IO(self.parameters, exceptions=self._exceptions,
                       on_read=self._read_buffer)
         self._channel0 = Channel0(self)
-        self._channels = {}
+        self._channels = collections.OrderedDict()
         self.heartbeat = Heartbeat(self.parameters['heartbeat'],
                                    self._channel0.send_heartbeat)
         if not kwargs.get('lazy', False):
@@ -258,7 +259,6 @@ class Connection(Stateful):
         for channel_id in list(self._channels):
             self._channels[channel_id].set_state(Channel.CLOSED)
             self._channels[channel_id].close()
-            self._cleanup_channel(channel_id)
 
     def _get_next_available_channel_id(self):
         """Returns the next available available channel id.
@@ -267,19 +267,22 @@ class Connection(Stateful):
 
         :rtype: int
         """
-        num_channels = len(self._channels) + 1
-        if num_channels == self.max_allowed_channels:
-            raise AMQPConnectionError(
-                'reached the maximum number of channels %d' %
-                self.max_allowed_channels)
+        if not self._channels:
+            return 1
 
-        if num_channels <= self.max_allowed_channels:
-            return num_channels
+        last_channel_id = int(next(reversed(self._channels)))
+        next_channel_id = last_channel_id + 1
+        if next_channel_id < self.max_allowed_channels:
+            return next_channel_id
 
-        for index in compatibility.RANGE(1, num_channels):
+        for index in compatibility.RANGE(1, self.max_allowed_channels):
             if index in self._channels:
                 continue
             return index
+
+        raise AMQPConnectionError(
+            'reached the maximum number of channels %d' %
+            self.max_allowed_channels)
 
     def _handle_amqp_frame(self, data_in):
         """Unmarshal a single AMQP frame and return the result.
