@@ -163,11 +163,11 @@ class Channel(BaseChannel):
                 reply_text=reply_text),
                 adapter=self._connection
             )
+            self._connection._cleanup_channel(self.channel_id)
         finally:
             if self._inbound:
                 del self._inbound[:]
             self.set_state(self.CLOSED)
-            self._connection._cleanup_channel(self.channel_id)
         LOGGER.debug('Channel #%d Closed', self.channel_id)
 
     def check_for_errors(self):
@@ -471,3 +471,4 @@ class Channel(BaseChannel):
             except AMQPConnectionError:
                 pass
         self.close()
+        self._connection._cleanup_channel(self.channel_id)

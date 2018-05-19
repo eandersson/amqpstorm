@@ -247,11 +247,6 @@ class Connection(Stateful):
         with self.lock:
             if channel_id not in self._channels:
                 return
-
-            channel = self._channels[channel_id]
-            if not channel.is_closed:
-                return
-
             del self._channels[channel_id]
 
     def _close_remaining_channels(self):
@@ -262,6 +257,7 @@ class Connection(Stateful):
         for channel_id in list(self._channels):
             self._channels[channel_id].set_state(Channel.CLOSED)
             self._channels[channel_id].close()
+            self._cleanup_channel(channel_id)
 
     def _get_next_available_channel_id(self):
         """Returns the next available available channel id.

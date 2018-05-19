@@ -302,7 +302,7 @@ def clean(names, queue=False, exchange=False):
     """
     if not queue and not exchange:
         return
-    api = ManagementApi(HTTP_URL, USERNAME, PASSWORD, timeout=1)
+    api = ManagementApi(HTTP_URL, USERNAME, PASSWORD, timeout=10)
     if queue:
         _delete_queues(api, names)
     if exchange:

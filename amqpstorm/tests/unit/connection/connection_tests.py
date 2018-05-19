@@ -522,17 +522,6 @@ class ConnectionTests(TestFramework):
 
         self.assertFalse(connection._channels)
 
-    def test_connection_cleanup_channel_not_closed(self):
-        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
-                                lazy=True)
-        channel = Channel(1, connection, 0.1)
-        channel.set_state(Channel.OPEN)
-        connection._channels[1] = channel
-
-        connection._cleanup_channel(1)
-
-        self.assertEqual(len(connection._channels), 1)
-
     def test_connection_cleanup_channel_does_not_exist(self):
         connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
                                 lazy=True)
