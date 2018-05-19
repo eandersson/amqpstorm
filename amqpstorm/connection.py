@@ -239,18 +239,20 @@ class Connection(Stateful):
         self._io.write_to_socket(data_out)
 
     def _cleanup_channel(self, channel_id):
-        if channel_id not in self._channels:
-            return
+        """Remove a closed channel.
 
-        channel = self._channels[channel_id]
-        if not channel.is_closed:
-            return
-
+        :param int channel_id: Channel id
+        :return:
+        """
         with self.lock:
-            try:
-                del self._channels[channel_id]
-            except KeyError:
-                LOGGER.error('Channel %i not in channels', channel_id)
+            if channel_id not in self._channels:
+                return
+
+            channel = self._channels[channel_id]
+            if not channel.is_closed:
+                return
+
+            del self._channels[channel_id]
 
     def _close_remaining_channels(self):
         """Close any open channels.
@@ -266,9 +268,6 @@ class Connection(Stateful):
         :raises AMQPConnectionError: Raises if there is no available channel.
         :rtype: int
         """
-        if self._last_channel_id == self.max_allowed_channels:
-            self._last_channel_id = 1
-
         for index in compatibility.RANGE(self._last_channel_id,
                                          self.max_allowed_channels):
             if index in self._channels:
