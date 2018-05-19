@@ -506,7 +506,7 @@ class ConnectionTests(TestFramework):
                                 lazy=True)
         connection._channels[1] = Channel(1, connection, 0.1)
 
-        connection._cleanup_channel(1)
+        connection._remove_channel(1)
 
         self.assertFalse(connection._channels)
 
@@ -518,7 +518,7 @@ class ConnectionTests(TestFramework):
             connection._channels[index] = Channel(index, connection, 0.1)
 
         for index in range(1, 10):
-            connection._cleanup_channel(index)
+            connection._remove_channel(index)
 
         self.assertFalse(connection._channels)
 
@@ -527,6 +527,6 @@ class ConnectionTests(TestFramework):
                                 lazy=True)
         connection._channels[1] = Channel(1, connection, 0.1)
 
-        connection._cleanup_channel(2)
+        connection._remove_channel(2)
 
         self.assertEqual(len(connection._channels), 1)

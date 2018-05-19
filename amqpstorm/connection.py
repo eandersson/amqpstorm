@@ -184,13 +184,13 @@ class Connection(Stateful):
             self.set_state(self.CLOSING)
         self.heartbeat.stop()
         try:
-            self._close_remaining_channels()
             if not self.is_closed and self.socket:
                 self._channel0.send_close_connection()
                 self._wait_for_connection_state(state=Stateful.CLOSED)
         except AMQPConnectionError:
             pass
         finally:
+            self._close_remaining_channels()
             self._io.close()
             self.set_state(self.CLOSED)
         LOGGER.debug('Connection Closed')
@@ -238,26 +238,15 @@ class Connection(Stateful):
         self.heartbeat.register_write()
         self._io.write_to_socket(data_out)
 
-    def _cleanup_channel(self, channel_id):
-        """Remove a closed channel.
-
-        :param int channel_id: Channel id
-        :return:
-        """
-        with self.lock:
-            if channel_id not in self._channels:
-                return
-            del self._channels[channel_id]
-
     def _close_remaining_channels(self):
-        """Close any open channels.
+        """Forcefully close all open channels.
 
         :return:
         """
         for channel_id in list(self._channels):
             self._channels[channel_id].set_state(Channel.CLOSED)
             self._channels[channel_id].close()
-            self._cleanup_channel(channel_id)
+            self._remove_channel(channel_id)
 
     def _get_next_available_channel_id(self):
         """Returns the next available available channel id.
@@ -318,6 +307,17 @@ class Connection(Stateful):
                 self._channels[channel_id].on_frame(frame_in)
 
         return data_in
+
+    def _remove_channel(self, channel_id):
+        """Remove a channel.
+
+        :param int channel_id: Channel id
+        :return:
+        """
+        with self.lock:
+            if channel_id not in self._channels:
+                return
+            del self._channels[channel_id]
 
     def _send_handshake(self):
         """Send a RabbitMQ Handshake.
