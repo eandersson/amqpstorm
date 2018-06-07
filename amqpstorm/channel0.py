@@ -146,8 +146,10 @@ class Channel0(object):
         mechanisms = try_utf8_decode(frame_in.mechanisms)
         if 'EXTERNAL' in mechanisms:
             mechanism = 'EXTERNAL'
+            credentials = '\0\0'
         elif 'PLAIN' in mechanisms:
             mechanism = 'PLAIN'
+            credentials = self._plain_credentials()
         else:
             exception = AMQPConnectionError(
                 'Unsupported Security Mechanism(s): %s' %
@@ -155,7 +157,6 @@ class Channel0(object):
             )
             self._connection.exceptions.append(exception)
             return
-        credentials = self._plain_credentials()
         start_ok_frame = specification.Connection.StartOk(
             mechanism=mechanism,
             client_properties=self._client_properties(),
