@@ -142,10 +142,14 @@ class Channel0(object):
         """Send Start OK frame.
 
         :param specification.Connection.Start frame_in: Amqp frame.
-
         :return:
         """
-        if 'PLAIN' not in try_utf8_decode(frame_in.mechanisms):
+        mechanisms = try_utf8_decode(frame_in.mechanisms)
+        if 'EXTERNAL' in mechanisms:
+            mechanism = 'EXTERNAL'
+        elif 'PLAIN' in mechanisms:
+            mechanism = 'PLAIN'
+        else:
             exception = AMQPConnectionError(
                 'Unsupported Security Mechanism(s): %s' %
                 frame_in.mechanisms
@@ -154,7 +158,7 @@ class Channel0(object):
             return
         credentials = self._plain_credentials()
         start_ok_frame = specification.Connection.StartOk(
-            mechanism=AUTH_MECHANISM,
+            mechanism=mechanism,
             client_properties=self._client_properties(),
             response=credentials,
             locale=LOCALE
