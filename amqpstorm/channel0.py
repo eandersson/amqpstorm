@@ -7,7 +7,6 @@ from pamqp import specification
 from pamqp.heartbeat import Heartbeat
 
 from amqpstorm import __version__
-from amqpstorm.base import AUTH_MECHANISM
 from amqpstorm.base import LOCALE
 from amqpstorm.base import MAX_CHANNELS
 from amqpstorm.base import MAX_FRAME_SIZE
