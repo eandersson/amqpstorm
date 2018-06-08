@@ -67,12 +67,26 @@ class Channel0Tests(TestFramework):
         self.assertTrue(connection.is_closed)
         self.assertRaises(AMQPConnectionError, connection.check_for_errors)
 
-    def test_channel0_send_start_ok(self):
+    def test_channel0_send_start_ok_plain(self):
         connection = FakeConnection()
         connection.parameters['username'] = 'guest'
         connection.parameters['password'] = 'password'
         channel = Channel0(connection)
         channel._send_start_ok(Connection.Start(mechanisms=b'PLAIN'))
+
+        self.assertTrue(connection.frames_out)
+
+        channel_id, frame_out = connection.frames_out.pop()
+
+        self.assertEqual(channel_id, 0)
+        self.assertIsInstance(frame_out, Connection.StartOk)
+        self.assertNotEqual(frame_out.locale, '')
+        self.assertIsNotNone(frame_out.locale)
+
+    def test_channel0_send_start_ok_external(self):
+        connection = FakeConnection()
+        channel = Channel0(connection)
+        channel._send_start_ok(Connection.Start(mechanisms=b'EXTERNAL'))
 
         self.assertTrue(connection.frames_out)
 
