@@ -13,7 +13,7 @@ setup(
     license='MIT License',
     url='https://www.amqpstorm.io',
     install_requires=['pamqp>=1.6.1,<2.0'],
-    extra_require={
+    extras_require={
         'management': ['requests']
     },
     package_data={'': ['README.rst', 'LICENSE', 'CHANGELOG.rst']},
