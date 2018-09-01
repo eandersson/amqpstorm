@@ -1,6 +1,12 @@
 Changelog
 =========
 
+Version 2.4.2
+-------------
+- Added support for External Authentication - Thanks Bernd Höhl.
+- Fixed typo in setup.py extra requirements - Thanks Bernd Höhl.
+- LICENSE file now included in package - Thanks Tomáš Chvátal.
+
 Version 2.4.1
 -------------
 - Added client/server negotiation to better determine the maximum supported channels and frame size [#52] - Thanks gastlich.
