@@ -1,13 +1,14 @@
 dist: trusty
 sudo: required
 language: python
+addons:
+  hostname: travis
 python:
   - 2.7
   - 3.5
   - 3.6
-  - 3.7
+  - 3.7-dev
   - nightly
-  - pypy
 install:
   - sudo rabbitmq-plugins enable rabbitmq_management
   - sudo service rabbitmq-server restart
