@@ -131,7 +131,7 @@ class Channel0Tests(TestFramework):
         self.assertEqual(channel.max_allowed_channels, MAX_CHANNELS)
 
     def test_channel0_send_tune_ok_negotiate_use_server(self):
-        """"Test to make sure that we use the highest acceptable value from
+        """Test to make sure that we use the highest acceptable value from
         the servers perspective.
         """
         channel = Channel0(FakeConnection())

@@ -1,7 +1,6 @@
 import time
 
 from amqpstorm import Connection
-from amqpstorm.exception import AMQPConnectionError
 from amqpstorm.tests import HOST
 from amqpstorm.tests import PASSWORD
 from amqpstorm.tests import USERNAME
@@ -60,45 +59,6 @@ class WebFunctionalTests(TestFunctionalFramework):
                 queue_deleted = True
 
         self.assertFalse(self.channel._inbound)
-
-    @setup(queue=True)
-    def test_functional_connection_forcefully_closed(self):
-        self.channel.confirm_deliveries()
-        self.channel.queue.declare(self.queue_name)
-
-        connection_list = retry_function_wrapper(self.api.connection.list)
-        self.assertIsNotNone(connection_list)
-
-        for connection in connection_list:
-            self.api.connection.close(connection['name'])
-
-        start_time = time.time()
-        while len(self.api.connection.list()) > 0:
-            if time.time() - start_time >= 60:
-                break
-            time.sleep(1)
-
-        self.assertRaisesRegexp(
-            AMQPConnectionError,
-            'Connection was closed by remote server: '
-            'CONNECTION_FORCED - Closed via management api',
-            self.channel.basic.publish, 'body', self.queue_name, '',
-            None, True, False
-        )
-
-        self.assertRaisesRegexp(
-            AMQPConnectionError,
-            'Connection was closed by remote server: '
-            'CONNECTION_FORCED - Closed via management api',
-            self.channel.check_for_errors
-        )
-
-        self.assertRaisesRegexp(
-            AMQPConnectionError,
-            'Connection was closed by remote server: '
-            'CONNECTION_FORCED - Closed via management api',
-            self.connection.check_for_errors
-        )
 
     @setup(new_connection=False, queue=True)
     def test_functional_alternative_virtual_host(self):
