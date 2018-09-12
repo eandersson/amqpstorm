@@ -1,6 +1,6 @@
 nose
 nose-timer
 mock
-coverage==4.3.3
+coverage
 requests
 flake8
