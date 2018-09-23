@@ -16,14 +16,14 @@ install:
   - pip install -r test-requirements.txt
 script:
   - docker run -d --hostname travis --name travis -p 5672:5672 -p 15672:15672 rabbitmq:management-alpine
-  - sleep 12s
+  - sleep 15s
   - nc localhost 5672 < /dev/null || exit 1
   - nc localhost 15672 < /dev/null || exit 1
   - nosetests -v -l DEBUG --logging-level=DEBUG --with-coverage --cover-package=amqpstorm --with-timer --timer-top-n 10
   - docker stop travis
   - docker rm travis
   - docker run -d --hostname travis --name travis -p 5672:5672 -p 15672:15672 rabbitmq:3.6-management-alpine
-  - sleep 12s
+  - sleep 15s
   - nc localhost 5672 < /dev/null || exit 1
   - nc localhost 15672 < /dev/null || exit 1
   - nosetests -v -l DEBUG --logging-level=DEBUG --with-coverage --cover-package=amqpstorm --with-timer --timer-top-n 10
