@@ -1,6 +1,5 @@
 from amqpstorm.compatibility import json
 from amqpstorm.compatibility import quote
-from amqpstorm.compatibility import urlparse
 from amqpstorm.management.base import ManagementHandler
 
 API_EXCHANGE = 'exchanges/%s/%s'
@@ -68,7 +67,6 @@ class Exchange(ManagementHandler):
 
         :rtype: None
         """
-        virtual_host = quote(virtual_host, '')
         if passive:
             return self.get(exchange, virtual_host=virtual_host)
         exchange_payload = json.dumps(
@@ -78,12 +76,12 @@ class Exchange(ManagementHandler):
                 'internal': internal,
                 'type': exchange_type,
                 'arguments': arguments or {},
-                'vhost': urlparse.unquote(virtual_host)
+                'vhost': virtual_host
             }
         )
         return self.http_client.put(API_EXCHANGE %
                                     (
-                                        virtual_host,
+                                        quote(virtual_host, ''),
                                         exchange
                                     ),
                                     payload=exchange_payload)

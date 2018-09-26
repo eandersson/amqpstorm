@@ -75,6 +75,14 @@ class ApiExchangeFunctionalTests(TestFunctionalFramework):
             self.assertEqual(why.error_type, 'NOT-FOUND')
             self.assertEqual(why.error_code, 404)
 
+    def test_api_exchange_declare_passive_exists(self):
+        exchange = 'test_queue_declare_passive_exists'
+
+        api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
+        api.exchange.declare(exchange)
+
+        self.assertIsNotNone(api.exchange.declare(exchange, passive=True))
+
     @setup(new_connection=False, exchange=True)
     def test_api_exchange_delete(self):
         exchange_type = 'direct'
