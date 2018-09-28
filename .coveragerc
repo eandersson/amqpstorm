@@ -1,4 +1,7 @@
 [run]
 branch = true
 source = amqpstorm
+
+[report]
+ignore_errors = True
 omit = amqpstorm/tests/*
