@@ -20,6 +20,10 @@ Additional documentation is available on `amqpstorm.io <https://www.amqpstorm.io
 Changelog
 =========
 
+Version 2.4.3
+-------------
+- Properly wait until the inbound queue is empty when break_on_empty is set [#63] - Thanks TomGudman.
+
 Version 2.4.2
 -------------
 - Added support for External Authentication - Thanks Bernd Höhl.
