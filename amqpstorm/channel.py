@@ -117,7 +117,6 @@ class Channel(BaseChannel):
                     sleep(IDLE_WAIT * 10)
                     if not self._inbound:
                         break
-                    continue
                 sleep(IDLE_WAIT)
                 continue
             if to_tuple:
