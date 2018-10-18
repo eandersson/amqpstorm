@@ -112,9 +112,12 @@ class Channel(BaseChannel):
         while not self.is_closed:
             message = self._build_message(auto_decode=auto_decode)
             if not message:
-                if break_on_empty:
-                    break
                 self.check_for_errors()
+                if break_on_empty:
+                    sleep(IDLE_WAIT * 10)
+                    if not self._inbound:
+                        break
+                    continue
                 sleep(IDLE_WAIT)
                 continue
             if to_tuple:
