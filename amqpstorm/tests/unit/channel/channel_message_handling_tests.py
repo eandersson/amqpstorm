@@ -197,6 +197,29 @@ class ChannelBuildMessageTests(TestFramework):
         else:
             self.assertRaises(StopIteration, generator.__next__)
 
+    def test_channel_build_no_message_but_inbound_not_empty(self):
+        channel = Channel(0, FakeConnection(), 360)
+        channel.set_state(Channel.OPEN)
+
+        message = self.message.encode('utf-8')
+        message_len = len(message)
+
+        def add_content():
+            channel._inbound.append(ContentHeader(body_size=message_len))
+            channel._inbound.append(ContentBody(value=message))
+
+        deliver = specification.Basic.Deliver()
+        channel._inbound = [deliver]
+
+        self.assertTrue(channel._inbound)
+
+        threading.Timer(function=add_content, interval=0.2).start()
+
+        for msg in channel.build_inbound_messages(break_on_empty=True):
+            self.assertEqual(msg.body, message.decode('utf-8'))
+
+        self.assertFalse(channel._inbound)
+
     def test_channel_build_inbound_messages(self):
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(Channel.OPEN)
@@ -211,8 +234,8 @@ class ChannelBuildMessageTests(TestFramework):
         channel._inbound = [deliver, header, body]
 
         messages_consumed = 0
-        for message in channel.build_inbound_messages(break_on_empty=True):
-            self.assertIsInstance(message, Message)
+        for msg in channel.build_inbound_messages(break_on_empty=True):
+            self.assertIsInstance(msg, Message)
             messages_consumed += 1
 
         self.assertEqual(messages_consumed, 1)
@@ -232,8 +255,8 @@ class ChannelBuildMessageTests(TestFramework):
                             deliver, header, body, deliver, header, body]
 
         messages_consumed = 0
-        for message in channel.build_inbound_messages(break_on_empty=True):
-            self.assertIsInstance(message, Message)
+        for msg in channel.build_inbound_messages(break_on_empty=True):
+            self.assertIsInstance(msg, Message)
             messages_consumed += 1
 
         self.assertEqual(messages_consumed, 4)
@@ -255,8 +278,8 @@ class ChannelBuildMessageTests(TestFramework):
             channel._inbound.append(body)
 
         messages_consumed = 0
-        for message in channel.build_inbound_messages(break_on_empty=True):
-            self.assertIsInstance(message, Message)
+        for msg in channel.build_inbound_messages(break_on_empty=True):
+            self.assertIsInstance(msg, Message)
             messages_consumed += 1
 
         self.assertEqual(messages_consumed, 10000)
