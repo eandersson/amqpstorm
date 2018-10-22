@@ -97,7 +97,13 @@ class Channel(BaseChannel):
         """Build messages in the inbound queue.
 
         :param bool break_on_empty: Should we break the loop when there are
-                                    no more messages to consume.
+                                    no more messages in our inbound queue.
+
+                                    This does not guarantee that the upstream
+                                    queue is empty, as it's possible that if
+                                    messages are consumed faster than
+                                    delivered, the inbound queue will then be
+                                    emptied and the consumption will be broken.
         :param bool to_tuple: Should incoming messages be converted to a
                               tuple before delivery.
         :param bool auto_decode: Auto-decode strings when possible.

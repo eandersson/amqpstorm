@@ -205,3 +205,37 @@ class PublishAndConsume5kTest(TestFunctionalFramework):
 
         self.assertEqual(self.messages_consumed, self.messages_to_send,
                          'test took too long')
+
+
+class PublishAndConsumeUntilEmptyTest(TestFunctionalFramework):
+    messages_to_send = 1000
+
+    def configure(self):
+        self.disable_logging_validation()
+
+    def publish_messages(self):
+        for _ in range(self.messages_to_send):
+            self.channel.basic.publish(body=self.message,
+                                       routing_key=self.queue_name)
+
+    @setup(queue=True)
+    def test_functional_publish_and_consume_until_empty(self):
+        self.channel.queue.declare(self.queue_name)
+
+        publish_thread = threading.Thread(target=self.publish_messages, )
+        publish_thread.daemon = True
+        publish_thread.start()
+
+        channel = self.connection.channel()
+        channel.basic.consume(queue=self.queue_name,
+                              no_ack=False)
+        message_count = 0
+        for _ in channel.build_inbound_messages(break_on_empty=True):
+            message_count += 1
+
+        result = channel.queue.declare(self.queue_name, passive=True)
+        self.assertEqual(result['message_count'], 0)
+        self.assertEqual(message_count, self.messages_to_send,
+                         'not all messages consumed')
+
+        channel.close()
