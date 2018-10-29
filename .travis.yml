@@ -22,14 +22,14 @@ script:
   - nosetests -v -l DEBUG --logging-level=DEBUG --with-coverage --cover-package=amqpstorm --with-timer --timer-top-n 10
   - docker stop travis
   - docker rm travis
+  - bash <(curl -s https://codecov.io/bash)
   - rm -f coverage.xml
   - docker run -d --hostname travis --name travis -p 5672:5672 -p 15672:15672 rabbitmq:3.6-management-alpine
   - sleep 15s
   - nc localhost 5672 < /dev/null || exit 1
   - nc localhost 15672 < /dev/null || exit 1
   - nosetests -v -l DEBUG --logging-level=DEBUG --with-coverage --cover-package=amqpstorm --with-timer --timer-top-n 10
-  - flake8 --ignore=F821 .
-after_success:
   - bash <(curl -s https://codecov.io/bash)
+  - flake8 --ignore=F821,W605 .
 services:
   - docker
