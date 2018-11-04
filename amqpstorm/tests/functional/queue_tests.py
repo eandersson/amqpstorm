@@ -13,7 +13,7 @@ class QueueFunctionalTests(TestFunctionalFramework):
         expected_result = {
             'consumer_count': 0,
             'message_count': 0,
-            'queue': self.queue_name.encode('utf-8')
+            'queue': self.queue_name
         }
 
         self.assertEqual(

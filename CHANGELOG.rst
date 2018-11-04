@@ -1,9 +1,13 @@
 Changelog
 =========
 
-Version 2.4.3
+Version 2.5.0
 -------------
+- Upgraded pamqp to v2.0.0.
+    - Python 3 keys will now always be of type str.
+    - For more information see https://pamqp.readthedocs.io/en/latest/history.html
 - Properly wait until the inbound queue is empty when break_on_empty is set [#63] - Thanks TomGudman.
+- Fixed issue with Management queue/exchange declare when the passive flag was set to True.
 
 Version 2.4.2
 -------------

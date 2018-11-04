@@ -136,7 +136,7 @@ class GenericTest(TestFunctionalFramework):
         self.channel.confirm_deliveries()
         self.channel.queue.declare(self.queue_name)
 
-        app_id = 'travis-ci'.encode('utf-8')
+        app_id = 'travis-ci'
         properties = {
             'headers': {
                 'key': 1234567890,
@@ -166,20 +166,20 @@ class GenericTest(TestFunctionalFramework):
         payload = self.channel.basic.get(self.queue_name)
         self.assertEqual(payload.properties['headers']['key'], 1234567890)
         self.assertEqual(payload.properties['headers']['alpha'], 'omega')
-        self.assertEqual(payload.app_id, app_id.decode('utf-8'))
+        self.assertEqual(payload.app_id, app_id)
         self.assertEqual(payload.correlation_id, correlation_id)
         self.assertIsInstance(payload.properties['app_id'], str)
         self.assertIsInstance(payload.properties['correlation_id'], str)
 
         # Old way
         result = payload.to_dict()
-        self.assertEqual(result['properties']['headers'][b'key'], 1234567890)
-        self.assertEqual(result['properties']['headers'][b'alpha'], b'omega')
-        self.assertIsInstance(result['properties']['app_id'], bytes)
-        self.assertIsInstance(result['properties']['correlation_id'], bytes)
+        self.assertEqual(result['properties']['headers']['key'], 1234567890)
+        self.assertEqual(result['properties']['headers']['alpha'], b'omega')
+        self.assertIsInstance(result['properties']['app_id'], str)
+        self.assertIsInstance(result['properties']['correlation_id'], str)
         self.assertEqual(result['properties']['app_id'], app_id)
         self.assertEqual(result['properties']['correlation_id'],
-                         correlation_id.encode('utf-8'))
+                         correlation_id)
 
     @setup(queue=True)
     def test_functional_publish_and_change_app_id(self):

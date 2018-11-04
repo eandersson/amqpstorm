@@ -1,6 +1,5 @@
 from amqpstorm.compatibility import json
 from amqpstorm.compatibility import quote
-from amqpstorm.compatibility import urlparse
 from amqpstorm.management.base import ManagementHandler
 
 API_QUEUE = 'queues/%s/%s'
@@ -66,7 +65,6 @@ class Queue(ManagementHandler):
 
         :rtype: dict
         """
-        virtual_host = quote(virtual_host, '')
         if passive:
             return self.get(queue, virtual_host=virtual_host)
 
@@ -75,12 +73,12 @@ class Queue(ManagementHandler):
                 'durable': durable,
                 'auto_delete': auto_delete,
                 'arguments': arguments or {},
-                'vhost': urlparse.unquote(virtual_host)
+                'vhost': virtual_host
             }
         )
         return self.http_client.put(
             API_QUEUE % (
-                virtual_host,
+                quote(virtual_host, ''),
                 queue
             ),
             payload=queue_payload)

@@ -87,6 +87,13 @@ class ApiQueueFunctionalTests(TestFunctionalFramework):
             self.assertEqual(why.error_code, 404)
 
     @setup(new_connection=False)
+    def test_api_queue_declare_passive_exists(self):
+        api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
+        api.queue.declare(self.queue_name)
+
+        self.assertIsNotNone(api.queue.declare(self.queue_name, passive=True))
+
+    @setup(new_connection=False)
     def test_api_queue_delete(self):
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
         try:

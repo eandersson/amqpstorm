@@ -20,9 +20,13 @@ Additional documentation is available on `amqpstorm.io <https://www.amqpstorm.io
 Changelog
 =========
 
-Version 2.4.3
+Version 2.5.0
 -------------
+- Upgraded pamqp to v2.0.0.
+    - Python 3 keys will now always be of type str.
+    - For more information see https://pamqp.readthedocs.io/en/latest/history.html
 - Properly wait until the inbound queue is empty when break_on_empty is set [#63] - Thanks TomGudman.
+- Fixed issue with Management queue/exchange declare when the passive flag was set to True.
 
 Version 2.4.2
 -------------
@@ -38,15 +42,6 @@ Version 2.4.1
 Version 2.4.0
 -------------
 - basic.consume now allows for multiple callbacks [#48].
-
-Version 2.3.0
--------------
-- Added delivery_tag property to message.
-- Added redelivered property to message [#41] - Thanks tkram01.
-- Added support for Management Api Healthchecks [#39] - Thanks Julien Carpentier.
-- Fixed incompatibility with Sun Solaris 10 [#46] - Thanks Giuliox.
-- Fixed delivery_tag being set to None by default [#47] - tkram01.
-- Exposed requests verify and certs flags to Management Api [#40] - Thanks Julien Carpentier.
 
 Credits
 =======

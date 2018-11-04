@@ -2,24 +2,24 @@ dist: xenial
 sudo: required
 language: python
 addons:
-  hostname: travis
+  hostname: travis-ci
 python:
   - 2.7
   - 3.5
   - 3.6
   - 3.7
+before_install:
+  - docker pull rabbitmq:management-alpine
+  - docker run -d --hostname travis-rmq --name travis-rmq -p 5672:5672 -p 15672:15672 rabbitmq:management-alpine
+  - sleep 15s
+  - nc localhost 5672 < /dev/null || exit 1
+  - nc localhost 15672 < /dev/null || exit 1
 install:
   - pip install -r requirements.txt
   - pip install -r test-requirements.txt
-script: nosetests -v -l DEBUG --logging-level=DEBUG --with-coverage --cover-package=amqpstorm --with-timer --timer-top-n 10
-before_install:
-  - docker pull rabbitmq:management
-  - docker run -d --hostname travis --name travis -p 5672:5672 -p 15672:15672 rabbitmq:management
-  - sleep 10s
-  - nc localhost 5672 < /dev/null || exit 1
-  - nc localhost 15672 < /dev/null || exit 1
-before_script:
-  - flake8 --ignore=F821 .
+script:
+  - nosetests -v -l DEBUG --logging-level=DEBUG --with-coverage --cover-package=amqpstorm --with-timer --timer-top-n 10
+  - flake8 --ignore=F821,W605 .
 after_success:
   - bash <(curl -s https://codecov.io/bash)
 services:

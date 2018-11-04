@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='AMQPStorm',
-    version='2.4.3',
+    version='2.5.0',
     description='Thread-safe Python RabbitMQ Client & Management library.',
     long_description=open('README.rst').read(),
     author='Erik Olof Gunnar Andersson',
@@ -12,7 +12,7 @@ setup(
     packages=find_packages(),
     license='MIT License',
     url='https://www.amqpstorm.io',
-    install_requires=['pamqp>=1.6.1,<2.0'],
+    install_requires=['pamqp>=2.0.0,<3.0'],
     extras_require={
         'management': ['requests']
     },
