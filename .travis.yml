@@ -10,7 +10,7 @@ python:
   - 3.7
 before_install:
   - docker pull rabbitmq:management-alpine
-  - docker run -d --hostname travis-rmq --name travis -p 5672:5672 -p 15672:15672 rabbitmq:management-alpine
+  - docker run -d --hostname travis-rmq --name travis-rmq -p 5672:5672 -p 15672:15672 rabbitmq:management-alpine
   - sleep 15s
   - nc localhost 5672 < /dev/null || exit 1
   - nc localhost 15672 < /dev/null || exit 1
