@@ -20,10 +20,8 @@ class ReliabilityFunctionalTests(TestFunctionalFramework):
     @setup(new_connection=False, queue=True)
     def test_functional_open_new_connection_loop(self):
         for _ in range(25):
-            self.connection = self.connection = Connection(HOST,
-                                                           USERNAME,
-                                                           PASSWORD,
-                                                           timeout=30)
+            self.connection = self.connection = Connection(HOST, USERNAME,
+                                                           PASSWORD)
             self.channel = self.connection.channel()
 
             # Make sure that it's a new channel.
@@ -47,8 +45,7 @@ class ReliabilityFunctionalTests(TestFunctionalFramework):
 
     @setup(new_connection=False, queue=True)
     def test_functional_open_close_connection_loop(self):
-        self.connection = Connection(HOST, USERNAME, PASSWORD, timeout=30,
-                                     lazy=True)
+        self.connection = Connection(HOST, USERNAME, PASSWORD, lazy=True)
         for _ in range(25):
             self.connection.open()
             channel = self.connection.channel()
@@ -95,10 +92,8 @@ class ReliabilityFunctionalTests(TestFunctionalFramework):
 
     @setup(new_connection=False, queue=True)
     def test_functional_open_close_channel_loop(self):
-        self.connection = self.connection = Connection(HOST,
-                                                       USERNAME,
-                                                       PASSWORD,
-                                                       timeout=30)
+        self.connection = self.connection = Connection(HOST, USERNAME,
+                                                       PASSWORD)
         for _ in range(25):
             channel = self.connection.channel()
 
@@ -115,11 +110,8 @@ class ReliabilityFunctionalTests(TestFunctionalFramework):
     @setup(new_connection=False, queue=True)
     def test_functional_open_multiple_channels(self):
         channels = []
-        self.connection = self.connection = Connection(HOST,
-                                                       USERNAME,
-                                                       PASSWORD,
-                                                       timeout=30,
-                                                       lazy=True)
+        self.connection = self.connection = Connection(HOST, USERNAME,
+                                                       PASSWORD, lazy=True)
         for _ in range(5):
             self.connection.open()
             for index in range(5):
@@ -167,15 +159,15 @@ class PublishAndConsume5kTest(TestFunctionalFramework):
                                        routing_key=self.queue_name)
 
     def consume_messages(self):
-        channel = self.connection.channel()
-        channel.basic.consume(queue=self.queue_name,
-                              no_ack=False)
-        for message in channel.build_inbound_messages(break_on_empty=False):
-            self.increment_message_count()
-            message.ack()
-            if self.messages_consumed == self.messages_to_send:
-                break
-        channel.close()
+        with self.connection.channel() as channel:
+            channel.basic.consume(queue=self.queue_name,
+                                  no_ack=False)
+            for message in channel.build_inbound_messages(
+                    break_on_empty=False):
+                self.increment_message_count()
+                message.ack()
+                if self.messages_consumed == self.messages_to_send:
+                    break
 
     def increment_message_count(self):
         with self.lock:
