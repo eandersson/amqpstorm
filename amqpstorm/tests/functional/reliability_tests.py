@@ -210,17 +210,16 @@ class PublishAndConsumeUntilEmptyTest(TestFunctionalFramework):
     @setup(queue=True)
     def test_functional_publish_and_consume_until_empty(self):
         self.channel.queue.declare(self.queue_name)
-
-        publish_thread = threading.Thread(target=self.publish_messages, )
-        publish_thread.daemon = True
-        publish_thread.start()
+        self.channel.confirm_deliveries()
+        self.publish_messages()
 
         channel = self.connection.channel()
         channel.basic.consume(queue=self.queue_name,
                               no_ack=False)
         message_count = 0
-        for _ in channel.build_inbound_messages(break_on_empty=True):
+        for message in channel.build_inbound_messages(break_on_empty=True):
             message_count += 1
+            message.ack()
 
         result = channel.queue.declare(self.queue_name, passive=True)
         self.assertEqual(result['message_count'], 0)

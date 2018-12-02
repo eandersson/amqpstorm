@@ -7,10 +7,8 @@ import threading
 from errno import EAGAIN
 from errno import EINTR
 from errno import EWOULDBLOCK
-from time import sleep
 
 from amqpstorm import compatibility
-from amqpstorm.base import IDLE_WAIT
 from amqpstorm.base import MAX_FRAME_SIZE
 from amqpstorm.compatibility import ssl
 from amqpstorm.exception import AMQPConnectionError
@@ -225,7 +223,6 @@ class IO(object):
             if self.poller.is_ready:
                 self.data_in += self._receive()
                 self.data_in = self._on_read(self.data_in)
-            sleep(IDLE_WAIT)
 
     def _receive(self):
         """Receive any incoming socket data.
@@ -254,7 +251,5 @@ class IO(object):
         :rtype: bytes
         """
         if self.use_ssl:
-            data_in = self.socket.read(MAX_FRAME_SIZE)
-        else:
-            data_in = self.socket.recv(MAX_FRAME_SIZE)
-        return data_in
+            return self.socket.read(MAX_FRAME_SIZE)
+        return self.socket.recv(MAX_FRAME_SIZE)
