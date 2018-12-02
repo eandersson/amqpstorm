@@ -17,6 +17,7 @@ from amqpstorm.exception import AMQPConnectionError
 
 EMPTY_BUFFER = bytes()
 LOGGER = logging.getLogger(__name__)
+POLL_TIMEOUT = 1.0
 
 
 class Poller(object):
@@ -44,7 +45,7 @@ class Poller(object):
         """
         try:
             ready, _, _ = self.select.select([self.fileno], [], [],
-                                             self.timeout)
+                                             POLL_TIMEOUT)
             return bool(ready)
         except self.select.error as why:
             if why.args[0] != EINTR:
