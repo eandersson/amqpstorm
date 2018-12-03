@@ -192,8 +192,9 @@ class PublishAndConsume5kTest(TestFunctionalFramework):
                 break
             time.sleep(0.1)
 
-        for channel in self.connection.channels.values():
+        for channel in list(self.connection.channels.values()):
             channel.stop_consuming()
+            channel.close()
 
         self.assertEqual(self.messages_consumed, self.messages_to_send,
                          'test took too long')

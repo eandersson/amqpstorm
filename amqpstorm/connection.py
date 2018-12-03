@@ -26,7 +26,7 @@ LOGGER = logging.getLogger(__name__)
 class Connection(Stateful):
     """RabbitMQ Connection."""
     __slots__ = [
-        'channels', 'heartbeat', 'parameters', '_channel0', '_io'
+        'heartbeat', 'parameters', '_channel0', '_channels', '_io'
     ]
 
     def __init__(self, hostname, username, password, port=5672, **kwargs):
@@ -63,7 +63,7 @@ class Connection(Stateful):
         self._io = IO(self.parameters, exceptions=self._exceptions,
                       on_read=self._read_buffer)
         self._channel0 = Channel0(self)
-        self.channels = {}
+        self._channels = {}
         self._last_channel_id = 1
         self.heartbeat = Heartbeat(self.parameters['heartbeat'],
                                    self._channel0.send_heartbeat)
@@ -78,6 +78,14 @@ class Connection(Stateful):
             message = 'Closing connection due to an unhandled exception: %s'
             LOGGER.warning(message, exception_value)
         self.close()
+
+    @property
+    def channels(self):
+        """Returns a dictionary of the Channels currently available.
+
+        :rtype: dict
+        """
+        return self._channels
 
     @property
     def fileno(self):
@@ -150,11 +158,11 @@ class Connection(Stateful):
         with self.lock:
             channel_id = self._get_next_available_channel_id()
             channel = Channel(channel_id, self, rpc_timeout)
-            self.channels[channel_id] = channel
+            self._channels[channel_id] = channel
             if not lazy:
                 channel.open()
         LOGGER.debug('Channel #%d Opened', channel_id)
-        return self.channels[channel_id]
+        return self._channels[channel_id]
 
     def check_for_errors(self):
         """Check Connection for errors.
@@ -204,7 +212,7 @@ class Connection(Stateful):
         LOGGER.debug('Connection Opening')
         self.set_state(self.OPENING)
         self._exceptions = []
-        self.channels = {}
+        self._channels = {}
         self._last_channel_id = 1
         self._io.open()
         self._send_handshake()
@@ -243,9 +251,9 @@ class Connection(Stateful):
 
         :return:
         """
-        for channel_id in list(self.channels):
-            self.channels[channel_id].set_state(Channel.CLOSED)
-            self.channels[channel_id].close()
+        for channel_id in list(self._channels):
+            self._channels[channel_id].set_state(Channel.CLOSED)
+            self._channels[channel_id].close()
             self._remove_channel(channel_id)
 
     def _get_next_available_channel_id(self):
@@ -255,7 +263,7 @@ class Connection(Stateful):
         """
         for index in compatibility.RANGE(self._last_channel_id,
                                          self.max_allowed_channels):
-            if index in self.channels:
+            if index in self._channels:
                 continue
             self._last_channel_id = index
             return index
@@ -304,7 +312,7 @@ class Connection(Stateful):
             if channel_id == 0:
                 self._channel0.on_frame(frame_in)
             else:
-                self.channels[channel_id].on_frame(frame_in)
+                self._channels[channel_id].on_frame(frame_in)
 
         return data_in
 
@@ -315,9 +323,9 @@ class Connection(Stateful):
         :return:
         """
         with self.lock:
-            if channel_id not in self.channels:
+            if channel_id not in self._channels:
                 return
-            del self.channels[channel_id]
+            del self._channels[channel_id]
 
     def _send_handshake(self):
         """Send a RabbitMQ Handshake.
