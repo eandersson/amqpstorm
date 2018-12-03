@@ -159,15 +159,15 @@ class PublishAndConsume5kTest(TestFunctionalFramework):
                                        routing_key=self.queue_name)
 
     def consume_messages(self):
-        with self.connection.channel() as channel:
-            channel.basic.consume(queue=self.queue_name,
-                                  no_ack=False)
-            for message in channel.build_inbound_messages(
-                    break_on_empty=False):
-                self.increment_message_count()
-                message.ack()
-                if self.messages_consumed == self.messages_to_send:
-                    break
+        channel = self.connection.channel()
+        channel.basic.consume(queue=self.queue_name,
+                              no_ack=False)
+        for message in channel.build_inbound_messages(
+                break_on_empty=False):
+            self.increment_message_count()
+            message.ack()
+            if self.messages_consumed == self.messages_to_send:
+                break
 
     def increment_message_count(self):
         with self.lock:
@@ -191,6 +191,9 @@ class PublishAndConsume5kTest(TestFunctionalFramework):
             if time.time() - start_time >= 60:
                 break
             time.sleep(0.1)
+
+        for channel in self.connection.channels.values():
+            channel.stop_consuming()
 
         self.assertEqual(self.messages_consumed, self.messages_to_send,
                          'test took too long')
