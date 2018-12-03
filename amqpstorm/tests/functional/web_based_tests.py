@@ -1,3 +1,4 @@
+import logging
 import time
 
 from amqpstorm import Connection
@@ -7,6 +8,8 @@ from amqpstorm.tests import USERNAME
 from amqpstorm.tests.utility import TestFunctionalFramework
 from amqpstorm.tests.utility import retry_function_wrapper
 from amqpstorm.tests.utility import setup
+
+LOGGER = logging.getLogger(__name__)
 
 
 class WebFunctionalTests(TestFunctionalFramework):

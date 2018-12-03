@@ -6,11 +6,12 @@ from pamqp import frame as pamqp_frame
 from pamqp import specification
 from pamqp.specification import Basic as spec_basic
 
+from amqpstorm import Channel
 from amqpstorm import Connection
+from amqpstorm import compatibility
 from amqpstorm.base import MAX_CHANNELS
 from amqpstorm.exception import AMQPConnectionError
 from amqpstorm.io import IO
-from amqpstorm.tests.utility import FakeChannel
 from amqpstorm.tests.utility import TestFramework
 
 
@@ -287,7 +288,8 @@ class ConnectionTests(TestFramework):
 
         # Create some fake channels.
         for index in range(10):
-            connection._channels[index + 1] = FakeChannel(FakeChannel.OPEN)
+            connection._channels[index + 1] = Channel(
+                index + 1, connection, 360)
 
         def on_write(frame_out):
             self.assertIsInstance(frame_out, specification.Connection.Close)
@@ -301,7 +303,7 @@ class ConnectionTests(TestFramework):
 
         # Make sure all the fake channels were closed as well.
         for index in range(10):
-            self.assertTrue(connection._channels[index + 1].is_closed)
+            self.assertNotIn(index + 1, connection._channels)
 
         self.assertTrue(connection.is_closed)
 
@@ -317,7 +319,8 @@ class ConnectionTests(TestFramework):
 
         # Create some fake channels.
         for index in range(10):
-            connection._channels[index + 1] = FakeChannel(FakeChannel.OPEN)
+            connection._channels[index + 1] = Channel(
+                index + 1, connection, 360)
 
         def state_set(state):
             self.assertEqual(state, connection.CLOSED)
@@ -330,8 +333,9 @@ class ConnectionTests(TestFramework):
 
         # Make sure all the fake channels were closed as well.
         for index in range(10):
-            self.assertTrue(connection._channels[index + 1].is_closed)
+            self.assertNotIn(index + 1, connection._channels)
 
+        self.assertFalse(connection._channels)
         self.assertTrue(connection.is_closed)
 
     def test_connection_close_handles_raise_on_write(self):
@@ -344,7 +348,8 @@ class ConnectionTests(TestFramework):
 
         # Create some fake channels.
         for index in range(10):
-            connection._channels[index + 1] = FakeChannel(FakeChannel.OPEN)
+            connection._channels[index + 1] = Channel(
+                index + 1, connection, 360)
 
         def raise_on_write(_):
             raise AMQPConnectionError('travis-ci')
@@ -357,26 +362,34 @@ class ConnectionTests(TestFramework):
 
         # Make sure all the fake channels were closed as well.
         for index in range(10):
-            self.assertTrue(connection._channels[index + 1].is_closed)
+            self.assertNotIn(index + 1, connection._channels)
 
+        self.assertFalse(connection._channels)
         self.assertTrue(connection.is_closed)
 
     def test_connection_close_channels(self):
         connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
                                 lazy=True)
-        connection._channels[0] = FakeChannel()
-        connection._channels[1] = FakeChannel()
-        connection._channels[2] = FakeChannel(FakeChannel.CLOSED)
 
-        self.assertTrue(connection._channels[0].is_open)
-        self.assertTrue(connection._channels[1].is_open)
-        self.assertTrue(connection._channels[2].is_closed)
+        channel_1 = Channel(1, connection, 360)
+        channel_2 = Channel(2, connection, 360)
+        channel_3 = Channel(3, connection, 360)
+
+        channel_1.set_state(Channel.CLOSED)
+        channel_2.set_state(Channel.CLOSED)
+        channel_2.set_state(Channel.OPEN)
+
+        connection._channels[1] = channel_1
+        connection._channels[2] = channel_2
+        connection._channels[3] = channel_3
 
         connection._close_remaining_channels()
 
-        self.assertTrue(connection._channels[0].is_closed)
-        self.assertTrue(connection._channels[1].is_closed)
-        self.assertTrue(connection._channels[2].is_closed)
+        self.assertTrue(channel_1.is_closed)
+        self.assertTrue(channel_2.is_closed)
+        self.assertTrue(channel_3.is_closed)
+
+        self.assertFalse(connection._channels)
 
     def test_connection_closed_on_exception(self):
         connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
@@ -429,12 +442,50 @@ class ConnectionTests(TestFramework):
             connection._get_next_available_channel_id(), 2
         )
 
+    def test_connection_avoid_conflicts_with_channel_ids(self):
+        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
+                                lazy=True)
+        for index in compatibility.RANGE(1, 301):
+            connection._channels[index] = None
+        for index in compatibility.RANGE(302, 65535):
+            connection._channels[index] = None
+
+        self.assertEqual(
+            connection._get_next_available_channel_id(), 301
+        )
+
+    def test_connection_close_old_ids_with_channel(self):
+        max_channels = 1024 + 1
+        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
+                                lazy=True)
+        connection._channel0.max_allowed_channels = max_channels
+        connection.set_state(connection.OPEN)
+
+        for index in compatibility.RANGE(1, max_channels + 1):
+            connection._channels[index] = None
+
+        ids_to_close = [2, 8, 16, 32, 64, 128, 256, 512, 768, 1024]
+
+        for _ in range(100):
+            for index in ids_to_close:
+                del connection._channels[index]
+
+            self.assertEqual(len(connection._channels),
+                             max_channels - len(ids_to_close))
+
+            for _ in ids_to_close:
+                self.assertIn(
+                    int(connection.channel(lazy=True)), ids_to_close
+                )
+
+            self.assertEqual(len(connection._channels), max_channels)
+
     def test_connection_open_many_channels(self):
         connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
                                 lazy=True)
         connection.set_state(connection.OPEN)
 
-        for index in range(MAX_CHANNELS - 1):
+        for index in compatibility.RANGE(MAX_CHANNELS - 1):
             self.assertEqual(int(connection.channel(lazy=True)), index + 1)
 
     def test_connection_maximum_channels_reached(self):
@@ -442,10 +493,40 @@ class ConnectionTests(TestFramework):
                                 lazy=True)
         connection.set_state(connection.OPEN)
 
-        for index in range(MAX_CHANNELS - 1):
-            self.assertEqual(int(connection.channel(lazy=True)), index + 1)
+        for index in compatibility.RANGE(1, MAX_CHANNELS):
+            connection._channels[index] = None
 
         self.assertRaisesRegexp(
             AMQPConnectionError,
             'reached the maximum number of channels %d' % MAX_CHANNELS,
             connection.channel, lazy=True)
+
+    def test_connection_cleanup_one_channel(self):
+        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
+                                lazy=True)
+        connection._channels[1] = Channel(1, connection, 0.1)
+
+        connection._remove_channel(1)
+
+        self.assertFalse(connection._channels)
+
+    def test_connection_cleanup_multiple_channels(self):
+        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
+                                lazy=True)
+
+        for index in range(1, 10):
+            connection._channels[index] = Channel(index, connection, 0.1)
+
+        for index in range(1, 10):
+            connection._remove_channel(index)
+
+        self.assertFalse(connection._channels)
+
+    def test_connection_cleanup_channel_does_not_exist(self):
+        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
+                                lazy=True)
+        connection._channels[1] = Channel(1, connection, 0.1)
+
+        connection._remove_channel(2)
+
+        self.assertEqual(len(connection._channels), 1)

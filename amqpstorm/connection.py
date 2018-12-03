@@ -64,6 +64,7 @@ class Connection(Stateful):
                       on_read=self._read_buffer)
         self._channel0 = Channel0(self)
         self._channels = {}
+        self._last_channel_id = 1
         self.heartbeat = Heartbeat(self.parameters['heartbeat'],
                                    self._channel0.send_heartbeat)
         if not kwargs.get('lazy', False):
@@ -77,6 +78,14 @@ class Connection(Stateful):
             message = 'Closing connection due to an unhandled exception: %s'
             LOGGER.warning(message, exception_value)
         self.close()
+
+    @property
+    def channels(self):
+        """Returns a dictionary of the Channels currently available.
+
+        :rtype: dict
+        """
+        return self._channels
 
     @property
     def fileno(self):
@@ -183,13 +192,13 @@ class Connection(Stateful):
             self.set_state(self.CLOSING)
         self.heartbeat.stop()
         try:
-            self._close_remaining_channels()
             if not self.is_closed and self.socket:
                 self._channel0.send_close_connection()
                 self._wait_for_connection_state(state=Stateful.CLOSED)
         except AMQPConnectionError:
             pass
         finally:
+            self._close_remaining_channels()
             self._io.close()
             self.set_state(self.CLOSED)
         LOGGER.debug('Connection Closed')
@@ -204,6 +213,7 @@ class Connection(Stateful):
         self.set_state(self.OPENING)
         self._exceptions = []
         self._channels = {}
+        self._last_channel_id = 1
         self._io.open()
         self._send_handshake()
         self._wait_for_connection_state(state=Stateful.OPEN)
@@ -237,29 +247,34 @@ class Connection(Stateful):
         self._io.write_to_socket(data_out)
 
     def _close_remaining_channels(self):
-        """Close any open channels.
+        """Forcefully close all open channels.
 
         :return:
         """
-        for channel_id in self._channels:
-            if not self._channels[channel_id].is_open:
-                continue
+        for channel_id in list(self._channels):
             self._channels[channel_id].set_state(Channel.CLOSED)
             self._channels[channel_id].close()
+            self._remove_channel(channel_id)
 
     def _get_next_available_channel_id(self):
         """Returns the next available available channel id.
-
         :raises AMQPConnectionError: Raises if there is no available channel.
-
         :rtype: int
         """
-        channel_id = len(self._channels) + 1
-        if channel_id == self.max_allowed_channels:
-            raise AMQPConnectionError(
-                'reached the maximum number of channels %d' %
-                self.max_allowed_channels)
-        return channel_id
+        for index in compatibility.RANGE(self._last_channel_id,
+                                         self.max_allowed_channels):
+            if index in self._channels:
+                continue
+            self._last_channel_id = index
+            return index
+
+        if self._last_channel_id != 1:
+            self._last_channel_id = 1
+            return self._get_next_available_channel_id()
+
+        raise AMQPConnectionError(
+            'reached the maximum number of channels %d' %
+            self.max_allowed_channels)
 
     def _handle_amqp_frame(self, data_in):
         """Unmarshal a single AMQP frame and return the result.
@@ -300,6 +315,17 @@ class Connection(Stateful):
                 self._channels[channel_id].on_frame(frame_in)
 
         return data_in
+
+    def _remove_channel(self, channel_id):
+        """Remove a channel.
+
+        :param int channel_id: Channel id
+        :return:
+        """
+        with self.lock:
+            if channel_id not in self._channels:
+                return
+            del self._channels[channel_id]
 
     def _send_handshake(self):
         """Send a RabbitMQ Handshake.

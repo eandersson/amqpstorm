@@ -7,6 +7,7 @@ from mock import Mock
 
 from amqpstorm.connection import Channel
 from amqpstorm.connection import Connection
+from amqpstorm.management import exception
 from amqpstorm.management import ManagementApi
 from amqpstorm.tests import HOST
 from amqpstorm.tests import HTTP_URL
@@ -299,11 +300,36 @@ def clean(names, queue=False, exchange=False):
 
     :return:
     """
-    with Connection(HOST, USERNAME, PASSWORD, timeout=1) as connection:
-        with connection.channel() as channel:
-            if queue:
-                for name in names:
-                    channel.queue.delete(name)
-            if exchange:
-                for name in names:
-                    channel.exchange.delete(name)
+    if not queue and not exchange:
+        return
+    api = ManagementApi(HTTP_URL, USERNAME, PASSWORD, timeout=10)
+    if queue:
+        _delete_queues(api, names)
+    if exchange:
+        _delete_exchanges(api, names)
+
+
+def _delete_exchanges(management_api, exchanges):
+    """Delete exchanges.
+
+    :param ManagementApi management_api:
+    :param exchanges:
+    """
+    for name in exchanges:
+        try:
+            management_api.exchange.delete(name)
+        except exception.ApiError:
+            pass
+
+
+def _delete_queues(api, queues):
+    """Delete queues.
+
+    :param ManagementApi api:
+    :param list exchanges:
+    """
+    for name in queues:
+        try:
+            api.queue.delete(name)
+        except exception.ApiError:
+            pass

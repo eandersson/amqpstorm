@@ -1,6 +1,13 @@
 Changelog
 =========
 
+Version 2.6.0
+-------------
+- Re-use closed channel ids [#55] - Thanks mikemrm.
+- Changed Poller Timeout to be a constant.
+- Improved Connection Close performance.
+- Channels is now a publicly available variable in Connections.
+
 Version 2.5.0
 -------------
 - Upgraded pamqp to v2.0.0.

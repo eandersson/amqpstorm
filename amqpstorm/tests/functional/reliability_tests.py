@@ -20,10 +20,8 @@ class ReliabilityFunctionalTests(TestFunctionalFramework):
     @setup(new_connection=False, queue=True)
     def test_functional_open_new_connection_loop(self):
         for _ in range(25):
-            self.connection = self.connection = Connection(HOST,
-                                                           USERNAME,
-                                                           PASSWORD,
-                                                           timeout=30)
+            self.connection = self.connection = Connection(HOST, USERNAME,
+                                                           PASSWORD)
             self.channel = self.connection.channel()
 
             # Make sure that it's a new channel.
@@ -47,8 +45,7 @@ class ReliabilityFunctionalTests(TestFunctionalFramework):
 
     @setup(new_connection=False, queue=True)
     def test_functional_open_close_connection_loop(self):
-        self.connection = Connection(HOST, USERNAME, PASSWORD, timeout=30,
-                                     lazy=True)
+        self.connection = Connection(HOST, USERNAME, PASSWORD, lazy=True)
         for _ in range(25):
             self.connection.open()
             channel = self.connection.channel()
@@ -78,9 +75,6 @@ class ReliabilityFunctionalTests(TestFunctionalFramework):
         for index in range(3):
             channel = self.connection.channel()
 
-            # Make sure that it's a new channel.
-            self.assertEqual(index + 1, int(channel))
-
             # Try to publish 25 bad messages.
             for _ in range(25):
                 try:
@@ -98,10 +92,8 @@ class ReliabilityFunctionalTests(TestFunctionalFramework):
 
     @setup(new_connection=False, queue=True)
     def test_functional_open_close_channel_loop(self):
-        self.connection = self.connection = Connection(HOST,
-                                                       USERNAME,
-                                                       PASSWORD,
-                                                       timeout=30)
+        self.connection = self.connection = Connection(HOST, USERNAME,
+                                                       PASSWORD)
         for _ in range(25):
             channel = self.connection.channel()
 
@@ -118,11 +110,8 @@ class ReliabilityFunctionalTests(TestFunctionalFramework):
     @setup(new_connection=False, queue=True)
     def test_functional_open_multiple_channels(self):
         channels = []
-        self.connection = self.connection = Connection(HOST,
-                                                       USERNAME,
-                                                       PASSWORD,
-                                                       timeout=30,
-                                                       lazy=True)
+        self.connection = self.connection = Connection(HOST, USERNAME,
+                                                       PASSWORD, lazy=True)
         for _ in range(5):
             self.connection.open()
             for index in range(5):
@@ -173,12 +162,12 @@ class PublishAndConsume5kTest(TestFunctionalFramework):
         channel = self.connection.channel()
         channel.basic.consume(queue=self.queue_name,
                               no_ack=False)
-        for message in channel.build_inbound_messages(break_on_empty=False):
+        for message in channel.build_inbound_messages(
+                break_on_empty=False):
             self.increment_message_count()
             message.ack()
             if self.messages_consumed == self.messages_to_send:
                 break
-        channel.close()
 
     def increment_message_count(self):
         with self.lock:
@@ -203,6 +192,10 @@ class PublishAndConsume5kTest(TestFunctionalFramework):
                 break
             time.sleep(0.1)
 
+        for channel in list(self.connection.channels.values()):
+            channel.stop_consuming()
+            channel.close()
+
         self.assertEqual(self.messages_consumed, self.messages_to_send,
                          'test took too long')
 
@@ -221,17 +214,16 @@ class PublishAndConsumeUntilEmptyTest(TestFunctionalFramework):
     @setup(queue=True)
     def test_functional_publish_and_consume_until_empty(self):
         self.channel.queue.declare(self.queue_name)
-
-        publish_thread = threading.Thread(target=self.publish_messages, )
-        publish_thread.daemon = True
-        publish_thread.start()
+        self.channel.confirm_deliveries()
+        self.publish_messages()
 
         channel = self.connection.channel()
         channel.basic.consume(queue=self.queue_name,
                               no_ack=False)
         message_count = 0
-        for _ in channel.build_inbound_messages(break_on_empty=True):
+        for message in channel.build_inbound_messages(break_on_empty=True):
             message_count += 1
+            message.ack()
 
         result = channel.queue.declare(self.queue_name, passive=True)
         self.assertEqual(result['message_count'], 0)
