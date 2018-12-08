@@ -101,6 +101,9 @@ class ReliabilityFunctionalTests(TestFunctionalFramework):
             self.assertTrue(self.connection.is_open)
             self.assertTrue(channel.is_open)
 
+            # Channel id should be staying at 1.
+            self.assertEqual(int(channel), 1)
+
             channel.close()
 
             # Verify that theChannel has been closed properly.
@@ -109,19 +112,35 @@ class ReliabilityFunctionalTests(TestFunctionalFramework):
 
     @setup(new_connection=False, queue=True)
     def test_functional_open_multiple_channels(self):
-        channels = []
         self.connection = self.connection = Connection(HOST, USERNAME,
                                                        PASSWORD, lazy=True)
         for _ in range(5):
+            channels = []
             self.connection.open()
-            for index in range(5):
+            for index in range(10):
                 channel = self.connection.channel()
                 channels.append(channel)
 
                 # Verify that the Channel has been opened properly.
                 self.assertTrue(channel.is_open)
-                self.assertEqual(int(channel), index + 1)
+                self.assertEqual(int(channel), len(channels))
             self.connection.close()
+
+    @setup(new_connection=False, queue=False)
+    def test_functional_close_performance(self):
+        """Make sure closing a connection never takes longer than ~3 seconds.
+
+            In general closing a connection should take about ~1s, but we
+            try to close it faster, if-possible.
+
+        :return:
+        """
+        for _ in range(5):
+            self.connection = self.connection = Connection(HOST, USERNAME,
+                                                           PASSWORD)
+            start_time = time.time()
+            self.connection.close()
+            self.assertLess(time.time() - start_time, 3)
 
     @setup(new_connection=False)
     def test_functional_uri_connection(self):
