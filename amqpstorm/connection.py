@@ -61,7 +61,7 @@ class Connection(Stateful):
         }
         self._validate_parameters()
         self._io = IO(self.parameters, exceptions=self._exceptions,
-                      on_read=self._read_buffer)
+                      on_read_impl=self._read_buffer)
         self._channel0 = Channel0(self)
         self._channels = {}
         self._last_channel_id = None
@@ -158,7 +158,7 @@ class Connection(Stateful):
         with self.lock:
             channel_id = self._get_next_available_channel_id()
             channel = Channel(channel_id, self, rpc_timeout,
-                              on_close=self._cleanup_channel)
+                              on_close_impl=self._cleanup_channel)
             self._channels[channel_id] = channel
             if not lazy:
                 channel.open()

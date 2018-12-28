@@ -181,7 +181,9 @@ class RpcTests(TestFramework):
         thread = threading.Thread(target=delivery_payload)
         thread.start()
 
-        rpc._wait_for_request(uuid, adapter=rpc._default_adapter)
+        rpc._wait_for_request(
+            uuid, connection_adapter=rpc._default_connection_adapter
+        )
 
     def test_with_for_request_with_custom_adapter(self):
         class Adapter(object):

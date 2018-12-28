@@ -11,8 +11,8 @@ LOGGER = logging.getLogger(__name__)
 class Heartbeat(object):
     """Internal Heartbeat handler."""
 
-    def __init__(self, interval, send_heartbeat, timer=threading.Timer):
-        self.send_heartbeat = send_heartbeat
+    def __init__(self, interval, send_heartbeat_impl, timer=threading.Timer):
+        self.send_heartbeat_impl = send_heartbeat_impl
         self.timer_impl = timer
         self._lock = threading.Lock()
         self._running = threading.Event()
@@ -80,7 +80,7 @@ class Heartbeat(object):
         if not self._running.is_set():
             return False
         if self._writes_since_check == 0:
-            self.send_heartbeat()
+            self.send_heartbeat_impl()
         self._lock.acquire()
         try:
             if self._reads_since_check == 0:

@@ -115,7 +115,7 @@ class HeartbeatTests(TestFramework):
         def send_heartbeat():
             self.beats += 1
 
-        heartbeat = Heartbeat(60, send_heartbeat=send_heartbeat)
+        heartbeat = Heartbeat(60, send_heartbeat_impl=send_heartbeat)
         heartbeat._running.set()
 
         for _ in range(8):
@@ -192,7 +192,7 @@ class HeartbeatTests(TestFramework):
         def send_heartbeat():
             self.beats += 1
 
-        heartbeat = Heartbeat(60, send_heartbeat=send_heartbeat)
+        heartbeat = Heartbeat(60, send_heartbeat_impl=send_heartbeat)
         heartbeat._running.set()
         heartbeat.register_read()
 

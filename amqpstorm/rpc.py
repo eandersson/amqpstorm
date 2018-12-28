@@ -17,7 +17,7 @@ class Rpc(object):
         :param int|float timeout: Rpc timeout.
         """
         self._lock = threading.Lock()
-        self._default_adapter = default_adapter
+        self._default_connection_adapter = default_adapter
         self._timeout = timeout
         self._response = {}
         self._request = {}
@@ -83,19 +83,22 @@ class Rpc(object):
         if uuid in self._response:
             del self._response[uuid]
 
-    def get_request(self, uuid, raw=False, multiple=False, adapter=None):
+    def get_request(self, uuid, raw=False, multiple=False,
+                    connection_adapter=None):
         """Get a RPC request.
 
         :param str uuid: Rpc Identifier
         :param bool raw: If enabled return the frame as is, else return
                          result as a dictionary.
         :param bool multiple: Are we expecting multiple frames.
-        :param obj adapter: Provide custom adapter.
+        :param obj connection_adapter: Provide custom connection adapter.
         :return:
         """
         if uuid not in self._response:
             return
-        self._wait_for_request(uuid, adapter or self._default_adapter)
+        self._wait_for_request(
+            uuid, connection_adapter or self._default_connection_adapter
+        )
         frame = self._get_response_frame(uuid)
         if not multiple:
             self.remove(uuid)
@@ -118,16 +121,16 @@ class Rpc(object):
             frame = frames.pop(0)
         return frame
 
-    def _wait_for_request(self, uuid, adapter=None):
+    def _wait_for_request(self, uuid, connection_adapter=None):
         """Wait for RPC request to arrive.
 
         :param str uuid: Rpc Identifier.
-        :param obj adapter: Provide custom adapter.
+        :param obj connection_adapter: Provide custom connection adapter.
         :return:
         """
         start_time = time.time()
         while not self._response[uuid]:
-            adapter.check_for_errors()
+            connection_adapter.check_for_errors()
             if time.time() - start_time > self._timeout:
                 self._raise_rpc_timeout_error(uuid)
             time.sleep(IDLE_WAIT)

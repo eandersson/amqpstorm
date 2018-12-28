@@ -54,11 +54,11 @@ class Poller(object):
 class IO(object):
     """Internal Input/Output handler."""
 
-    def __init__(self, parameters, exceptions=None, on_read=None):
+    def __init__(self, parameters, exceptions=None, on_read_impl=None):
         self._exceptions = exceptions
         self._lock = threading.Lock()
         self._inbound_thread = None
-        self._on_read = on_read
+        self._on_read_impl = on_read_impl
         self._running = threading.Event()
         self._parameters = parameters
         self.data_in = EMPTY_BUFFER
@@ -222,7 +222,7 @@ class IO(object):
         while self._running.is_set():
             if self.poller.is_ready:
                 self.data_in += self._receive()
-                self.data_in = self._on_read(self.data_in)
+                self.data_in = self._on_read_impl(self.data_in)
 
     def _receive(self):
         """Receive any incoming socket data.

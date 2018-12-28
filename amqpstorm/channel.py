@@ -32,13 +32,14 @@ class Channel(BaseChannel):
         '_connection', '_exchange', '_inbound', '_queue', '_tx'
     ]
 
-    def __init__(self, channel_id, connection, rpc_timeout, on_close=None):
+    def __init__(self, channel_id, connection, rpc_timeout,
+                 on_close_impl=None):
         super(Channel, self).__init__(channel_id)
         self.rpc = Rpc(self, timeout=rpc_timeout)
         self._consumer_callbacks = {}
         self._confirming_deliveries = False
         self._connection = connection
-        self._on_close = on_close
+        self._on_close_impl = on_close_impl
         self._inbound = []
         self._basic = Basic(self, connection.max_frame_size)
         self._exchange = Exchange(self)
@@ -160,14 +161,14 @@ class Channel(BaseChannel):
             self.rpc_request(specification.Channel.Close(
                 reply_code=reply_code,
                 reply_text=reply_text),
-                adapter=self._connection
+                connection_adapter=self._connection
             )
         finally:
             if self._inbound:
                 del self._inbound[:]
             self.set_state(self.CLOSED)
-            if self._on_close:
-                self._on_close(self.channel_id)
+            if self._on_close_impl:
+                self._on_close_impl(self.channel_id)
         LOGGER.debug('Channel #%d Closed', self.channel_id)
 
     def check_for_errors(self):
@@ -280,7 +281,7 @@ class Channel(BaseChannel):
             # noinspection PyCallingNonCallable
             self._consumer_callbacks[consumer_tag](message)
 
-    def rpc_request(self, frame_out, adapter=None):
+    def rpc_request(self, frame_out, connection_adapter=None):
         """Perform a RPC Request.
 
         :param specification.Frame frame_out: Amqp frame.
@@ -289,7 +290,9 @@ class Channel(BaseChannel):
         with self.rpc.lock:
             uuid = self.rpc.register_request(frame_out.valid_responses)
             self._connection.write_frame(self.channel_id, frame_out)
-            return self.rpc.get_request(uuid, adapter=adapter)
+            return self.rpc.get_request(
+                uuid, connection_adapter=connection_adapter
+            )
 
     def start_consuming(self, to_tuple=False, auto_decode=True):
         """Start consuming messages.
