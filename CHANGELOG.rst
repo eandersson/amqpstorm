@@ -1,6 +1,10 @@
 Changelog
 =========
 
+Version 2.6.1
+-------------
+- Fixed minor issue with the last channel id not being available.
+
 Version 2.6.0
 -------------
 - Re-use closed channel ids [#55] - Thanks mikemrm.
