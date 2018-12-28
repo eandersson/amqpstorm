@@ -496,10 +496,10 @@ class ConnectionTests(TestFramework):
         connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
         connection.set_state(connection.OPEN)
 
-        for index in compatibility.RANGE(1, MAX_CHANNELS):
+        for index in compatibility.RANGE(MAX_CHANNELS):
             channel_id = connection._get_next_available_channel_id()
             connection._channels[channel_id] = None
-            self.assertEqual(connection._last_channel_id, index)
+            self.assertEqual(connection._last_channel_id, index + 1)
 
         self.assertRaisesRegexp(
             AMQPConnectionError,
@@ -510,7 +510,7 @@ class ConnectionTests(TestFramework):
         connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
         connection._channels[1] = Channel(1, connection, 0.1)
 
-        connection._remove_channel(1)
+        connection._cleanup_channel(1)
 
         self.assertFalse(connection._channels)
 
@@ -521,7 +521,7 @@ class ConnectionTests(TestFramework):
             connection._channels[index] = Channel(index, connection, 0.1)
 
         for index in range(1, 10):
-            connection._remove_channel(index)
+            connection._cleanup_channel(index)
 
         self.assertFalse(connection._channels)
 
@@ -529,6 +529,6 @@ class ConnectionTests(TestFramework):
         connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
         connection._channels[1] = Channel(1, connection, 0.1)
 
-        connection._remove_channel(2)
+        connection._cleanup_channel(2)
 
         self.assertEqual(len(connection._channels), 1)

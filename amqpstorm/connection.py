@@ -157,7 +157,8 @@ class Connection(Stateful):
 
         with self.lock:
             channel_id = self._get_next_available_channel_id()
-            channel = Channel(channel_id, self, rpc_timeout)
+            channel = Channel(channel_id, self, rpc_timeout,
+                              on_close=self._cleanup_channel)
             self._channels[channel_id] = channel
             if not lazy:
                 channel.open()
@@ -254,7 +255,7 @@ class Connection(Stateful):
         for channel_id in list(self._channels):
             self._channels[channel_id].set_state(Channel.CLOSED)
             self._channels[channel_id].close()
-            self._remove_channel(channel_id)
+            self._cleanup_channel(channel_id)
 
     def _get_next_available_channel_id(self):
         """Returns the next available available channel id.
@@ -280,6 +281,7 @@ class Connection(Stateful):
         """Unmarshal a single AMQP frame and return the result.
 
         :param data_in: socket data
+
         :return: data_in, channel_id, frame
         """
         if not data_in:
@@ -316,10 +318,11 @@ class Connection(Stateful):
 
         return data_in
 
-    def _remove_channel(self, channel_id):
-        """Remove a channel.
+    def _cleanup_channel(self, channel_id):
+        """Remove the the channel from the list of available channels.
 
         :param int channel_id: Channel id
+
         :return:
         """
         with self.lock:

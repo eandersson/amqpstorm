@@ -32,12 +32,13 @@ class Channel(BaseChannel):
         '_connection', '_exchange', '_inbound', '_queue', '_tx'
     ]
 
-    def __init__(self, channel_id, connection, rpc_timeout):
+    def __init__(self, channel_id, connection, rpc_timeout, on_close=None):
         super(Channel, self).__init__(channel_id)
         self.rpc = Rpc(self, timeout=rpc_timeout)
         self._consumer_callbacks = {}
         self._confirming_deliveries = False
         self._connection = connection
+        self._on_close = on_close
         self._inbound = []
         self._basic = Basic(self, connection.max_frame_size)
         self._exchange = Exchange(self)
@@ -161,11 +162,12 @@ class Channel(BaseChannel):
                 reply_text=reply_text),
                 adapter=self._connection
             )
-            self._connection._remove_channel(self.channel_id)
         finally:
             if self._inbound:
                 del self._inbound[:]
             self.set_state(self.CLOSED)
+            if self._on_close:
+                self._on_close(self.channel_id)
         LOGGER.debug('Channel #%d Closed', self.channel_id)
 
     def check_for_errors(self):
@@ -332,6 +334,7 @@ class Channel(BaseChannel):
         """Write a pamqp frame from the current channel.
 
         :param specification.Frame frame_out: A single pamqp frame.
+
         :return:
         """
         self.check_for_errors()
@@ -341,6 +344,7 @@ class Channel(BaseChannel):
         """Write multiple pamqp frames from the current channel.
 
         :param list frames_out: A list of pamqp frames.
+
         :return:
         """
         self.check_for_errors()
@@ -350,6 +354,7 @@ class Channel(BaseChannel):
         """Handle a Basic Cancel frame.
 
         :param specification.Basic.Cancel frame_in: Amqp frame.
+
         :return:
         """
         LOGGER.warning(
@@ -362,6 +367,7 @@ class Channel(BaseChannel):
         """Handle a Basic Return Frame and treat it as an error.
 
         :param specification.Basic.Return frame_in: Amqp frame.
+
         :return:
         """
         reply_text = try_utf8_decode(frame_in.reply_text)
@@ -462,6 +468,7 @@ class Channel(BaseChannel):
             self.exceptions.append(exception)
         self.set_state(self.CLOSED)
         if self._connection.is_open:
+
             try:
                 self._connection.write_frame(
                     self.channel_id, specification.Channel.CloseOk()
@@ -469,4 +476,3 @@ class Channel(BaseChannel):
             except AMQPConnectionError:
                 pass
         self.close()
-        self._connection._remove_channel(self.channel_id)
