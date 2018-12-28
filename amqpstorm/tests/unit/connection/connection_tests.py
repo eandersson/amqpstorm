@@ -212,8 +212,7 @@ class ConnectionTests(TestFramework):
                          "Unknown type: b'\x13'")
 
     def test_connection_wait_for_connection(self):
-        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=1,
-                                lazy=True)
+        connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
         connection.set_state(connection.OPENING)
         io = IO(connection.parameters, [])
         io.socket = Mock(name='socket', spec=socket.socket)
@@ -231,8 +230,7 @@ class ConnectionTests(TestFramework):
         self.assertTrue(connection.is_open)
 
     def test_connection_wait_for_connection_does_raise_on_error(self):
-        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
-                                lazy=True)
+        connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
         connection.set_state(connection.OPENING)
 
         connection.exceptions.append(AMQPConnectionError('travis-ci'))
@@ -257,8 +255,7 @@ class ConnectionTests(TestFramework):
         )
 
     def test_connection_open(self):
-        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
-                                lazy=True)
+        connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
         io = IO(connection.parameters, [])
         io.socket = Mock(name='socket', spec=socket.socket)
         connection._io = io
@@ -279,8 +276,7 @@ class ConnectionTests(TestFramework):
         self.assertTrue(connection.is_open)
 
     def test_connection_close(self):
-        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
-                                lazy=True)
+        connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
         connection.set_state(connection.OPEN)
         io = IO(connection.parameters, [])
         io.socket = Mock(name='socket', spec=socket.socket)
@@ -308,8 +304,7 @@ class ConnectionTests(TestFramework):
         self.assertTrue(connection.is_closed)
 
     def test_connection_close_when_already_closed(self):
-        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
-                                lazy=True)
+        connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
         connection.set_state(connection.OPEN)
         io = IO(connection.parameters, [])
         io.socket = Mock(name='socket', spec=socket.socket)
@@ -339,8 +334,7 @@ class ConnectionTests(TestFramework):
         self.assertTrue(connection.is_closed)
 
     def test_connection_close_handles_raise_on_write(self):
-        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
-                                lazy=True)
+        connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
         connection.set_state(connection.OPEN)
         io = IO(connection.parameters, [])
         io.socket = Mock(name='socket', spec=socket.socket)
@@ -368,8 +362,7 @@ class ConnectionTests(TestFramework):
         self.assertTrue(connection.is_closed)
 
     def test_connection_close_channels(self):
-        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
-                                lazy=True)
+        connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
 
         channel_1 = Channel(1, connection, 360)
         channel_2 = Channel(2, connection, 360)
@@ -392,8 +385,7 @@ class ConnectionTests(TestFramework):
         self.assertFalse(connection._channels)
 
     def test_connection_closed_on_exception(self):
-        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
-                                lazy=True)
+        connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
         connection.set_state(connection.OPEN)
         connection.exceptions.append(AMQPConnectionError('travis-ci'))
 
@@ -402,8 +394,7 @@ class ConnectionTests(TestFramework):
         self.assertTrue(connection.is_closed)
 
     def test_connection_heartbeat_stopped_on_close(self):
-        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
-                                lazy=True)
+        connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
         connection.set_state(connection.OPEN)
         connection.heartbeat.start(connection.exceptions)
         connection.exceptions.append(AMQPConnectionError('travis-ci'))
@@ -415,8 +406,7 @@ class ConnectionTests(TestFramework):
         self.assertFalse(connection.heartbeat._running.is_set())
 
     def test_connection_open_new_channel(self):
-        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
-                                lazy=True)
+        connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
         connection.set_state(connection.OPEN)
 
         def on_open_ok(_, frame_out):
@@ -428,41 +418,56 @@ class ConnectionTests(TestFramework):
         connection.channel()
 
     def test_connection_get_first_channel_id(self):
-        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
-                                lazy=True)
+        connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
+        self.assertEqual(connection._last_channel_id, None)
         self.assertEqual(
             connection._get_next_available_channel_id(), 1
         )
+        self.assertEqual(connection._last_channel_id, 1)
 
-    def test_connection_get_next_channel_id(self):
-        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
-                                lazy=True)
+    def test_connection_get_channel_ids(self):
+        connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
+        self.assertEqual(connection._last_channel_id, None)
         connection._channels[1] = None
-        self.assertEqual(
-            connection._get_next_available_channel_id(), 2
-        )
+        for index in range(2, 100):
+            channel_id = connection._get_next_available_channel_id()
+            connection._channels[channel_id] = None
+            self.assertEqual(
+                channel_id, index
+            )
+            self.assertEqual(connection._last_channel_id, index)
 
     def test_connection_avoid_conflicts_with_channel_ids(self):
-        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
-                                lazy=True)
+        connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
+        connection.set_state(connection.OPEN)
+
         for index in compatibility.RANGE(1, 301):
             connection._channels[index] = None
         for index in compatibility.RANGE(302, 65535):
             connection._channels[index] = None
 
+        last_channel_id = int(connection.channel(lazy=True))
+
         self.assertEqual(
-            connection._get_next_available_channel_id(), 301
+            last_channel_id, 301
         )
+        self.assertEqual(connection._last_channel_id, 301)
+
+        last_channel_id = int(connection.channel(lazy=True))
+
+        self.assertEqual(
+            last_channel_id, 65535
+        )
+        self.assertEqual(connection._last_channel_id, 65535)
 
     def test_connection_close_old_ids_with_channel(self):
-        max_channels = 1024 + 1
-        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
-                                lazy=True)
+        max_channels = 1024
+        connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
         connection._channel0.max_allowed_channels = max_channels
         connection.set_state(connection.OPEN)
 
-        for index in compatibility.RANGE(1, max_channels + 1):
-            connection._channels[index] = None
+        for _ in compatibility.RANGE(max_channels):
+            connection.channel(lazy=True)
 
         ids_to_close = [2, 8, 16, 32, 64, 128, 256, 512, 768, 1024]
 
@@ -481,20 +486,20 @@ class ConnectionTests(TestFramework):
             self.assertEqual(len(connection._channels), max_channels)
 
     def test_connection_open_many_channels(self):
-        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
-                                lazy=True)
+        connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
         connection.set_state(connection.OPEN)
 
         for index in compatibility.RANGE(MAX_CHANNELS - 1):
             self.assertEqual(int(connection.channel(lazy=True)), index + 1)
 
     def test_connection_maximum_channels_reached(self):
-        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
-                                lazy=True)
+        connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
         connection.set_state(connection.OPEN)
 
         for index in compatibility.RANGE(1, MAX_CHANNELS):
-            connection._channels[index] = None
+            channel_id = connection._get_next_available_channel_id()
+            connection._channels[channel_id] = None
+            self.assertEqual(connection._last_channel_id, index)
 
         self.assertRaisesRegexp(
             AMQPConnectionError,
@@ -502,8 +507,7 @@ class ConnectionTests(TestFramework):
             connection.channel, lazy=True)
 
     def test_connection_cleanup_one_channel(self):
-        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
-                                lazy=True)
+        connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
         connection._channels[1] = Channel(1, connection, 0.1)
 
         connection._remove_channel(1)
@@ -511,8 +515,7 @@ class ConnectionTests(TestFramework):
         self.assertFalse(connection._channels)
 
     def test_connection_cleanup_multiple_channels(self):
-        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
-                                lazy=True)
+        connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
 
         for index in range(1, 10):
             connection._channels[index] = Channel(index, connection, 0.1)
@@ -523,8 +526,7 @@ class ConnectionTests(TestFramework):
         self.assertFalse(connection._channels)
 
     def test_connection_cleanup_channel_does_not_exist(self):
-        connection = Connection('127.0.0.1', 'guest', 'guest', timeout=0.1,
-                                lazy=True)
+        connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
         connection._channels[1] = Channel(1, connection, 0.1)
 
         connection._remove_channel(2)

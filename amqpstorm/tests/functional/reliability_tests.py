@@ -114,6 +114,7 @@ class ReliabilityFunctionalTests(TestFunctionalFramework):
     def test_functional_open_multiple_channels(self):
         self.connection = self.connection = Connection(HOST, USERNAME,
                                                        PASSWORD, lazy=True)
+
         for _ in range(5):
             channels = []
             self.connection.open()

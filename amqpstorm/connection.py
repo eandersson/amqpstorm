@@ -64,7 +64,7 @@ class Connection(Stateful):
                       on_read=self._read_buffer)
         self._channel0 = Channel0(self)
         self._channels = {}
-        self._last_channel_id = 1
+        self._last_channel_id = None
         self.heartbeat = Heartbeat(self.parameters['heartbeat'],
                                    self._channel0.send_heartbeat)
         if not kwargs.get('lazy', False):
@@ -213,7 +213,7 @@ class Connection(Stateful):
         self.set_state(self.OPENING)
         self._exceptions = []
         self._channels = {}
-        self._last_channel_id = 1
+        self._last_channel_id = None
         self._io.open()
         self._send_handshake()
         self._wait_for_connection_state(state=Stateful.OPEN)
@@ -261,15 +261,15 @@ class Connection(Stateful):
         :raises AMQPConnectionError: Raises if there is no available channel.
         :rtype: int
         """
-        for index in compatibility.RANGE(self._last_channel_id,
-                                         self.max_allowed_channels):
+        for index in compatibility.RANGE(self._last_channel_id or 1,
+                                         self.max_allowed_channels + 1):
             if index in self._channels:
                 continue
             self._last_channel_id = index
             return index
 
-        if self._last_channel_id != 1:
-            self._last_channel_id = 1
+        if self._last_channel_id:
+            self._last_channel_id = None
             return self._get_next_available_channel_id()
 
         raise AMQPConnectionError(
