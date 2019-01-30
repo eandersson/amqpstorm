@@ -34,7 +34,7 @@ class ApiUserFunctionalTests(TestFunctionalFramework):
             self.assertIsInstance(virtual_host, dict)
             self.assertEqual(virtual_host['name'], vhost_name)
 
-            api.user.set_permission('guest', vhost_name)
+            api.user.set_permission(USERNAME, vhost_name)
         finally:
             api.virtual_host.delete(vhost_name)
 
@@ -47,5 +47,5 @@ class ApiUserFunctionalTests(TestFunctionalFramework):
         self.assertEqual(permissions[0]['read'], '.*')
         self.assertEqual(permissions[0]['write'], '.*')
         self.assertEqual(permissions[0]['configure'], '.*')
-        self.assertEqual(permissions[0]['user'], 'guest')
+        self.assertEqual(permissions[0]['user'], USERNAME)
         self.assertEqual(permissions[0]['vhost'], '/')

@@ -1,6 +1,9 @@
 import ssl
 
 from amqpstorm import UriConnection
+from amqpstorm.connection import DEFAULT_HEARTBEAT_INTERVAL
+from amqpstorm.connection import DEFAULT_SOCKET_TIMEOUT
+from amqpstorm.connection import DEFAULT_VIRTUAL_HOST
 from amqpstorm.tests.utility import TestFramework
 
 
@@ -13,10 +16,13 @@ class UriConnectionTests(TestFramework):
         self.assertEqual(connection.parameters['hostname'], 'localhost')
         self.assertEqual(connection.parameters['username'], 'guest')
         self.assertEqual(connection.parameters['password'], 'guest')
-        self.assertEqual(connection.parameters['virtual_host'], '/')
+        self.assertEqual(connection.parameters['virtual_host'],
+                         DEFAULT_VIRTUAL_HOST)
         self.assertEqual(connection.parameters['port'], 5672)
-        self.assertEqual(connection.parameters['heartbeat'], 60)
-        self.assertEqual(connection.parameters['timeout'], 30)
+        self.assertEqual(connection.parameters['heartbeat'],
+                         DEFAULT_HEARTBEAT_INTERVAL)
+        self.assertEqual(connection.parameters['timeout'],
+                         DEFAULT_SOCKET_TIMEOUT)
         self.assertFalse(connection.parameters['ssl'])
 
     def test_uri_ssl(self):

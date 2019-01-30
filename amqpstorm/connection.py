@@ -22,6 +22,10 @@ from amqpstorm.io import IO
 
 LOGGER = logging.getLogger(__name__)
 
+DEFAULT_HEARTBEAT_INTERVAL = 60
+DEFAULT_SOCKET_TIMEOUT = 10
+DEFAULT_VIRTUAL_HOST = '/'
+
 
 class Connection(Stateful):
     """RabbitMQ Connection."""
@@ -53,9 +57,9 @@ class Connection(Stateful):
             'username': username,
             'password': password,
             'port': port,
-            'virtual_host': kwargs.get('virtual_host', '/'),
-            'heartbeat': kwargs.get('heartbeat', 60),
-            'timeout': kwargs.get('timeout', 10),
+            'virtual_host': kwargs.get('virtual_host', DEFAULT_VIRTUAL_HOST),
+            'heartbeat': kwargs.get('heartbeat', DEFAULT_HEARTBEAT_INTERVAL),
+            'timeout': kwargs.get('timeout', DEFAULT_SOCKET_TIMEOUT),
             'ssl': kwargs.get('ssl', False),
             'ssl_options': kwargs.get('ssl_options', {})
         }
@@ -357,19 +361,19 @@ class Connection(Stateful):
         elif not compatibility.is_integer(self.parameters['heartbeat']):
             raise AMQPInvalidArgument('heartbeat should be an integer')
 
-    def _wait_for_connection_state(self, state=Stateful.OPEN):
+    def _wait_for_connection_state(self, state=Stateful.OPEN, rpc_timeout=30):
         """Wait for a Connection state.
 
         :param int state: State that we expect
 
-        :raises AMQPConnectionError: Raises if we reach the connection timeout.
+        :raises AMQPConnectionError: Raises if we are unable to establish
+                                     a connection to RabbitMQ.
 
         :return:
         """
         start_time = time.time()
-        timeout = (self.parameters['timeout'] or 10) * 3
         while self.current_state != state:
             self.check_for_errors()
-            if time.time() - start_time > timeout:
+            if time.time() - start_time > rpc_timeout:
                 raise AMQPConnectionError('Connection timed out')
             sleep(IDLE_WAIT)

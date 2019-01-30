@@ -67,7 +67,7 @@ class WebFunctionalTests(TestFunctionalFramework):
     def test_functional_alternative_virtual_host(self):
         self.api.virtual_host.create(self.virtual_host_name)
 
-        self.api.user.set_permission('guest', self.virtual_host_name)
+        self.api.user.set_permission(USERNAME, self.virtual_host_name)
 
         self.connection = Connection(HOST, USERNAME, PASSWORD,
                                      virtual_host=self.virtual_host_name,
@@ -75,5 +75,5 @@ class WebFunctionalTests(TestFunctionalFramework):
         self.channel = self.connection.channel()
         self.channel.queue.declare(self.queue_name)
         self.channel.queue.delete(self.queue_name)
-        self.api.user.delete_permission('guest', self.virtual_host_name)
+        self.api.user.delete_permission(USERNAME, self.virtual_host_name)
         self.api.virtual_host.delete(self.virtual_host_name)

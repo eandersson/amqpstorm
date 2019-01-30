@@ -20,6 +20,11 @@ Additional documentation is available on `amqpstorm.io <https://www.amqpstorm.io
 Changelog
 =========
 
+Version 2.6.2
+-------------
+- Set default TCP Timeout to 10s on UriConnection to match Connection [#67] - Thanks josemonteiro.
+- Internal RPC Timeout for Opening and Closing Connections are now set to a fixed 30s [#67] - Thanks josemonteiro.
+
 Version 2.6.1
 -------------
 - Fixed minor issue with the last channel id not being available.

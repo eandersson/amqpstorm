@@ -6,6 +6,9 @@ from amqpstorm import compatibility
 from amqpstorm.compatibility import ssl
 from amqpstorm.compatibility import urlparse
 from amqpstorm.connection import Connection
+from amqpstorm.connection import DEFAULT_HEARTBEAT_INTERVAL
+from amqpstorm.connection import DEFAULT_SOCKET_TIMEOUT
+from amqpstorm.connection import DEFAULT_VIRTUAL_HOST
 from amqpstorm.exception import AMQPConnectionError
 
 LOGGER = logging.getLogger(__name__)
@@ -55,9 +58,12 @@ class UriConnection(Connection):
         kwargs = urlparse.parse_qs(parsed_uri.query)
         options = {
             'ssl': use_ssl,
-            'virtual_host': urlparse.unquote(parsed_uri.path[1:]) or '/',
-            'heartbeat': int(kwargs.pop('heartbeat', [60])[0]),
-            'timeout': int(kwargs.pop('timeout', [30])[0])
+            'virtual_host': (urlparse.unquote(parsed_uri.path[1:]) or
+                             DEFAULT_VIRTUAL_HOST),
+            'heartbeat': int(kwargs.pop('heartbeat',
+                                        [DEFAULT_HEARTBEAT_INTERVAL])[0]),
+            'timeout': int(kwargs.pop('timeout',
+                                      [DEFAULT_SOCKET_TIMEOUT])[0])
         }
         if use_ssl:
             if not compatibility.SSL_SUPPORTED:

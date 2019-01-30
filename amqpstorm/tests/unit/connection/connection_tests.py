@@ -237,7 +237,7 @@ class ConnectionTests(TestFramework):
 
         self.assertRaises(
             AMQPConnectionError, connection._wait_for_connection_state,
-            connection.OPEN
+            connection.OPEN, 0.1
         )
 
     def test_connection_wait_for_connection_raises_on_timeout(self):
@@ -251,7 +251,7 @@ class ConnectionTests(TestFramework):
         self.assertRaises(
             AMQPConnectionError,
             connection._wait_for_connection_state,
-            connection.OPEN
+            connection.OPEN, 0.1
         )
 
     def test_connection_open(self):

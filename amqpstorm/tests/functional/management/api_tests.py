@@ -62,5 +62,5 @@ class ApiFunctionalTests(TestFunctionalFramework):
         result = api.whoami()
 
         self.assertIsInstance(result, dict)
-        self.assertEqual(result['name'], 'guest')
+        self.assertEqual(result['name'], USERNAME)
         self.assertEqual(result['tags'], 'administrator')
