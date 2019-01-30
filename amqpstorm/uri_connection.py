@@ -56,10 +56,10 @@ class UriConnection(Connection):
         :return:
         """
         kwargs = urlparse.parse_qs(parsed_uri.query)
+        vhost = urlparse.unquote(parsed_uri.path[1:]) or DEFAULT_VIRTUAL_HOST
         options = {
             'ssl': use_ssl,
-            'virtual_host': (urlparse.unquote(parsed_uri.path[1:]) or
-                             DEFAULT_VIRTUAL_HOST),
+            'virtual_host': vhost,
             'heartbeat': int(kwargs.pop('heartbeat',
                                         [DEFAULT_HEARTBEAT_INTERVAL])[0]),
             'timeout': int(kwargs.pop('timeout',
