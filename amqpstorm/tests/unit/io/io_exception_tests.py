@@ -14,6 +14,24 @@ from amqpstorm.tests.utility import TestFramework
 
 
 class IOExceptionTests(TestFramework):
+    def test_io_close_with_io_error(self):
+        connection = FakeConnection()
+
+        io = IO(connection.parameters)
+        io._exceptions = []
+        io.socket = mock.Mock(name='socket', spec=socket.socket)
+        io.socket.close.side_effect = socket.error()
+        io._close_socket()
+
+    def test_io_shutdown_with_io_error(self):
+        connection = FakeConnection()
+
+        io = IO(connection.parameters)
+        io._exceptions = []
+        io.socket = mock.Mock(name='socket', spec=socket.socket)
+        io.socket.shutdown.side_effect = OSError()
+        io._close_socket()
+
     def test_io_receive_raises_socket_error(self):
         connection = FakeConnection()
 

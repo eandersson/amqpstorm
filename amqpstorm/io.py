@@ -75,7 +75,7 @@ class IO(object):
         try:
             self._running.clear()
             if self.socket:
-                self.socket.close()
+                self._close_socket()
             if self._inbound_thread:
                 self._inbound_thread.join(timeout=self._parameters['timeout'])
             self._inbound_thread = None
@@ -132,6 +132,17 @@ class IO(object):
                     return
         finally:
             self._lock.release()
+
+    def _close_socket(self):
+        """Shutdown and close the Socket.
+
+        :return:
+        """
+        try:
+            self.socket.shutdown(socket.SHUT_RDWR)
+            self.socket.close()
+        except (OSError, socket.error):
+            pass
 
     def _get_socket_addresses(self):
         """Get Socket address information.
