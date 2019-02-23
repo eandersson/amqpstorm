@@ -56,7 +56,8 @@ class IO(object):
 
     def __init__(self, parameters, exceptions=None, on_read_impl=None):
         self._exceptions = exceptions
-        self._lock = threading.Lock()
+        self._wr_lock = threading.Lock()
+        self._rd_lock = threading.Lock()
         self._inbound_thread = None
         self._on_read_impl = on_read_impl
         self._running = threading.Event()
@@ -71,7 +72,8 @@ class IO(object):
 
         :return:
         """
-        self._lock.acquire()
+        self._wr_lock.acquire()
+        self._rd_lock.acquire()
         try:
             self._running.clear()
             if self.socket:
@@ -82,7 +84,8 @@ class IO(object):
             self.poller = None
             self.socket = None
         finally:
-            self._lock.release()
+            self._wr_lock.release()
+            self._rd_lock.release()
 
     def open(self):
         """Open Socket and establish a connection.
@@ -91,7 +94,8 @@ class IO(object):
                                      encountered an error.
         :return:
         """
-        self._lock.acquire()
+        self._wr_lock.acquire()
+        self._rd_lock.acquire()
         try:
             self.data_in = EMPTY_BUFFER
             self._running.set()
@@ -101,7 +105,8 @@ class IO(object):
                                  timeout=self._parameters['timeout'])
             self._inbound_thread = self._create_inbound_thread()
         finally:
-            self._lock.release()
+            self._wr_lock.release()
+            self._rd_lock.release()
 
     def write_to_socket(self, frame_data):
         """Write data to the socket.
@@ -109,7 +114,7 @@ class IO(object):
         :param str frame_data:
         :return:
         """
-        self._lock.acquire()
+        self._wr_lock.acquire()
         try:
             total_bytes_written = 0
             bytes_to_send = len(frame_data)
@@ -131,7 +136,7 @@ class IO(object):
                     self._exceptions.append(AMQPConnectionError(why))
                     return
         finally:
-            self._lock.release()
+            self._wr_lock.release()
 
     def _close_socket(self):
         """Shutdown and close the Socket.
@@ -245,8 +250,6 @@ class IO(object):
         """
         data_in = EMPTY_BUFFER
         try:
-            if not self.socket:
-                raise socket.error('connection/socket error')
             data_in = self._read_from_socket()
         except socket.timeout:
             pass
@@ -261,6 +264,12 @@ class IO(object):
 
         :rtype: bytes
         """
-        if self.use_ssl:
+        if not self.use_ssl:
+            if not self.socket:
+                raise socket.error('connection/socket error')
+            return self.socket.recv(MAX_FRAME_SIZE)
+
+        with self._rd_lock:
+            if not self.socket:
+                raise socket.error('connection/socket error')
             return self.socket.read(MAX_FRAME_SIZE)
-        return self.socket.recv(MAX_FRAME_SIZE)

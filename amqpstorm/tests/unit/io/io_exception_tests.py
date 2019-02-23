@@ -189,3 +189,31 @@ class IOExceptionTests(TestFramework):
             'connection/socket error',
             connection.check_for_errors
         )
+
+    def test_io_socket_read_fails(self):
+        connection = FakeConnection()
+        parameters = FakeConnection().parameters
+        parameters['ssl'] = False
+        io = IO(parameters, exceptions=connection.exceptions)
+
+        self.assertFalse(io.use_ssl)
+
+        self.assertRaisesRegexp(
+            socket.error,
+            'connection/socket error',
+            io._read_from_socket
+        )
+
+    def test_io_socket_read_fails_with_ssl(self):
+        connection = FakeConnection()
+        parameters = FakeConnection().parameters
+        parameters['ssl'] = True
+        io = IO(parameters, exceptions=connection.exceptions)
+
+        self.assertTrue(io.use_ssl)
+
+        self.assertRaisesRegexp(
+            socket.error,
+            'connection/socket error',
+            io._read_from_socket
+        )
