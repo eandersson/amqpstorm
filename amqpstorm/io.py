@@ -175,16 +175,19 @@ class IO(object):
 
         :rtype: socket.socket
         """
+        error_message = None
         for address in addresses:
             sock = self._create_socket(socket_family=address[0])
             try:
                 sock.connect(address[4])
-            except (IOError, OSError):
+            except (IOError, OSError) as why:
+                error_message = why
                 continue
             return sock
         raise AMQPConnectionError(
-            'Could not connect to %s:%d' % (
-                self._parameters['hostname'], self._parameters['port']
+            'Could not connect to %s:%d: %s' % (
+                self._parameters['hostname'], self._parameters['port'],
+                error_message
             )
         )
 
@@ -210,6 +213,13 @@ class IO(object):
         :param socket.socket sock:
         :rtype: SSLSocket
         """
+        context = self._parameters['ssl_options'].get('context')
+        if context is not None:
+            hostname = self._parameters['ssl_options'].get('server_hostname')
+            return context.wrap_socket(
+                sock, do_handshake_on_connect=True,
+                server_hostname=hostname
+            )
         if 'ssl_version' not in self._parameters['ssl_options']:
             self._parameters['ssl_options']['ssl_version'] = (
                 compatibility.DEFAULT_SSL_VERSION
