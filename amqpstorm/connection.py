@@ -317,7 +317,7 @@ class Connection(Stateful):
             self.heartbeat.register_read()
             if channel_id == 0:
                 self._channel0.on_frame(frame_in)
-            else:
+            elif channel_id in self._channels:
                 self._channels[channel_id].on_frame(frame_in)
 
         return data_in

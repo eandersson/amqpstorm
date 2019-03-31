@@ -12,11 +12,11 @@ from amqpstorm.tests.utility import unittest
 class UriConnectionExceptionTests(TestFramework):
     @unittest.skipIf(sys.version_info < (3, 3), 'Python 3.x test')
     def test_uri_py3_raises_on_invalid_uri(self):
-        self.assertRaises(ValueError, UriConnection, 'amqp://a:b', True)
+        self.assertRaises(ValueError, UriConnection, 'amqp://a:b', {}, True)
 
     @unittest.skipIf(sys.version_info[0] == 3, 'Python 2.x test')
     def test_uri_py2_raises_on_invalid_uri(self):
-        self.assertRaises(ValueError, UriConnection, 'amqp://a:b', True)
+        self.assertRaises(ValueError, UriConnection, 'amqp://a:b', {}, True)
 
     def test_uri_raises_on_invalid_object(self):
         self.assertRaises(AttributeError, UriConnection, None)
@@ -26,7 +26,7 @@ class UriConnectionExceptionTests(TestFramework):
 
     def test_uri_invalid_ssl_options(self):
         connection = UriConnection(
-            'amqps://guest:guest@localhost:5672/%2F', True
+            'amqps://guest:guest@localhost:5672/%2F', lazy=True
         )
         ssl_kwargs = {
             'unit_test': ['not_required'],
@@ -39,7 +39,7 @@ class UriConnectionExceptionTests(TestFramework):
 
     def test_uri_get_invalid_ssl_version(self):
         connection = UriConnection(
-            'amqps://guest:guest@localhost:5672/%2F', True
+            'amqps://guest:guest@localhost:5672/%2F', lazy=True
         )
 
         self.assertEqual(connection._get_ssl_version('protocol_test'),
@@ -50,7 +50,7 @@ class UriConnectionExceptionTests(TestFramework):
 
     def test_uri_get_invalid_ssl_validation(self):
         connection = UriConnection(
-            'amqps://guest:guest@localhost:5672/%2F', True
+            'amqps://guest:guest@localhost:5672/%2F', lazy=True
         )
 
         self.assertEqual(ssl.CERT_NONE,

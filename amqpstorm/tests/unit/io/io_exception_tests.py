@@ -14,15 +14,6 @@ from amqpstorm.tests.utility import TestFramework
 
 
 class IOExceptionTests(TestFramework):
-    def test_io_close_with_io_error(self):
-        connection = FakeConnection()
-
-        io = IO(connection.parameters)
-        io._exceptions = []
-        io.socket = mock.Mock(name='socket', spec=socket.socket)
-        io.socket.close.side_effect = socket.error()
-        io._close_socket()
-
     def test_io_shutdown_with_io_error(self):
         connection = FakeConnection()
 
@@ -144,7 +135,7 @@ class IOExceptionTests(TestFramework):
         io = IO(parameters)
         self.assertRaisesRegexp(
             AMQPConnectionError,
-            'Could not connect to localhost:1234',
+            'Could not connect to localhost:1234 error: Connection refused',
             io.open
         )
 

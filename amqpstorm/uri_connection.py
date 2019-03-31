@@ -25,7 +25,7 @@ class UriConnection(Connection):
     """
     __slots__ = []
 
-    def __init__(self, uri, lazy=False):
+    def __init__(self, uri, ssl_options=None, lazy=False):
         """
         :param str uri: AMQP Connection string
 
@@ -42,19 +42,20 @@ class UriConnection(Connection):
         port = parsed_uri.port or 5672
         username = urlparse.unquote(parsed_uri.username or 'guest')
         password = urlparse.unquote(parsed_uri.password or 'guest')
-        kwargs = self._parse_uri_options(parsed_uri, use_ssl)
+        kwargs = self._parse_uri_options(parsed_uri, use_ssl, ssl_options)
         super(UriConnection, self).__init__(hostname, username,
                                             password, port,
                                             lazy=lazy,
                                             **kwargs)
 
-    def _parse_uri_options(self, parsed_uri, use_ssl):
+    def _parse_uri_options(self, parsed_uri, use_ssl=False, ssl_options=None):
         """Parse the uri options.
 
         :param parsed_uri:
         :param bool use_ssl:
         :return:
         """
+        ssl_options = ssl_options or {}
         kwargs = urlparse.parse_qs(parsed_uri.query)
         vhost = urlparse.unquote(parsed_uri.path[1:]) or DEFAULT_VIRTUAL_HOST
         options = {
@@ -71,7 +72,8 @@ class UriConnection(Connection):
                     'Python not compiled with support '
                     'for TLSv1 or higher'
                 )
-            options['ssl_options'] = self._parse_ssl_options(kwargs)
+            ssl_options.update(self._parse_ssl_options(kwargs))
+            options['ssl_options'] = ssl_options
         return options
 
     def _parse_ssl_options(self, ssl_kwargs):

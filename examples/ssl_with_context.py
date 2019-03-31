@@ -26,11 +26,11 @@ def on_message(message):
 
 def start_consumer():
     ssl_options = {
-        'context': ssl.create_default_context(),
+        'context': ssl.create_default_context(cafile='cacert.pem'),
         'server_hostname': 'rmq.eandersson.net'
     }
 
-    with Connection('127.0.0.1', 'guest', 'guest', port=5671,
+    with Connection('rmq.eandersson.net', 'guest', 'guest', port=5671,
                     ssl=True, ssl_options=ssl_options) as connection:
         with connection.channel() as channel:
             # Declare the Queue, 'simple_queue'.

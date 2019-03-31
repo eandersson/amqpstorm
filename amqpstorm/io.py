@@ -145,9 +145,9 @@ class IO(object):
         """
         try:
             self.socket.shutdown(socket.SHUT_RDWR)
-            self.socket.close()
         except (OSError, socket.error):
             pass
+        self.socket.close()
 
     def _get_socket_addresses(self):
         """Get Socket address information.
@@ -181,11 +181,11 @@ class IO(object):
             try:
                 sock.connect(address[4])
             except (IOError, OSError) as why:
-                error_message = why
+                error_message = why.strerror
                 continue
             return sock
         raise AMQPConnectionError(
-            'Could not connect to %s:%d: %s' % (
+            'Could not connect to %s:%d error: %s' % (
                 self._parameters['hostname'], self._parameters['port'],
                 error_message
             )
