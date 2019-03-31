@@ -20,6 +20,12 @@ Additional documentation is available on `amqpstorm.io <https://www.amqpstorm.io
 Changelog
 =========
 
+Version 2.7.0
+-------------
+- Added support for passing your own ssl context [#71] - Thanks troglas.
+- Improved logging verbosity on connection failures [#72] - Thanks troglas.
+- Fixed occasional error message when closing a SSL connection [#68] - Thanks troglas.
+
 Version 2.6.2
 -------------
 - Set default TCP Timeout to 10s on UriConnection to match Connection [#67] - Thanks josemonteiro.
@@ -43,21 +49,6 @@ Version 2.5.0
     - For more information see https://pamqp.readthedocs.io/en/latest/history.html
 - Properly wait until the inbound queue is empty when break_on_empty is set [#63] - Thanks TomGudman.
 - Fixed issue with Management queue/exchange declare when the passive flag was set to True.
-
-Version 2.4.2
--------------
-- Added support for External Authentication - Thanks Bernd Höhl.
-- Fixed typo in setup.py extra requirements - Thanks Bernd Höhl.
-- LICENSE file now included in package - Thanks Tomáš Chvátal.
-
-Version 2.4.1
--------------
-- Added client/server negotiation to better determine the maximum supported channels and maximum allowed frame size [#52] - Thanks gastlich.
-- We now raise an exception if the maximum allowed channel count is reached.
-
-Version 2.4.0
--------------
-- basic.consume now allows for multiple callbacks [#48].
 
 Credits
 =======
