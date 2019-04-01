@@ -38,7 +38,6 @@ SSL_OPTIONS = [
     'ssl_version',
     'ca_certs',
     'server_hostname',
-    'context',
 ]
 
 

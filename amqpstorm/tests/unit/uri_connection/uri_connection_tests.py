@@ -163,13 +163,15 @@ class UriConnectionTests(TestFramework):
             'certfile': 'file.crt'
         }
         connection = UriConnection(
-            'amqps://guest:guest@localhost:5671/%2F',
+            'amqps://guest:guest@localhost:5671/%2F?'
+            'server_hostname=rmq.eandersson.net&certfile=file.crt',
             ssl_options=ssl_kwargs,
             lazy=True
         )
 
         ssl_options = connection.parameters.get('ssl_options')
 
+        self.assertEqual(ssl_options['server_hostname'], 'rmq.eandersson.net')
         self.assertEqual(ssl_options['cert_reqs'], ssl.CERT_REQUIRED)
         self.assertEqual(ssl_options['ssl_version'], ssl.PROTOCOL_TLSv1)
         self.assertEqual(ssl_options['keyfile'], 'file.key')
