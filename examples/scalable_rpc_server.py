@@ -9,7 +9,7 @@ import amqpstorm
 from amqpstorm import Connection
 from amqpstorm import Message
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 LOGGER = logging.getLogger()
 

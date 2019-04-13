@@ -3,7 +3,7 @@ import logging
 from amqpstorm import Connection
 from amqpstorm import Message
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 
 def publish_messages():

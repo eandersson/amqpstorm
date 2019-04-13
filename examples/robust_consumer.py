@@ -7,7 +7,7 @@ import time
 import amqpstorm
 from amqpstorm import Connection
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 LOGGER = logging.getLogger()
 

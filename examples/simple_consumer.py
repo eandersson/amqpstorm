@@ -2,7 +2,7 @@ import logging
 
 from amqpstorm import Connection
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 
 def on_message(message):

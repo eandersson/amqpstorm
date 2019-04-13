@@ -2,7 +2,7 @@ import logging
 
 from amqpstorm import Connection
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 
 def consume_until_queue_is_empty():
