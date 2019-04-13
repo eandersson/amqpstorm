@@ -36,7 +36,8 @@ SSL_OPTIONS = [
     'certfile',
     'cert_reqs',
     'ssl_version',
-    'ca_certs'
+    'ca_certs',
+    'server_hostname',
 ]
 
 

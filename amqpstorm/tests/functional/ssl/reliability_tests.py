@@ -1,27 +1,30 @@
-import imp
-import sys
+import ssl
 import threading
 import time
 
-from amqpstorm import AMQPConnectionError
-from amqpstorm import AMQPMessageError
 from amqpstorm import Connection
 from amqpstorm import UriConnection
-from amqpstorm import compatibility
-from amqpstorm.tests import HOST
+from amqpstorm.tests import CAFILE
 from amqpstorm.tests import PASSWORD
-from amqpstorm.tests import URI
+from amqpstorm.tests import SSL_HOST
+from amqpstorm.tests import SSL_URI
 from amqpstorm.tests import USERNAME
 from amqpstorm.tests.utility import TestFunctionalFramework
 from amqpstorm.tests.utility import setup
 
 
-class ReliabilityFunctionalTests(TestFunctionalFramework):
+class SSLReliabilityFunctionalTests(TestFunctionalFramework):
     @setup(new_connection=False, queue=True)
-    def test_functional_open_new_connection_loop(self):
-        for _ in range(25):
-            self.connection = self.connection = Connection(HOST, USERNAME,
-                                                           PASSWORD)
+    def test_functional_ssl_open_new_connection_loop(self):
+        ssl_options = {
+            'context': ssl.create_default_context(cafile=CAFILE),
+            'server_hostname': SSL_HOST
+        }
+
+        for _ in range(5):
+            self.connection = self.connection = Connection(
+                SSL_HOST, USERNAME, PASSWORD, port=5671, ssl=True,
+                ssl_options=ssl_options, timeout=1)
             self.channel = self.connection.channel()
 
             # Make sure that it's a new channel.
@@ -45,9 +48,16 @@ class ReliabilityFunctionalTests(TestFunctionalFramework):
             self.assertFalse(self.connection.exceptions)
 
     @setup(new_connection=False, queue=True)
-    def test_functional_open_close_connection_loop(self):
-        self.connection = Connection(HOST, USERNAME, PASSWORD, lazy=True)
-        for _ in range(25):
+    def test_functional_ssl_open_close_connection_loop(self):
+        ssl_options = {
+            'context': ssl.create_default_context(cafile=CAFILE),
+            'server_hostname': SSL_HOST
+        }
+        self.connection = self.connection = Connection(
+            SSL_HOST, USERNAME, PASSWORD, port=5671, ssl=True,
+            ssl_options=ssl_options, timeout=1, lazy=True)
+
+        for _ in range(5):
             self.connection.open()
             channel = self.connection.channel()
 
@@ -72,30 +82,16 @@ class ReliabilityFunctionalTests(TestFunctionalFramework):
             self.assertFalse(self.connection._io._running.is_set())
             self.assertFalse(self.connection.exceptions)
 
-    @setup(new_connection=True, new_channel=False, queue=True)
-    def test_functional_close_gracefully_after_publish_mandatory_fails(self):
-        for index in range(3):
-            channel = self.connection.channel()
+    @setup(new_connection=False, queue=False)
+    def test_functional_ssl_open_close_channel_loop(self):
+        ssl_options = {
+            'context': ssl.create_default_context(cafile=CAFILE),
+            'server_hostname': SSL_HOST
+        }
+        self.connection = self.connection = Connection(
+            SSL_HOST, USERNAME, PASSWORD, port=5671, ssl=True,
+            ssl_options=ssl_options)
 
-            # Try to publish 25 bad messages.
-            for _ in range(25):
-                try:
-                    channel.basic.publish('', self.queue_name, '', None, True,
-                                          False)
-                except AMQPMessageError:
-                    pass
-
-            # Sleep for 0.1s to make sure RabbitMQ has time to catch up.
-            time.sleep(0.1)
-
-            self.assertTrue(channel.exceptions)
-
-            channel.close()
-
-    @setup(new_connection=False, queue=True)
-    def test_functional_open_close_channel_loop(self):
-        self.connection = self.connection = Connection(HOST, USERNAME,
-                                                       PASSWORD)
         for _ in range(25):
             channel = self.connection.channel()
 
@@ -113,14 +109,19 @@ class ReliabilityFunctionalTests(TestFunctionalFramework):
             self.assertTrue(channel.is_closed)
 
     @setup(new_connection=False, queue=True)
-    def test_functional_open_multiple_channels(self):
-        self.connection = self.connection = Connection(HOST, USERNAME,
-                                                       PASSWORD, lazy=True)
+    def test_functional_ssl_open_multiple_channels(self):
+        ssl_options = {
+            'context': ssl.create_default_context(cafile=CAFILE),
+            'server_hostname': SSL_HOST
+        }
+        self.connection = self.connection = Connection(
+            SSL_HOST, USERNAME, PASSWORD, port=5671, ssl=True,
+            ssl_options=ssl_options, timeout=1, lazy=True)
 
         for _ in range(5):
             channels = []
             self.connection.open()
-            for index in range(10):
+            for index in range(3):
                 channel = self.connection.channel()
                 channels.append(channel)
 
@@ -130,41 +131,43 @@ class ReliabilityFunctionalTests(TestFunctionalFramework):
             self.connection.close()
 
     @setup(new_connection=False, queue=False)
-    def test_functional_close_performance(self):
+    def test_functional_ssl_close_performance(self):
         """Make sure closing a connection never takes longer than ~1 seconds.
 
         :return:
         """
         for _ in range(100):
-            self.connection = self.connection = Connection(HOST, USERNAME,
-                                                           PASSWORD)
+            ssl_options = {
+                'context': ssl.create_default_context(cafile=CAFILE),
+                'server_hostname': SSL_HOST
+            }
+            self.connection = self.connection = Connection(
+                SSL_HOST, USERNAME, PASSWORD, port=5671, ssl=True,
+                ssl_options=ssl_options, lazy=True)
+
             start_time = time.time()
             self.connection.close()
             self.assertLess(time.time() - start_time, 3)
 
     @setup(new_connection=False)
-    def test_functional_uri_connection(self):
-        self.connection = UriConnection(URI)
+    def test_functional_ssl_uri_connection(self):
+        self.connection = UriConnection(SSL_URI)
         self.channel = self.connection.channel()
         self.assertTrue(self.connection.is_open)
 
-    def test_functional_ssl_connection_without_ssl(self):
-        restore_func = sys.modules['ssl']
-        try:
-            sys.modules['ssl'] = None
-            imp.reload(compatibility)
-            self.assertIsNone(compatibility.ssl)
-            self.assertRaisesRegexp(
-                AMQPConnectionError,
-                'Python not compiled with support for TLSv1 or higher',
-                Connection, HOST, USERNAME, PASSWORD, ssl=True
-            )
-        finally:
-            sys.modules['ssl'] = restore_func
-            imp.reload(compatibility)
+    @setup(new_connection=False)
+    def test_functional_ssl_uri_connection_with_context(self):
+        ssl_options = {
+            'context': ssl.create_default_context(cafile=CAFILE),
+            'server_hostname': SSL_HOST
+        }
+
+        self.connection = UriConnection(SSL_URI, ssl_options=ssl_options)
+        self.channel = self.connection.channel()
+        self.assertTrue(self.connection.is_open)
 
 
-class PublishAndConsume1kTest(TestFunctionalFramework):
+class PublishAndConsume1kWithSSLTest(TestFunctionalFramework):
     messages_to_send = 1000
     messages_consumed = 0
     lock = threading.Lock()
@@ -192,8 +195,17 @@ class PublishAndConsume1kTest(TestFunctionalFramework):
         with self.lock:
             self.messages_consumed += 1
 
-    @setup(queue=True)
-    def test_functional_publish_and_consume_1k_messages(self):
+    @setup(new_connection=False, queue=False)
+    def test_functional_publish_1k_with_ssl(self):
+        ssl_options = {
+            'context': ssl.create_default_context(cafile=CAFILE),
+            'server_hostname': SSL_HOST
+        }
+        self.connection = self.connection = Connection(
+            SSL_HOST, USERNAME, PASSWORD, port=5671, ssl=True,
+            ssl_options=ssl_options)
+
+        self.channel = self.connection.channel()
         self.channel.queue.declare(self.queue_name)
 
         publish_thread = threading.Thread(target=self.publish_messages, )
@@ -219,7 +231,7 @@ class PublishAndConsume1kTest(TestFunctionalFramework):
                          'test took too long')
 
 
-class Consume1kUntilEmpty(TestFunctionalFramework):
+class Consume1kWithSSLUntilEmpty(TestFunctionalFramework):
     messages_to_send = 1000
 
     def configure(self):
@@ -230,8 +242,17 @@ class Consume1kUntilEmpty(TestFunctionalFramework):
             self.channel.basic.publish(body=self.message,
                                        routing_key=self.queue_name)
 
-    @setup(queue=True)
-    def test_functional_publish_and_consume_until_empty(self):
+    @setup(new_connection=False, queue=True)
+    def test_functional_consume_with_ssl_until_empty(self):
+        ssl_options = {
+            'context': ssl.create_default_context(cafile=CAFILE),
+            'server_hostname': SSL_HOST
+        }
+        self.connection = self.connection = Connection(
+            SSL_HOST, USERNAME, PASSWORD, port=5671, ssl=True,
+            ssl_options=ssl_options)
+
+        self.channel = self.connection.channel()
         self.channel.queue.declare(self.queue_name)
         self.channel.confirm_deliveries()
         self.publish_messages()

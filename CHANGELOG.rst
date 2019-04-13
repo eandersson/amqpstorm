@@ -1,6 +1,12 @@
 Changelog
 =========
 
+Version 2.7.0
+-------------
+- Added support for passing your own ssl context [#71] - Thanks troglas.
+- Improved logging verbosity on connection failures [#72] - Thanks troglas.
+- Fixed occasional error message when closing a SSL connection [#68] - Thanks troglas.
+
 Version 2.6.2
 -------------
 - Set default TCP Timeout to 10s on UriConnection to match Connection [#67] - Thanks josemonteiro.

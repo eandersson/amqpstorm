@@ -141,6 +141,25 @@ class IOTests(TestFramework):
         self.assertEqual(connection.parameters['ssl_options']['ssl_version'],
                          'travis-ci')
 
+    def test_io_set_ssl_context(self):
+        connection = FakeConnection()
+        connection.parameters['ssl_options'] = {
+            'context': ssl.create_default_context(),
+            'server_hostname': 'localhost',
+        }
+
+        io = IO(connection.parameters)
+        self.assertTrue(io._ssl_wrap_socket(socket.socket()))
+
+    def test_io_set_ssl_context_no_hostname_provided(self):
+        connection = FakeConnection()
+        connection.parameters['ssl_options'] = {
+            'context': ssl.create_default_context(),
+        }
+
+        io = IO(connection.parameters)
+        self.assertRaises(ValueError, io._ssl_wrap_socket, socket.socket())
+
     def test_io_has_ipv6(self):
         restore_func = socket.getaddrinfo
 
