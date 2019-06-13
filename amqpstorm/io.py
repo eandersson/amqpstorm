@@ -76,16 +76,16 @@ class IO(object):
         self._rd_lock.acquire()
         try:
             self._running.clear()
-            if self.socket:
-                self._close_socket()
-            if self._inbound_thread:
-                self._inbound_thread.join(timeout=self._parameters['timeout'])
-            self._inbound_thread = None
-            self.poller = None
+            self._close_socket()
             self.socket = None
+            self.poller = None
         finally:
             self._wr_lock.release()
             self._rd_lock.release()
+
+        if self._inbound_thread:
+            self._inbound_thread.join(timeout=self._parameters['timeout'])
+        self._inbound_thread = None
 
     def open(self):
         """Open Socket and establish a connection.
@@ -143,10 +143,15 @@ class IO(object):
 
         :return:
         """
+        if not self.socket:
+            return
         try:
+            if self.use_ssl:
+                self.socket.unwrap()
             self.socket.shutdown(socket.SHUT_RDWR)
-        except (OSError, socket.error):
+        except (OSError, socket.error, ValueError):
             pass
+
         self.socket.close()
 
     def _get_socket_addresses(self):

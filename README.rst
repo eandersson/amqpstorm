@@ -20,6 +20,10 @@ Additional documentation is available on `amqpstorm.io <https://www.amqpstorm.io
 Changelog
 =========
 
+Version 2.7.1
+-------------
+- Fixed Connection close taking longer than intended when using SSL [#75]- Thanks troglas.
+
 Version 2.7.0
 -------------
 - Added support for passing your own ssl context [#71] - Thanks troglas.

@@ -116,7 +116,7 @@ class SSLReliabilityFunctionalTests(TestFunctionalFramework):
         }
         self.connection = self.connection = Connection(
             SSL_HOST, USERNAME, PASSWORD, port=5671, ssl=True,
-            ssl_options=ssl_options, timeout=1, lazy=True)
+            ssl_options=ssl_options, lazy=True)
 
         for _ in range(5):
             channels = []
@@ -142,8 +142,8 @@ class SSLReliabilityFunctionalTests(TestFunctionalFramework):
                 'server_hostname': SSL_HOST
             }
             self.connection = self.connection = Connection(
-                SSL_HOST, USERNAME, PASSWORD, port=5671, ssl=True,
-                ssl_options=ssl_options, lazy=True)
+                SSL_HOST, USERNAME, PASSWORD, timeout=60, port=5671, ssl=True,
+                ssl_options=ssl_options)
 
             start_time = time.time()
             self.connection.close()
