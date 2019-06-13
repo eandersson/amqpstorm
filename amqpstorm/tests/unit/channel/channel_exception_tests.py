@@ -187,7 +187,7 @@ class ChannelExceptionTests(TestFramework):
         # Set up Fake Channel.
         channel._inbound = [1, 2, 3]
         channel.set_state(channel.OPEN)
-        channel._consumer_tags = [1, 2, 3]
+        channel._consumer_tags = [4, 5, 6]
 
         close_frame = specification.Channel.Close(
             reply_code=500,
@@ -198,11 +198,6 @@ class ChannelExceptionTests(TestFramework):
         self.assertEqual(channel._inbound, [])
         self.assertEqual(channel._consumer_tags, [])
         self.assertEqual(channel._state, channel.CLOSED)
-
-        self.assertIsInstance(
-            connection.get_last_frame(),
-            specification.Channel.CloseOk
-        )
 
         self.assertRaisesRegexp(
             AMQPChannelError,

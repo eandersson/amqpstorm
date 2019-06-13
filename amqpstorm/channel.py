@@ -457,25 +457,15 @@ class Channel(BaseChannel):
         :param specification.Channel.Close frame_in: Channel Close frame.
         :return:
         """
-        if frame_in.reply_code != 200:
-            reply_text = try_utf8_decode(frame_in.reply_text)
-            message = (
-                'Channel %d was closed by remote server: %s' %
-                (
-                    self._channel_id,
-                    reply_text
-                )
-            )
-            exception = AMQPChannelError(message,
-                                         reply_code=frame_in.reply_code)
-            self.exceptions.append(exception)
         self.set_state(self.CLOSED)
-        if self._connection.is_open:
-
-            try:
-                self._connection.write_frame(
-                    self.channel_id, specification.Channel.CloseOk()
-                )
-            except AMQPConnectionError:
-                pass
-        self.close()
+        self.remove_consumer_tag()
+        if self._inbound:
+            del self._inbound[:]
+        self.exceptions.append(AMQPChannelError(
+            'Channel %d was closed by remote server: %s' %
+            (
+                self._channel_id,
+                try_utf8_decode(frame_in.reply_text)
+            ),
+            reply_code=frame_in.reply_code
+        ))

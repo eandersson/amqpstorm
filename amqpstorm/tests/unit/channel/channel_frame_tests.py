@@ -97,11 +97,6 @@ class ChannelFrameTests(TestFramework):
             )
         )
 
-        self.assertIsInstance(
-            connection.get_last_frame(),
-            specification.Channel.CloseOk
-        )
-
         self.assertRaisesRegexp(
             AMQPChannelError,
             'Channel 0 was closed by remote server: travis-ci',

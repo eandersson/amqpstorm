@@ -68,7 +68,7 @@ class ChannelTests(TestFramework):
         # Set up Fake Channel.
         channel._inbound = [1, 2, 3]
         channel.set_state(channel.OPEN)
-        channel._consumer_tags = ['1', '2', '3']
+        channel._consumer_tags = ['4', '5', '6']
 
         # Close Channel.
         channel.close()
@@ -89,7 +89,7 @@ class ChannelTests(TestFramework):
         # Set up Fake Channel.
         channel._inbound = [1, 2, 3]
         channel.set_state(channel.OPEN)
-        channel._consumer_tags = ['1', '2', '3']
+        channel._consumer_tags = ['4', '5', '6']
         channel.exceptions.append(AMQPChannelError('travis-ci'))
 
         # Close Channel.
@@ -107,7 +107,7 @@ class ChannelTests(TestFramework):
         # Set up Fake Channel.
         channel._inbound = [1, 2, 3]
         channel.set_state(channel.CLOSED)
-        channel._consumer_tags = ['1', '2', '3']
+        channel._consumer_tags = ['4', '5', '6']
 
         def state_set(state):
             self.assertEqual(state, channel.CLOSED)
@@ -142,7 +142,7 @@ class ChannelTests(TestFramework):
         # Set up Fake Channel.
         channel._inbound = [1, 2, 3]
         channel.set_state(channel.OPEN)
-        channel._consumer_tags = [1, 2, 3]
+        channel._consumer_tags = [4, 5, 6]
 
         close_frame = specification.Channel.Close(reply_code=200,
                                                   reply_text='travis-ci')

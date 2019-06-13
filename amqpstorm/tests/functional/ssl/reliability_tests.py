@@ -136,7 +136,7 @@ class SSLReliabilityFunctionalTests(TestFunctionalFramework):
 
         :return:
         """
-        for _ in range(100):
+        for _ in range(10):
             ssl_options = {
                 'context': ssl.create_default_context(cafile=CAFILE),
                 'server_hostname': SSL_HOST
