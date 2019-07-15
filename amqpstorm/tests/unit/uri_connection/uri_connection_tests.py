@@ -176,3 +176,11 @@ class UriConnectionTests(TestFramework):
         self.assertEqual(ssl_options['ssl_version'], ssl.PROTOCOL_TLSv1)
         self.assertEqual(ssl_options['keyfile'], 'file.key')
         self.assertEqual(ssl_options['certfile'], 'file.crt')
+
+    def test_uri_set_client_properties(self):
+        connection = UriConnection(
+            'amqp://guest:guest@localhost:5672/%2F', lazy=True, client_properties={'platform': 'Atari', 'license': 'MIT'}
+        )
+
+        self.assertIsInstance(connection.parameters['client_properties'], dict)
+        self.assertEqual(connection.parameters['client_properties'], {'platform': 'Atari', 'license': 'MIT'})

@@ -44,6 +44,7 @@ class Connection(Stateful):
         :param int|float timeout: Socket timeout
         :param bool ssl: Enable SSL
         :param dict ssl_options: SSL kwargs (from ssl.wrap_socket)
+        :param dict client_properties: None or dict of client properties
         :param bool lazy: Lazy initialize the connection
 
         :raises AMQPConnectionError: Raises if the connection
@@ -61,12 +62,13 @@ class Connection(Stateful):
             'heartbeat': kwargs.get('heartbeat', DEFAULT_HEARTBEAT_INTERVAL),
             'timeout': kwargs.get('timeout', DEFAULT_SOCKET_TIMEOUT),
             'ssl': kwargs.get('ssl', False),
-            'ssl_options': kwargs.get('ssl_options', {})
+            'ssl_options': kwargs.get('ssl_options', {}),
+            'client_properties': kwargs.get('client_properties', {})
         }
         self._validate_parameters()
         self._io = IO(self.parameters, exceptions=self._exceptions,
                       on_read_impl=self._read_buffer)
-        self._channel0 = Channel0(self)
+        self._channel0 = Channel0(self, self.parameters['client_properties'])
         self._channels = {}
         self._last_channel_id = None
         self.heartbeat = Heartbeat(self.parameters['heartbeat'],
