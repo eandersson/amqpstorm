@@ -185,7 +185,8 @@ class Channel0Tests(TestFramework):
         self.assertRaises(AMQPConnectionError, connection.check_for_errors)
 
     def test_channel0_override_client_credentials(self):
-        channel = Channel0(FakeConnection(), {'platform': 'Atari', 'license': 'MIT'})
+        client_properties = {'platform': 'Atari', 'license': 'MIT'}
+        channel = Channel0(FakeConnection(), client_properties)
         result = channel._client_properties()
 
         information = 'See https://github.com/eandersson/amqpstorm'
