@@ -70,7 +70,8 @@ class ApiConnectionFunctionalTests(TestFunctionalFramework):
         self.assertEqual(len(api.connection.list()), 0,
                          'found an open connection, test will fail')
 
-        connection = Connection(HOST, USERNAME, PASSWORD, timeout=1, client_properties={'platform': 'Atari', 'license': 'MIT'})
+        client_properties = {'platform': 'Atari', 'license': 'MIT'}
+        connection = Connection(HOST, USERNAME, PASSWORD, timeout=1, client_properties=client_properties)
 
         connections = retry_function_wrapper(api.connection.list)
 
