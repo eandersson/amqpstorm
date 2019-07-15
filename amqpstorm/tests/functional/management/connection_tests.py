@@ -71,7 +71,8 @@ class ApiConnectionFunctionalTests(TestFunctionalFramework):
                          'found an open connection, test will fail')
 
         cp = {'platform': 'Atari', 'license': 'MIT'}
-        connection = Connection(HOST, USERNAME, PASSWORD, timeout=1, client_properties=cp)
+        connection = Connection(HOST, USERNAME, PASSWORD, timeout=1,
+                                client_properties=cp)
 
         connections = retry_function_wrapper(api.connection.list)
 

@@ -180,7 +180,8 @@ class UriConnectionTests(TestFramework):
     def test_uri_set_client_properties(self):
         cp = {'platform': 'Atari', 'license': 'MIT'}
         connection = UriConnection(
-            'amqp://guest:guest@localhost:5672/%2F', lazy=True, client_properties=cp
+            'amqp://guest:guest@localhost:5672/%2F', lazy=True,
+            client_properties=cp
         )
 
         self.assertIsInstance(connection.parameters['client_properties'], dict)
