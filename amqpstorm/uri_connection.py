@@ -25,7 +25,8 @@ class UriConnection(Connection):
     """
     __slots__ = []
 
-    def __init__(self, uri, ssl_options=None, lazy=False):
+    def __init__(self, uri, ssl_options=None, client_properties=None,
+                 lazy=False):
         """
         :param str uri: AMQP Connection string
 
@@ -43,10 +44,12 @@ class UriConnection(Connection):
         username = urlparse.unquote(parsed_uri.username or 'guest')
         password = urlparse.unquote(parsed_uri.password or 'guest')
         kwargs = self._parse_uri_options(parsed_uri, use_ssl, ssl_options)
-        super(UriConnection, self).__init__(hostname, username,
-                                            password, port,
-                                            lazy=lazy,
-                                            **kwargs)
+        super(UriConnection, self).__init__(
+            hostname, username, password, port,
+            client_properties=client_properties,
+            lazy=lazy,
+            **kwargs
+        )
 
     def _parse_uri_options(self, parsed_uri, use_ssl=False, ssl_options=None):
         """Parse the uri options.
