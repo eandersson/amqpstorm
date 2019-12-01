@@ -20,6 +20,10 @@ Additional documentation is available on `amqpstorm.io <https://www.amqpstorm.io
 Changelog
 =========
 
+Version 2.7.2
+-------------
+- Added ability to override client_properties [#77] - Thanks tkram01.
+
 Version 2.7.1
 -------------
 - Fixed Connection close taking longer than intended when using SSL [#75]- Thanks troglas.

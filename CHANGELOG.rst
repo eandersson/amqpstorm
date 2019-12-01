@@ -1,9 +1,13 @@
 Changelog
 =========
 
+Version 2.7.2
+-------------
+- Added ability to override client_properties [#77] - Thanks tkram01.
+
 Version 2.7.1
 -------------
-- Fixed Connection close taking longer than intended when using SSL [#75]- Thanks troglas.
+- Fixed Connection close taking longer than intended when using SSL [#75] - Thanks troglas.
 - Fixed an issue with closing Channels taking too long after the server initiated it.
 
 Version 2.7.0
