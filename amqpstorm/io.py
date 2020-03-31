@@ -225,14 +225,13 @@ class IO(object):
                 sock, do_handshake_on_connect=True,
                 server_hostname=hostname
             )
-        if 'ssl_version' not in self._parameters['ssl_options']:
-            self._parameters['ssl_options']['ssl_version'] = (
-                compatibility.DEFAULT_SSL_VERSION
-            )
-        return ssl.wrap_socket(
-            sock, do_handshake_on_connect=True,
-            **self._parameters['ssl_options']
-        )
+        hostname = self._parameters['hostname']
+        context = ssl.SSLContext(ssl.PROTOCOL_TLS)
+        context.verify_mode = ssl.CERT_REQUIRED
+        context.check_hostname = True
+        context.load_default_certs()
+        return context.wrap_socket(sock, do_handshake_on_connect=True,
+                                   server_hostname=hostname)
 
     def _create_inbound_thread(self):
         """Internal Thread that handles all incoming traffic.
