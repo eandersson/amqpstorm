@@ -228,7 +228,8 @@ class IO(object):
         hostname = self._parameters['hostname']
         context = ssl.SSLContext(ssl.PROTOCOL_TLS)
         context.verify_mode = ssl.CERT_REQUIRED
-        context.check_hostname = True
+        check = self._parameters['ssl_options'].get('check_hostname', False)
+        context.check_hostname = check
         context.load_default_certs()
         return context.wrap_socket(sock, do_handshake_on_connect=True,
                                    server_hostname=hostname)
