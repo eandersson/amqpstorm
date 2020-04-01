@@ -4,7 +4,6 @@ import ssl
 from mock import Mock
 
 import amqpstorm.io
-from amqpstorm import compatibility
 from amqpstorm.exception import AMQPConnectionError
 from amqpstorm.io import IO
 from amqpstorm.tests.utility import FakeConnection
