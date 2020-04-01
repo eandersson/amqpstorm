@@ -227,7 +227,11 @@ class IO(object):
             )
         hostname = self._parameters['hostname']
         context = ssl.SSLContext(ssl.PROTOCOL_TLS)
-        context.verify_mode = ssl.CERT_REQUIRED
+        mode = self._parameters['ssl_options'].get('verify_mode', 'none')
+        if mode.lower() == 'required':
+            context.verify_mode = ssl.CERT_REQUIRED
+        else:
+            context.verify_mode = ssl.CERT_NONE
         check = self._parameters['ssl_options'].get('check_hostname', False)
         context.check_hostname = check
         context.load_default_certs()
