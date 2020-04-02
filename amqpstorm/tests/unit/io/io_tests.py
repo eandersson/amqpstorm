@@ -4,7 +4,6 @@ import ssl
 from mock import Mock
 
 import amqpstorm.io
-from amqpstorm import compatibility
 from amqpstorm.exception import AMQPConnectionError
 from amqpstorm.io import IO
 from amqpstorm.tests.utility import FakeConnection
@@ -61,7 +60,6 @@ class IOTests(TestFramework):
             self.assertIsInstance(sock, socket.socket)
         if hasattr(ssl, 'SSLSocket'):
             self.assertIsInstance(sock, ssl.SSLSocket)
-        self.assertTrue(connection.parameters['ssl_options']['ssl_version'])
 
     def test_io_get_socket_address(self):
         connection = FakeConnection()
@@ -114,32 +112,6 @@ class IOTests(TestFramework):
             'connection/socket error',
             connection.check_for_errors
         )
-
-    def test_io_sets_default_ssl_version(self):
-        connection = FakeConnection()
-        connection.parameters['ssl_options'] = {}
-
-        sock = Mock(name='socket', spec=socket.socket)
-        sock.fileno.return_value = 1
-
-        io = IO(connection.parameters)
-        self.assertRaises(Exception, io._ssl_wrap_socket, sock)
-        self.assertEqual(connection.parameters['ssl_options']['ssl_version'],
-                         compatibility.DEFAULT_SSL_VERSION)
-
-    def test_io_use_defined_ssl_version(self):
-        connection = FakeConnection()
-        connection.parameters['ssl_options'] = {
-            'ssl_version': 'travis-ci'
-        }
-
-        sock = Mock(name='socket', spec=socket.socket)
-        sock.fileno.return_value = 1
-
-        io = IO(connection.parameters)
-        self.assertRaises(Exception, io._ssl_wrap_socket, sock)
-        self.assertEqual(connection.parameters['ssl_options']['ssl_version'],
-                         'travis-ci')
 
     def test_io_set_ssl_context(self):
         connection = FakeConnection()
