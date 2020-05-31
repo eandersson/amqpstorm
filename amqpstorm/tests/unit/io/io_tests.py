@@ -123,6 +123,16 @@ class IOTests(TestFramework):
         io = IO(connection.parameters)
         self.assertTrue(io._ssl_wrap_socket(socket.socket()))
 
+    def test_io_set_ssl_verify_req(self):
+        connection = FakeConnection()
+        connection.parameters['ssl_options'] = {
+            'verify_mode': 'required'
+        }
+
+        io = IO(connection.parameters)
+        sock = io._ssl_wrap_socket(socket.socket())
+        self.assertEqual(sock.context.verify_mode, ssl.CERT_REQUIRED)
+
     def test_io_set_ssl_context_no_hostname_provided(self):
         connection = FakeConnection()
         connection.parameters['ssl_options'] = {
