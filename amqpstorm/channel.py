@@ -171,19 +171,24 @@ class Channel(BaseChannel):
                 self._on_close_impl(self.channel_id)
         LOGGER.debug('Channel #%d Closed', self.channel_id)
 
-    def check_for_errors(self):
+    def check_for_errors(self, validate_connection=True,
+                         validate_channel=True):
         """Check connection and channel for errors.
+
+        :param bool validate_connection: Validate Connection state.
+        :param bool validate_channel: Validate Channel state.
 
         :raises AMQPChannelError: Raises if the channel encountered an error.
         :raises AMQPConnectionError: Raises if the connection
                                      encountered an error.
         :return:
         """
-        try:
-            self._connection.check_for_errors()
-        except AMQPConnectionError:
-            self.set_state(self.CLOSED)
-            raise
+        if validate_connection:
+            try:
+                self._connection.check_for_errors()
+            except AMQPConnectionError:
+                self.set_state(self.CLOSED)
+                raise
 
         if self.exceptions:
             exception = self.exceptions[0]
@@ -191,8 +196,9 @@ class Channel(BaseChannel):
                 self.exceptions.pop(0)
             raise exception
 
-        if self.is_closed:
-            raise AMQPChannelError('channel was closed')
+        if validate_channel:
+            if self.is_closed:
+                raise AMQPChannelError('channel was closed')
 
     def confirm_deliveries(self):
         """Set the channel to confirm that each message has been

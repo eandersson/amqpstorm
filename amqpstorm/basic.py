@@ -195,7 +195,7 @@ class Basic(Handler):
 
         if self._channel.confirming_deliveries:
             with self._channel.rpc.lock:
-                return self._publish_confirm(frames_out)
+                return self._publish_confirm(frames_out, mandatory)
         self._channel.write_frames(frames_out)
 
     def ack(self, delivery_tag=0, multiple=False):
@@ -375,7 +375,7 @@ class Basic(Handler):
                        properties=dict(content_header.properties),
                        auto_decode=auto_decode)
 
-    def _publish_confirm(self, frames_out):
+    def _publish_confirm(self, frames_out, mandatory):
         """Confirm that message was published successfully.
 
         :param list frames_out:
@@ -386,7 +386,10 @@ class Basic(Handler):
                                                            'Basic.Nack'])
         self._channel.write_frames(frames_out)
         result = self._channel.rpc.get_request(confirm_uuid, raw=True)
-        self._channel.check_for_errors()
+        if mandatory:
+            self._channel.check_for_errors(
+                validate_connection=False, validate_channel=False
+            )
         if isinstance(result, specification.Basic.Ack):
             return True
         return False
