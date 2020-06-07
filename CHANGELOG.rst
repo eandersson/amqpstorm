@@ -1,6 +1,13 @@
 Changelog
 =========
 
+Version 2.8.0
+-------------
+- Introduced a new channel function called check_for_exceptions.
+- Fixed issue where a publish was successful but raised an error because connection was closed [#80] - Thanks Pavol Plaskoň.
+- Updated TLS handling to use the non-deprecated way of creating a TLS Connection [#79] - Thanks Carl Hörberg from CloudAMQP.
+- Enabled SNI for TLS connections by default [#79] - Thanks Carl Hörberg from CloudAMQP.
+
 Version 2.7.2
 -------------
 - Added ability to override client_properties [#77] - Thanks tkram01.
