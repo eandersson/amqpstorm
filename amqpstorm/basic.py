@@ -387,9 +387,7 @@ class Basic(Handler):
         self._channel.write_frames(frames_out)
         result = self._channel.rpc.get_request(confirm_uuid, raw=True)
         if mandatory:
-            self._channel.check_for_errors(
-                validate_connection=False, validate_channel=False
-            )
+            self._channel.check_for_exceptions()
         if isinstance(result, specification.Basic.Ack):
             return True
         return False
