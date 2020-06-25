@@ -7,9 +7,9 @@ addons:
     - rmq.eandersson.net
 python:
   - 2.7
-  - 3.5
   - 3.6
   - 3.7
+  - 3.8
 before_install:
   - docker pull eandersson86/amqpstorm-rabbitmq-ci:latest
   - docker run -d --hostname rmq.eandersson.net --name travis-rmq -p 5671:5671 -p 5672:5672 -p 15672:15672 eandersson86/amqpstorm-rabbitmq-ci:latest
