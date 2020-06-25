@@ -6,16 +6,10 @@ from amqpstorm import AMQPConnectionError
 from amqpstorm import UriConnection
 from amqpstorm import compatibility
 from amqpstorm.tests.utility import TestFramework
-from amqpstorm.tests.utility import unittest
 
 
 class UriConnectionExceptionTests(TestFramework):
-    @unittest.skipIf(sys.version_info < (3, 3), 'Python 3.x test')
     def test_uri_py3_raises_on_invalid_uri(self):
-        self.assertRaises(ValueError, UriConnection, 'amqp://a:b', {}, True)
-
-    @unittest.skipIf(sys.version_info[0] == 3, 'Python 2.x test')
-    def test_uri_py2_raises_on_invalid_uri(self):
         self.assertRaises(ValueError, UriConnection, 'amqp://a:b', {}, True)
 
     def test_uri_raises_on_invalid_object(self):

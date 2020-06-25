@@ -7,7 +7,6 @@ from time import sleep
 from pamqp import exceptions as pamqp_exception
 from pamqp import frame as pamqp_frame
 from pamqp import header as pamqp_header
-from pamqp import specification
 
 from amqpstorm import compatibility
 from amqpstorm.base import IDLE_WAIT
@@ -320,7 +319,7 @@ class Connection(Stateful):
             return data_in[byte_count:], channel_id, frame_in
         except pamqp_exception.UnmarshalingException:
             pass
-        except specification.AMQPFrameError as why:
+        except pamqp_exception.AMQPFrameError as why:
             LOGGER.error('AMQPFrameError: %r', why, exc_info=True)
         except ValueError as why:
             LOGGER.error(why, exc_info=True)

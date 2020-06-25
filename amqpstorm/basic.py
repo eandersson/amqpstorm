@@ -5,7 +5,7 @@ import math
 
 from pamqp import body as pamqp_body
 from pamqp import header as pamqp_header
-from pamqp import specification
+from pamqp import commands
 
 from amqpstorm import compatibility
 from amqpstorm.base import Handler
@@ -46,9 +46,9 @@ class Basic(Handler):
             raise AMQPInvalidArgument('prefetch_size should be an integer')
         elif not isinstance(global_, bool):
             raise AMQPInvalidArgument('global_ should be a boolean')
-        qos_frame = specification.Basic.Qos(prefetch_count=prefetch_count,
-                                            prefetch_size=prefetch_size,
-                                            global_=global_)
+        qos_frame = commands.Basic.Qos(prefetch_count=prefetch_count,
+                                       prefetch_size=prefetch_size,
+                                       global_=global_)
         return self._channel.rpc_request(qos_frame)
 
     def get(self, queue='', no_ack=False, to_dict=False, auto_decode=True,
@@ -78,14 +78,17 @@ class Basic(Handler):
         elif self._channel.consumer_tags:
             raise AMQPChannelError("Cannot call 'get' when channel is "
                                    "set to consume")
+
         if message_impl:
             if not issubclass(message_impl, BaseMessage):
-                raiseAMQPInvalidArgument('message_impl should be derived " \
-                       "from BaseMessage')
+                raise AMQPInvalidArgument(
+                    'message_impl should be derived from BaseMessage')
         else:
             message_impl = Message
-        get_frame = specification.Basic.Get(queue=queue,
-                                            no_ack=no_ack)
+
+        get_frame = commands.Basic.Get(queue=queue,
+                                       no_ack=no_ack)
+
         with self._channel.lock and self._channel.rpc.lock:
             message = self._get_message(get_frame, auto_decode=auto_decode,
                                         message_impl=message_impl)
@@ -107,7 +110,7 @@ class Basic(Handler):
         """
         if not isinstance(requeue, bool):
             raise AMQPInvalidArgument('requeue should be a boolean')
-        recover_frame = specification.Basic.Recover(requeue=requeue)
+        recover_frame = commands.Basic.Recover(requeue=requeue)
         return self._channel.rpc_request(recover_frame)
 
     def consume(self, callback=None, queue='', consumer_tag='',
@@ -163,7 +166,7 @@ class Basic(Handler):
         """
         if not compatibility.is_string(consumer_tag):
             raise AMQPInvalidArgument('consumer_tag should be a string')
-        cancel_frame = specification.Basic.Cancel(consumer_tag=consumer_tag)
+        cancel_frame = commands.Basic.Cancel(consumer_tag=consumer_tag)
         result = self._channel.rpc_request(cancel_frame)
         self._channel.remove_consumer_tag(consumer_tag)
         return result
@@ -190,11 +193,11 @@ class Basic(Handler):
                                           properties, routing_key)
         properties = properties or {}
         body = self._handle_utf8_payload(body, properties)
-        properties = specification.Basic.Properties(**properties)
-        method_frame = specification.Basic.Publish(exchange=exchange,
-                                                   routing_key=routing_key,
-                                                   mandatory=mandatory,
-                                                   immediate=immediate)
+        properties = commands.Basic.Properties(**properties)
+        method_frame = commands.Basic.Publish(exchange=exchange,
+                                              routing_key=routing_key,
+                                              mandatory=mandatory,
+                                              immediate=immediate)
         header_frame = pamqp_header.ContentHeader(body_size=len(body),
                                                   properties=properties)
 
@@ -224,8 +227,8 @@ class Basic(Handler):
             raise AMQPInvalidArgument('delivery_tag should be an integer')
         elif not isinstance(multiple, bool):
             raise AMQPInvalidArgument('multiple should be a boolean')
-        ack_frame = specification.Basic.Ack(delivery_tag=delivery_tag,
-                                            multiple=multiple)
+        ack_frame = commands.Basic.Ack(delivery_tag=delivery_tag,
+                                       multiple=multiple)
         self._channel.write_frame(ack_frame)
 
     def nack(self, delivery_tag=0, multiple=False, requeue=True):
@@ -248,9 +251,9 @@ class Basic(Handler):
             raise AMQPInvalidArgument('multiple should be a boolean')
         elif not isinstance(requeue, bool):
             raise AMQPInvalidArgument('requeue should be a boolean')
-        nack_frame = specification.Basic.Nack(delivery_tag=delivery_tag,
-                                              multiple=multiple,
-                                              requeue=requeue)
+        nack_frame = commands.Basic.Nack(delivery_tag=delivery_tag,
+                                         multiple=multiple,
+                                         requeue=requeue)
         self._channel.write_frame(nack_frame)
 
     def reject(self, delivery_tag=0, requeue=True):
@@ -270,8 +273,8 @@ class Basic(Handler):
             raise AMQPInvalidArgument('delivery_tag should be an integer')
         elif not isinstance(requeue, bool):
             raise AMQPInvalidArgument('requeue should be a boolean')
-        reject_frame = specification.Basic.Reject(delivery_tag=delivery_tag,
-                                                  requeue=requeue)
+        reject_frame = commands.Basic.Reject(delivery_tag=delivery_tag,
+                                             requeue=requeue)
         self._channel.write_frame(reject_frame)
 
     def _consume_add_and_get_tag(self, consume_rpc_result):
@@ -298,12 +301,12 @@ class Basic(Handler):
 
         :rtype: dict
         """
-        consume_frame = specification.Basic.Consume(queue=queue,
-                                                    consumer_tag=consumer_tag,
-                                                    exclusive=exclusive,
-                                                    no_local=no_local,
-                                                    no_ack=no_ack,
-                                                    arguments=arguments)
+        consume_frame = commands.Basic.Consume(queue=queue,
+                                               consumer_tag=consumer_tag,
+                                               exclusive=exclusive,
+                                               no_local=no_local,
+                                               no_ack=no_ack,
+                                               arguments=arguments)
         return self._channel.rpc_request(consume_frame)
 
     @staticmethod
@@ -347,9 +350,7 @@ class Basic(Handler):
         if 'content_encoding' not in properties:
             properties['content_encoding'] = 'utf-8'
         encoding = properties['content_encoding']
-        if compatibility.is_unicode(body):
-            body = body.encode(encoding)
-        elif compatibility.PYTHON3 and isinstance(body, str):
+        if isinstance(body, str):
             body = bytes(body, encoding=encoding)
         return body
 
@@ -370,7 +371,7 @@ class Basic(Handler):
             get_ok_frame = self._channel.rpc.get_request(message_uuid,
                                                          raw=True,
                                                          multiple=True)
-            if isinstance(get_ok_frame, specification.Basic.GetEmpty):
+            if isinstance(get_ok_frame, commands.Basic.GetEmpty):
                 return None
             content_header = self._channel.rpc.get_request(message_uuid,
                                                            raw=True,
@@ -398,7 +399,7 @@ class Basic(Handler):
         result = self._channel.rpc.get_request(confirm_uuid, raw=True)
         if mandatory:
             self._channel.check_for_exceptions()
-        if isinstance(result, specification.Basic.Ack):
+        if isinstance(result, commands.Basic.Ack):
             return True
         return False
 

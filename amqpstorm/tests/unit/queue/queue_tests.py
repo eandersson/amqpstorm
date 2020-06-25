@@ -1,4 +1,4 @@
-from pamqp.specification import Queue as pamqp_queue
+from pamqp.commands import Queue as pamqp_queue
 
 from amqpstorm.channel import Channel
 from amqpstorm.channel import Queue
@@ -9,7 +9,7 @@ from amqpstorm.tests.utility import TestFramework
 class QueueTests(TestFramework):
     def test_queue_declare(self):
         def on_declare(*_):
-            channel.rpc.on_frame(pamqp_queue.DeclareOk())
+            channel.rpc.on_frame(pamqp_queue.DeclareOk('', 0, 0))
 
         connection = FakeConnection(on_write=on_declare)
         channel = Channel(0, connection, 0.01)
@@ -25,7 +25,7 @@ class QueueTests(TestFramework):
 
     def test_queue_delete(self):
         def on_delete(*_):
-            channel.rpc.on_frame(pamqp_queue.DeleteOk())
+            channel.rpc.on_frame(pamqp_queue.DeleteOk(0))
 
         connection = FakeConnection(on_write=on_delete)
         channel = Channel(0, connection, 0.01)
@@ -36,7 +36,7 @@ class QueueTests(TestFramework):
 
     def test_queue_purge(self):
         def on_purge(*_):
-            channel.rpc.on_frame(pamqp_queue.PurgeOk())
+            channel.rpc.on_frame(pamqp_queue.PurgeOk(0))
 
         connection = FakeConnection(on_write=on_purge)
         channel = Channel(0, connection, 0.01)

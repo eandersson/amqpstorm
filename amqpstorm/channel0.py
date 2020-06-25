@@ -3,7 +3,7 @@
 import logging
 import platform
 
-from pamqp import specification
+from pamqp import commands
 from pamqp.heartbeat import Heartbeat
 
 from amqpstorm import __version__
@@ -64,7 +64,9 @@ class Channel0(object):
 
         :return:
         """
-        self._write_frame(specification.Connection.Close())
+        self._write_frame(commands.Connection.Close(
+            class_id=0, method_id=0, reply_code=0
+        ))
 
     def send_heartbeat(self):
         """Send Heartbeat frame.
@@ -158,7 +160,7 @@ class Channel0(object):
             )
             self._connection.exceptions.append(exception)
             return
-        start_ok_frame = specification.Connection.StartOk(
+        start_ok_frame = commands.Connection.StartOk(
             mechanism=mechanism,
             client_properties=self._client_properties(),
             response=credentials,
@@ -182,7 +184,7 @@ class Channel0(object):
             self.max_frame_size, self.max_allowed_channels
         )
 
-        tune_ok_frame = specification.Connection.TuneOk(
+        tune_ok_frame = commands.Connection.TuneOk(
             channel_max=self.max_allowed_channels,
             frame_max=self.max_frame_size,
             heartbeat=self._heartbeat)
@@ -193,7 +195,7 @@ class Channel0(object):
 
         :return:
         """
-        open_frame = specification.Connection.Open(
+        open_frame = commands.Connection.Open(
             virtual_host=self._parameters['virtual_host']
         )
         self._write_frame(open_frame)

@@ -174,7 +174,7 @@ class GenericTest(TestFunctionalFramework):
         # Old way
         result = payload.to_dict()
         self.assertEqual(result['properties']['headers']['key'], 1234567890)
-        self.assertEqual(result['properties']['headers']['alpha'], b'omega')
+        self.assertEqual(result['properties']['headers']['alpha'], 'omega')
         self.assertIsInstance(result['properties']['app_id'], str)
         self.assertIsInstance(result['properties']['correlation_id'], str)
         self.assertEqual(result['properties']['app_id'], app_id)
@@ -196,7 +196,7 @@ class GenericTest(TestFunctionalFramework):
         self.assertEqual(message.app_id, 'travis-ci')
 
         # Assign Property app_id
-        app_id = 'travis-ci-2'.encode('utf-8')
+        app_id = 'travis-ci-2'
         message.app_id = app_id
 
         # Check that it was set correctly.
@@ -212,7 +212,7 @@ class GenericTest(TestFunctionalFramework):
         time.sleep(0.01)
 
         payload = self.channel.basic.get(self.queue_name, no_ack=True)
-        self.assertEqual(payload.app_id, app_id.decode('utf-8'))
+        self.assertEqual(payload.app_id, app_id)
         self.assertEqual(payload.correlation_id, correlation_id)
         self.assertIsInstance(payload.properties['app_id'], str)
         self.assertIsInstance(payload.properties['correlation_id'], str)

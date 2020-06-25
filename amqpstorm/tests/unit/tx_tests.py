@@ -1,4 +1,4 @@
-from pamqp import specification
+from pamqp import commands
 
 from amqpstorm.channel import Channel
 from amqpstorm.tests.utility import FakeConnection
@@ -9,7 +9,7 @@ from amqpstorm.tx import Tx
 class TxTests(TestFramework):
     def test_tx_select(self):
         def on_tx_select(*_):
-            channel.rpc.on_frame(specification.Tx.SelectOk())
+            channel.rpc.on_frame(commands.Tx.SelectOk())
 
         connection = FakeConnection(on_write=on_tx_select)
         channel = Channel(0, connection, 0.01)
@@ -21,7 +21,7 @@ class TxTests(TestFramework):
 
     def test_tx_commit(self):
         def on_tx_commit(*_):
-            channel.rpc.on_frame(specification.Tx.CommitOk())
+            channel.rpc.on_frame(commands.Tx.CommitOk())
 
         connection = FakeConnection(on_write=on_tx_commit)
         channel = Channel(0, connection, 0.01)
@@ -33,7 +33,7 @@ class TxTests(TestFramework):
 
     def test_tx_rollback(self):
         def on_tx_rollback(*_):
-            channel.rpc.on_frame(specification.Tx.RollbackOk())
+            channel.rpc.on_frame(commands.Tx.RollbackOk())
 
         connection = FakeConnection(on_write=on_tx_rollback)
         channel = Channel(0, connection, 0.01)
@@ -48,11 +48,11 @@ class TxTests(TestFramework):
 
         def on_tx(*_):
             if not self._active_transaction:
-                channel.rpc.on_frame(specification.Tx.SelectOk())
+                channel.rpc.on_frame(commands.Tx.SelectOk())
                 self._active_transaction = True
                 return
             self._active_transaction = False
-            channel.rpc.on_frame(specification.Tx.CommitOk())
+            channel.rpc.on_frame(commands.Tx.CommitOk())
 
         connection = FakeConnection(on_write=on_tx)
         channel = Channel(0, connection, 0.01)
@@ -68,11 +68,11 @@ class TxTests(TestFramework):
 
         def on_tx(*_):
             if not self._active_transaction:
-                channel.rpc.on_frame(specification.Tx.SelectOk())
+                channel.rpc.on_frame(commands.Tx.SelectOk())
                 self._active_transaction = True
                 return
             self._active_transaction = False
-            channel.rpc.on_frame(specification.Tx.CommitOk())
+            channel.rpc.on_frame(commands.Tx.CommitOk())
 
         connection = FakeConnection(on_write=on_tx)
         channel = Channel(0, connection, 0.01)
@@ -86,10 +86,10 @@ class TxTests(TestFramework):
 
     def test_tx_with_statement_when_raises(self):
         def on_tx(_, frame):
-            if isinstance(frame, specification.Tx.Select):
-                channel.rpc.on_frame(specification.Tx.SelectOk())
+            if isinstance(frame, commands.Tx.Select):
+                channel.rpc.on_frame(commands.Tx.SelectOk())
                 return
-            channel.rpc.on_frame(specification.Tx.CommitOk())
+            channel.rpc.on_frame(commands.Tx.CommitOk())
 
         connection = FakeConnection(on_write=on_tx)
         channel = Channel(0, connection, 0.01)
@@ -111,11 +111,11 @@ class TxTests(TestFramework):
 
         def on_tx(*_):
             if not self._active_transaction:
-                channel.rpc.on_frame(specification.Tx.SelectOk())
+                channel.rpc.on_frame(commands.Tx.SelectOk())
                 self._active_transaction = True
                 return
             self._active_transaction = False
-            channel.rpc.on_frame(specification.Tx.RollbackOk())
+            channel.rpc.on_frame(commands.Tx.RollbackOk())
 
         connection = FakeConnection(on_write=on_tx)
         channel = Channel(0, connection, 0.01)
