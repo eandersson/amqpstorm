@@ -2,7 +2,7 @@
 
 import logging
 
-from pamqp.specification import Exchange as pamqp_exchange
+from pamqp.commands import Exchange as pamqp_exchange
 
 from amqpstorm import compatibility
 from amqpstorm.base import Handler

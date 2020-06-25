@@ -1,5 +1,5 @@
 from pamqp.heartbeat import Heartbeat
-from pamqp.specification import Connection
+from pamqp.commands import Connection
 
 import amqpstorm
 from amqpstorm import AMQPConnectionError

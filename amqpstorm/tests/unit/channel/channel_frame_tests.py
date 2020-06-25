@@ -1,6 +1,6 @@
 from mock import Mock
-from pamqp import ContentHeader
-from pamqp import specification
+from pamqp.header import ContentHeader
+from pamqp import commands
 from pamqp.body import ContentBody
 
 import amqpstorm
@@ -21,7 +21,7 @@ class ChannelFrameTests(TestFramework):
         message = self.message.encode('utf-8')
         message_len = len(message)
 
-        deliver = specification.Basic.Deliver()
+        deliver = commands.Basic.Deliver()
         header = ContentHeader(body_size=message_len)
         body = ContentBody(value=message)
 
@@ -38,7 +38,7 @@ class ChannelFrameTests(TestFramework):
                                           lazy=True)
         channel = Channel(0, connection, rpc_timeout=1)
 
-        channel.on_frame(specification.Basic.Cancel('travis-ci'))
+        channel.on_frame(commands.Basic.Cancel('travis-ci'))
 
         self.assertEqual(
             self.get_last_log(),
@@ -50,7 +50,7 @@ class ChannelFrameTests(TestFramework):
         channel = Channel(0, Mock(name='Connection'), rpc_timeout=1)
         channel.add_consumer_tag(tag)
 
-        channel.on_frame(specification.Basic.CancelOk(tag))
+        channel.on_frame(commands.Basic.CancelOk(tag))
 
         self.assertFalse(channel.consumer_tags)
 
@@ -58,7 +58,7 @@ class ChannelFrameTests(TestFramework):
         tag = 'travis-ci'
         channel = Channel(0, Mock(name='Connection'), rpc_timeout=1)
 
-        channel.on_frame(specification.Basic.ConsumeOk(tag))
+        channel.on_frame(commands.Basic.ConsumeOk(tag))
 
         self.assertEqual(channel.consumer_tags[0], tag)
 
@@ -70,7 +70,7 @@ class ChannelFrameTests(TestFramework):
         channel.set_state(channel.OPEN)
 
         channel.on_frame(
-            specification.Basic.Return(
+            commands.Basic.Return(
                 reply_code=500,
                 reply_text='travis-ci',
                 exchange='exchange',
@@ -91,7 +91,7 @@ class ChannelFrameTests(TestFramework):
         channel.set_state(channel.OPEN)
 
         channel.on_frame(
-            specification.Channel.Close(
+            commands.Channel.Close(
                 reply_code=500,
                 reply_text='travis-ci'
             )
@@ -109,7 +109,7 @@ class ChannelFrameTests(TestFramework):
         channel.set_state(channel.OPEN)
 
         channel.on_frame(
-            specification.Channel.Close(
+            commands.Channel.Close(
                 reply_code=500,
                 reply_text='travis-ci'
             )
@@ -132,7 +132,7 @@ class ChannelFrameTests(TestFramework):
         connection.write_frame = raise_on_write
 
         channel.on_frame(
-            specification.Channel.Close(
+            commands.Channel.Close(
                 reply_code=500,
                 reply_text='travis-ci'
             )
@@ -150,11 +150,11 @@ class ChannelFrameTests(TestFramework):
         channel = Channel(0, connection, rpc_timeout=1)
         channel.set_state(channel.OPEN)
 
-        channel.on_frame(specification.Channel.Flow())
+        channel.on_frame(commands.Channel.Flow())
 
         self.assertIsInstance(
             connection.get_last_frame(),
-            specification.Channel.FlowOk
+            commands.Channel.FlowOk
         )
 
     def test_channel_unhandled_frame(self):

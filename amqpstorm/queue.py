@@ -2,7 +2,7 @@
 
 import logging
 
-from pamqp.specification import Queue as pamqp_queue
+from pamqp.commands import Queue as pamqp_queue
 
 from amqpstorm import compatibility
 from amqpstorm.base import Handler
