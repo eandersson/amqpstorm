@@ -20,6 +20,10 @@ Additional documentation is available on `amqpstorm.io <https://www.amqpstorm.io
 Changelog
 =========
 
+Version 2.8.1
+-------------
+- Cleaned up documentation.
+
 Version 2.8.0
 -------------
 - Introduced a new channel function called check_for_exceptions.

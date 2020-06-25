@@ -28,30 +28,48 @@ DEFAULT_VIRTUAL_HOST = '/'
 
 
 class Connection(Stateful):
-    """RabbitMQ Connection."""
+    """RabbitMQ Connection.
+
+    e.g.
+    ::
+
+        import amqpstorm
+        connection = amqpstorm.Connection('localhost', 'guest', 'guest')
+
+    Using a SSL Context:
+    ::
+
+        import ssl
+        import amqpstorm
+        ssl_options = {
+            'context': ssl.create_default_context(cafile='cacert.pem'),
+            'server_hostname': 'rmq.eandersson.net'
+        }
+        connection = amqpstorm.Connection(
+            'rmq.eandersson.net', 'guest', 'guest', port=5671,
+            ssl=True, ssl_options=ssl_options
+        )
+
+    :param str hostname: Hostname
+    :param str username: Username
+    :param str password: Password
+    :param int port: Server port
+    :param str virtual_host: Virtual host
+    :param int heartbeat: RabbitMQ Heartbeat interval
+    :param int,float timeout: Socket timeout
+    :param bool ssl: Enable SSL
+    :param dict ssl_options: SSL kwargs
+    :param dict client_properties: None or dict of client properties
+    :param bool lazy: Lazy initialize the connection
+
+    :raises AMQPConnectionError: Raises if the connection
+                                 encountered an error.
+    """
     __slots__ = [
         'heartbeat', 'parameters', '_channel0', '_channels', '_io'
     ]
 
     def __init__(self, hostname, username, password, port=5672, **kwargs):
-        """
-        :param str hostname: Hostname
-        :param str username: Username
-        :param str password: Password
-        :param int port: Server port
-        :param str virtual_host: Virtual host
-        :param int heartbeat: RabbitMQ Heartbeat interval
-        :param int|float timeout: Socket timeout
-        :param bool ssl: Enable SSL
-        :param dict ssl_options: SSL kwargs (from ssl.wrap_socket)
-        :param dict client_properties: None or dict of client properties
-        :param bool lazy: Lazy initialize the connection
-
-        :raises AMQPConnectionError: Raises if the connection
-                                     encountered an error.
-
-        :return:
-        """
         super(Connection, self).__init__()
         self.parameters = {
             'hostname': hostname,
@@ -97,7 +115,7 @@ class Connection(Stateful):
     def fileno(self):
         """Returns the Socket File number.
 
-        :return:
+        :rtype: integer,None
         """
         if not self._io.socket:
             return None
@@ -140,12 +158,12 @@ class Connection(Stateful):
     def socket(self):
         """Returns an instance of the Socket used by the Connection.
 
-        :rtype: socket
+        :rtype: socket.socket
         """
         return self._io.socket
 
     def channel(self, rpc_timeout=60, lazy=False):
-        """Open Channel.
+        """Open a Channel.
 
         :param int rpc_timeout: Timeout before we give up waiting for an RPC
                                 response from the server.
@@ -154,6 +172,8 @@ class Connection(Stateful):
         :raises AMQPChannelError: Raises if the channel encountered an error.
         :raises AMQPConnectionError: Raises if the connection
                                      encountered an error.
+
+        :rtype: amqpstorm.Channel
         """
         LOGGER.debug('Opening a new Channel')
         if not compatibility.is_integer(rpc_timeout):
@@ -188,7 +208,7 @@ class Connection(Stateful):
         raise self.exceptions[0]
 
     def close(self):
-        """Close connection.
+        """Close the Connection.
 
         :raises AMQPConnectionError: Raises if the connection
                                      encountered an error.
@@ -265,6 +285,7 @@ class Connection(Stateful):
 
     def _get_next_available_channel_id(self):
         """Returns the next available available channel id.
+
         :raises AMQPConnectionError: Raises if there is no available channel.
         :rtype: int
         """

@@ -44,7 +44,7 @@ SSL_OPTIONS = [
 def get_default_ssl_version():
     """Get the highest support TLS version, if none is available, return None.
 
-    :rtype: bool|None
+    :rtype: bool,None
     """
     if hasattr(ssl, 'PROTOCOL_TLSv1_2'):
         return ssl.PROTOCOL_TLSv1_2

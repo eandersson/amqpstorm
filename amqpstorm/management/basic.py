@@ -12,7 +12,7 @@ class Basic(ManagementHandler):
                 virtual_host='/', properties=None, payload_encoding='string'):
         """Publish a Message.
 
-        :param bytes|str|unicode body: Message payload
+        :param bytes,str,unicode body: Message payload
         :param str routing_key: Message routing key
         :param str exchange: The exchange to publish the message to
         :param str virtual_host: Virtual host name

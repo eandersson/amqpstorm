@@ -58,7 +58,7 @@ class Queue(ManagementHandler):
         :param bool passive: Do not create
         :param bool durable: Durable queue
         :param bool auto_delete: Automatically delete when not in use
-        :param dict|None arguments: Queue key/value arguments
+        :param dict,None arguments: Queue key/value arguments
 
         :raises ApiError: Raises if the remote server encountered an error.
         :raises ApiConnectionError: Raises if there was a connectivity issue.
@@ -145,7 +145,7 @@ class Queue(ManagementHandler):
         :param str exchange: Exchange name
         :param str routing_key: The routing key to use
         :param str virtual_host: Virtual host name
-        :param dict|None arguments: Bind key/value arguments
+        :param dict,None arguments: Bind key/value arguments
 
         :raises ApiError: Raises if the remote server encountered an error.
         :raises ApiConnectionError: Raises if there was a connectivity issue.

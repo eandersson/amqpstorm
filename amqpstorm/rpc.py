@@ -9,13 +9,13 @@ from amqpstorm.exception import AMQPChannelError
 
 
 class Rpc(object):
-    """Internal RPC handler."""
+    """Internal RPC handler.
+
+    :param object default_adapter: Connection or Channel.
+    :param int,float timeout: Rpc timeout.
+    """
 
     def __init__(self, default_adapter, timeout=360):
-        """
-        :param object default_adapter: Connection or Channel.
-        :param int|float timeout: Rpc timeout.
-        """
         self._lock = threading.Lock()
         self._default_connection_adapter = default_adapter
         self._timeout = timeout

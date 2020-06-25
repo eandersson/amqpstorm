@@ -60,7 +60,7 @@ class Exchange(ManagementHandler):
         :param bool durable: Durable exchange
         :param bool auto_delete: Automatically delete when not in use
         :param bool internal: Is the exchange for use by the broker only.
-        :param dict|None arguments: Exchange key/value arguments
+        :param dict,None arguments: Exchange key/value arguments
 
         :raises ApiError: Raises if the remote server encountered an error.
         :raises ApiConnectionError: Raises if there was a connectivity issue.
@@ -130,7 +130,7 @@ class Exchange(ManagementHandler):
         :param str destination: Destination Exchange name
         :param str routing_key: The routing key to use
         :param str virtual_host: Virtual host name
-        :param dict|None arguments: Bind key/value arguments
+        :param dict,None arguments: Bind key/value arguments
 
         :raises ApiError: Raises if the remote server encountered an error.
         :raises ApiConnectionError: Raises if there was a connectivity issue.

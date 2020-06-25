@@ -136,7 +136,7 @@ class BaseChannel(Stateful):
 
             If no tag is specified, all all tags will be removed.
 
-        :param str|None tag: Consumer tag.
+        :param str,None tag: Consumer tag.
         :return:
         """
         if tag is not None:
@@ -147,18 +147,18 @@ class BaseChannel(Stateful):
 
 
 class BaseMessage(object):
-    """Message base class."""
+    """Message base class.
+
+    :param Channel channel: AMQPStorm Channel
+    :param str,unicode body: Message body
+    :param dict method: Message method
+    :param dict properties: Message properties
+    """
     __slots__ = [
         '_body', '_channel', '_method', '_properties'
     ]
 
     def __init__(self, channel, **message):
-        """
-        :param Channel channel: AMQPStorm Channel
-        :param str|unicode body: Message body
-        :param dict method: Message method
-        :param dict properties: Message properties
-        """
         self._channel = channel
         self._body = message.get('body', None)
         self._method = message.get('method', None)

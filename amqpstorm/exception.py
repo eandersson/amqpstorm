@@ -66,7 +66,18 @@ AMQP_ERROR_MAPPING = {
 
 
 class AMQPError(IOError):
-    """General AMQP Error"""
+    """General AMQP Error.
+
+    Exceptions raised by AMQPStorm are mapped based to the
+    AMQP 0.9.1 specifications (when applicable).
+
+    e.g.
+    ::
+
+        except AMQPChannelError as why:
+            if why.error_code == 312:
+                self.channel.queue.declare(queue_name)
+    """
     _documentation = None
     _error_code = None
     _error_type = None
@@ -96,19 +107,19 @@ class AMQPError(IOError):
 
 
 class AMQPConnectionError(AMQPError):
-    """AMQP Connection Error"""
+    """AMQP Connection Error."""
     pass
 
 
 class AMQPChannelError(AMQPError):
-    """AMQP Channel Error"""
+    """AMQP Channel Error."""
     pass
 
 
 class AMQPMessageError(AMQPChannelError):
-    """AMQP Message Error"""
+    """AMQP Message Error."""
     pass
 
 
 class AMQPInvalidArgument(AMQPError):
-    """AMQP Argument Error"""
+    """AMQP Argument Error."""

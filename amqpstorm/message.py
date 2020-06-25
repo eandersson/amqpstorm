@@ -10,20 +10,34 @@ from amqpstorm.exception import AMQPMessageError
 
 
 class Message(BaseMessage):
-    """RabbitMQ Message object."""
+    """RabbitMQ Message.
+
+    e.g.
+    ::
+
+        # Message Properties.
+        properties = {
+            'content_type': 'text/plain',
+            'expiration': '3600',
+            'headers': {'key': 'value'},
+        }
+        # Create a new message.
+        message = Message.create(channel, 'Hello RabbitMQ!', properties)
+        # Publish the message to a queue called, 'my_queue'.
+        message.publish('my_queue')
+
+    :param Channel channel: AMQPStorm Channel
+    :param bool auto_decode: Auto-decode strings when possible. Does not
+                             apply to to_dict, or to_tuple.
+    :param bytes,str,unicode body: Message payload
+    :param dict method: Message method
+    :param dict properties: Message properties
+    """
     __slots__ = [
         '_auto_decode', '_decode_cache'
     ]
 
     def __init__(self, channel, auto_decode=True, **message):
-        """
-        :param Channel channel: AMQPStorm Channel
-        :param bool auto_decode: Auto-decode strings when possible. Does not
-                                 apply to to_dict, or to_tuple.
-        :param bytes|str|unicode body: Message payload
-        :param dict method: Message method
-        :param dict properties: Message properties
-        """
         super(Message, self).__init__(channel, **message)
         self._decode_cache = dict()
         self._auto_decode = auto_decode
@@ -33,7 +47,7 @@ class Message(BaseMessage):
         """Create a new Message.
 
         :param Channel channel: AMQPStorm Channel
-        :param bytes|str|unicode body: Message payload
+        :param bytes,str,unicode body: Message payload
         :param dict properties: Message properties
 
         :rtype: Message
@@ -56,7 +70,7 @@ class Message(BaseMessage):
             If auto_decode is enabled, the body will automatically be
             decoded using decode('utf-8') if possible.
 
-        :rtype: bytes|str|unicode
+        :rtype: bytes,str,unicode
         """
         if not self._auto_decode:
             return self._body
@@ -160,7 +174,7 @@ class Message(BaseMessage):
         :raises AMQPConnectionError: Raises if the connection
                                      encountered an error.
 
-        :rtype: bool|None
+        :rtype: bool,None
         """
         return self._channel.basic.publish(body=self._body,
                                            routing_key=routing_key,
@@ -318,7 +332,7 @@ class Message(BaseMessage):
         """Indicates if this message may have been delivered before (but not
         acknowledged).
 
-        :rtype: bool|None
+        :rtype: bool,None
         """
         if not self._method:
             return None
@@ -328,7 +342,7 @@ class Message(BaseMessage):
     def delivery_tag(self):
         """Server-assigned delivery tag.
 
-        :rtype: int|None
+        :rtype: int,None
         """
         if not self._method:
             return None
@@ -393,7 +407,7 @@ class Message(BaseMessage):
     def _try_decode_list(content):
         """Decode content of a list.
 
-        :param list|tuple content:
+        :param list,tuple content:
         :return:
         """
         result = list()

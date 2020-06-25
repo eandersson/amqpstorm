@@ -67,7 +67,7 @@ class Basic(Handler):
         :returns: Returns a single message, as long as there is a message in
                   the queue. If no message is available, returns None.
 
-        :rtype: dict|Message|None
+        :rtype: amqpstorm.Message,dict,None
         """
         if not compatibility.is_string(queue):
             raise AMQPInvalidArgument('queue should be a string')
@@ -163,7 +163,7 @@ class Basic(Handler):
                 mandatory=False, immediate=False):
         """Publish a Message.
 
-        :param bytes|str|unicode body: Message payload
+        :param bytes,str,unicode body: Message payload
         :param str routing_key: Message routing key
         :param str exchange: The exchange to publish the message to
         :param dict properties: Message properties
@@ -175,7 +175,7 @@ class Basic(Handler):
         :raises AMQPConnectionError: Raises if the connection
                                      encountered an error.
 
-        :rtype: bool|None
+        :rtype: bool,None
         """
         self._validate_publish_parameters(body, exchange, immediate, mandatory,
                                           properties, routing_key)
@@ -302,7 +302,7 @@ class Basic(Handler):
                                      properties, routing_key):
         """Validate Publish Parameters.
 
-        :param bytes|str|unicode body: Message payload
+        :param bytes,str,unicode body: Message payload
         :param str routing_key: Message routing key
         :param str exchange: The exchange to publish the message to
         :param dict properties: Message properties
@@ -330,7 +330,7 @@ class Basic(Handler):
     def _handle_utf8_payload(body, properties):
         """Update the Body and Properties to the appropriate encoding.
 
-        :param bytes|str|unicode body: Message payload
+        :param bytes,str,unicode body: Message payload
         :param dict properties: Message properties
 
         :return:
@@ -398,7 +398,7 @@ class Basic(Handler):
             This function is based on code from Rabbitpy.
             https://github.com/gmr/rabbitpy
 
-        :param bytes|str|unicode body: Message payload
+        :param bytes,str,unicode body: Message payload
 
         :rtype: collections.Iterable
         """

@@ -1,9 +1,11 @@
+import amqpstorm
+
 from setuptools import find_packages
 from setuptools import setup
 
 setup(
     name='AMQPStorm',
-    version='2.8.0',
+    version=amqpstorm.__version__,
     description='Thread-safe Python RabbitMQ Client & Management library.',
     long_description=open('README.rst').read(),
     author='Erik Olof Gunnar Andersson',

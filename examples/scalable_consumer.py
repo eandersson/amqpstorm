@@ -160,7 +160,7 @@ class Consumer(object):
         self.channel = None
         try:
             self.active = True
-            self.channel = connection.channel(rpc_timeout=10)
+            self.channel = connection.channel()
             self.channel.basic.qos(1)
             self.channel.queue.declare(self.queue)
             self.channel.basic.consume(self, self.queue, no_ack=False)

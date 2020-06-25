@@ -26,7 +26,13 @@ CONTENT_FRAME = ['Basic.Deliver', 'ContentHeader', 'ContentBody']
 
 
 class Channel(BaseChannel):
-    """RabbitMQ Channel."""
+    """RabbitMQ Channel.
+
+    e.g.
+    ::
+
+        channel = connection.channel()
+    """
     __slots__ = [
         '_consumer_callbacks', 'rpc', '_basic', '_confirming_deliveries',
         '_connection', '_exchange', '_inbound', '_queue', '_tx'
@@ -66,6 +72,11 @@ class Channel(BaseChannel):
     def basic(self):
         """RabbitMQ Basic Operations.
 
+            e.g.
+            ::
+
+                message = channel.basic.get(queue='hello_world')
+
         :rtype: amqpstorm.basic.Basic
         """
         return self._basic
@@ -74,25 +85,40 @@ class Channel(BaseChannel):
     def exchange(self):
         """RabbitMQ Exchange Operations.
 
+            e.g.
+            ::
+
+                channel.exchange.declare(exchange='hello_world')
+
         :rtype: amqpstorm.exchange.Exchange
         """
         return self._exchange
 
     @property
-    def tx(self):
-        """RabbitMQ Tx Operations.
-
-        :rtype: amqpstorm.tx.Tx
-        """
-        return self._tx
-
-    @property
     def queue(self):
         """RabbitMQ Queue Operations.
+
+            e.g.
+            ::
+
+                channel.queue.declare(queue='hello_world')
 
         :rtype: amqpstorm.queue.Queue
         """
         return self._queue
+
+    @property
+    def tx(self):
+        """RabbitMQ Tx Operations.
+
+            e.g.
+            ::
+
+                channel.tx.commit()
+
+        :rtype: amqpstorm.tx.Tx
+        """
+        return self._tx
 
     def build_inbound_messages(self, break_on_empty=False, to_tuple=False,
                                auto_decode=True):
@@ -101,11 +127,11 @@ class Channel(BaseChannel):
         :param bool break_on_empty: Should we break the loop when there are
                                     no more messages in our inbound queue.
 
-                                    This does not guarantee that the upstream
-                                    queue is empty, as it's possible that if
-                                    messages are consumed faster than
-                                    delivered, the inbound queue will then be
-                                    emptied and the consumption will be broken.
+                                    This does not guarantee that the queue
+                                    is emptied before the loop is broken, as
+                                    messages may be consumed faster then
+                                    they are being delivered by RabbitMQ,
+                                    causing the loop to be broken prematurely.
         :param bool to_tuple: Should incoming messages be converted to a
                               tuple before delivery.
         :param bool auto_decode: Auto-decode strings when possible.
@@ -422,7 +448,7 @@ class Channel(BaseChannel):
     def _build_message_headers(self):
         """Fetch Message Headers (Deliver & Header Frames).
 
-        :rtype: tuple|None
+        :rtype: tuple,None
         """
         basic_deliver = self._inbound.pop(0)
         if not isinstance(basic_deliver, specification.Basic.Deliver):
