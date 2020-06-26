@@ -1,6 +1,5 @@
 """
-RPC Client example based on code from the official RabbitMQ Tutorial.
-http://www.rabbitmq.com/tutorials/tutorial-six-python.html
+A simple RPC Client.
 """
 import amqpstorm
 
@@ -10,7 +9,7 @@ from amqpstorm import Message
 class FibonacciRpcClient(object):
     def __init__(self, host, username, password):
         """
-        :param host: RabbitMQ Server e.g. 127.0.0.1
+        :param host: RabbitMQ Server e.g. localhost
         :param username: RabbitMQ Username e.g. guest
         :param password: RabbitMQ Password e.g. guest
         :return:
@@ -61,9 +60,9 @@ class FibonacciRpcClient(object):
 
 
 if __name__ == '__main__':
-    fibonacci_rpc = FibonacciRpcClient('127.0.0.1', 'guest', 'guest')
+    FIBONACCI_RPC = FibonacciRpcClient('localhost', 'guest', 'guest')
 
     print(" [x] Requesting fib(30)")
-    response = fibonacci_rpc.call(30)
-    print(" [.] Got %r" % (response,))
-    fibonacci_rpc.close()
+    RESPONSE = FIBONACCI_RPC.call(30)
+    print(" [.] Got %r" % (RESPONSE,))
+    FIBONACCI_RPC.close()

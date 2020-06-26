@@ -1,12 +1,14 @@
+"""
+Example of a Flask web application using RabbitMQ for RPC calls.
+"""
 import threading
 from time import sleep
 
-from flask import Flask
-
 import amqpstorm
 from amqpstorm import Message
+from flask import Flask
 
-app = Flask(__name__)
+APP = Flask(__name__)
 
 
 class RpcClient(object):
@@ -37,7 +39,7 @@ class RpcClient(object):
 
     def _create_process_thread(self):
         """Create a thread responsible for consuming messages in response
-         to RPC requests.
+        RPC requests.
         """
         thread = threading.Thread(target=self._process_data_events)
         thread.setDaemon(True)
@@ -49,7 +51,7 @@ class RpcClient(object):
 
     def _on_response(self, message):
         """On Response store the message with the correlation id in a local
-         dictionary.
+        dictionary.
         """
         self.queue[message.correlation_id] = message.body
 
@@ -69,7 +71,7 @@ class RpcClient(object):
         return message.correlation_id
 
 
-@app.route('/rpc_call/<payload>')
+@APP.route('/rpc_call/<payload>')
 def rpc_call(payload):
     """Simple Flask implementation for making asynchronous Rpc calls. """
 
@@ -77,13 +79,14 @@ def rpc_call(payload):
     corr_id = RPC_CLIENT.send_request(payload)
 
     # Wait until we have received a response.
+    # TODO: Add a timeout here and clean up if it fails!
     while RPC_CLIENT.queue[corr_id] is None:
         sleep(0.1)
 
     # Return the response to the user.
-    return RPC_CLIENT.queue[corr_id]
+    return RPC_CLIENT.queue.pop(corr_id)
 
 
 if __name__ == '__main__':
-    RPC_CLIENT = RpcClient('127.0.0.1', 'guest', 'guest', 'rpc_queue')
-    app.run()
+    RPC_CLIENT = RpcClient('localhost', 'guest', 'guest', 'rpc_queue')
+    APP.run()

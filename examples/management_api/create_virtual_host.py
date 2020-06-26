@@ -2,7 +2,7 @@ from amqpstorm.management import ApiError
 from amqpstorm.management import ManagementApi
 
 if __name__ == '__main__':
-    API = ManagementApi('http://127.0.0.1:15672', 'guest', 'guest')
+    API = ManagementApi('http://localhost:15672', 'guest', 'guest')
     try:
         # Create a new Virtual Host called 'travis_ci'.
         API.virtual_host.create('travis_ci')

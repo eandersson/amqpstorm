@@ -1,6 +1,5 @@
 """
-RPC Server example based on code from the official RabbitMQ Tutorial.
-http://www.rabbitmq.com/tutorials/tutorial-six-python.html
+A simple RPC Server.
 """
 import amqpstorm
 
@@ -34,7 +33,7 @@ def on_request(message):
 
 
 if __name__ == '__main__':
-    CONNECTION = amqpstorm.Connection('127.0.0.1', 'guest', 'guest')
+    CONNECTION = amqpstorm.Connection('localhost', 'guest', 'guest')
     CHANNEL = CONNECTION.channel()
 
     CHANNEL.queue.declare(queue='rpc_queue')

@@ -13,7 +13,7 @@ LOGGER = logging.getLogger()
 
 
 class ScalableConsumer(object):
-    def __init__(self, hostname='127.0.0.1',
+    def __init__(self, hostname='localhost',
                  username='guest', password='guest',
                  queue='simple_queue',
                  number_of_consumers=1, max_retries=None):

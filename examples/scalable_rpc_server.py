@@ -10,7 +10,6 @@ from amqpstorm import Connection
 from amqpstorm import Message
 
 logging.basicConfig(level=logging.INFO)
-
 LOGGER = logging.getLogger()
 
 
@@ -24,7 +23,7 @@ def fib(number):
 
 
 class ScalableRpcServer(object):
-    def __init__(self, hostname='127.0.0.1',
+    def __init__(self, hostname='localhost',
                  username='guest', password='guest',
                  rpc_queue='rpc_queue',
                  number_of_consumers=5, max_retries=None):

@@ -8,7 +8,6 @@ import amqpstorm
 from amqpstorm import Connection
 
 logging.basicConfig(level=logging.INFO)
-
 LOGGER = logging.getLogger()
 
 
@@ -26,7 +25,7 @@ class Consumer(object):
         while True:
             attempts += 1
             try:
-                self.connection = Connection('127.0.0.1', 'guest', 'guest')
+                self.connection = Connection('localhost', 'guest', 'guest')
                 break
             except amqpstorm.AMQPError as why:
                 LOGGER.exception(why)
@@ -60,7 +59,15 @@ class Consumer(object):
 
     def __call__(self, message):
         print("Message:", message.body)
+
+        # Acknowledge that we handled the message without any issues.
         message.ack()
+
+        # Reject the message.
+        # message.reject()
+
+        # Reject the message, and put it back in the queue.
+        # message.reject(requeue=True)
 
 
 if __name__ == '__main__':

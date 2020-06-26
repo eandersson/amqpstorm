@@ -6,7 +6,7 @@ logging.basicConfig(level=logging.INFO)
 
 
 def consume_until_queue_is_empty():
-    with Connection('127.0.0.1', 'guest', 'guest') as connection:
+    with Connection('localhost', 'guest', 'guest') as connection:
         with connection.channel() as channel:
             while True:
                 message = channel.basic.get('simple_queue')
