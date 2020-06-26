@@ -1,8 +1,7 @@
 dist: xenial
-sudo: required
+os: linux
 language: python
 addons:
-  hostname: rmq.eandersson.net
   hosts:
     - rmq.eandersson.net
 python:
