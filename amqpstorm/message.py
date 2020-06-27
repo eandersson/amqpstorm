@@ -92,7 +92,7 @@ class Message(BaseMessage):
     def method(self):
         """Return the Message Method.
 
-            If auto_decode is enabled, the any strings will automatically be
+            If auto_decode is enabled, all strings will automatically be
             decoded using decode('utf-8') if possible.
 
         :rtype: dict
@@ -103,7 +103,7 @@ class Message(BaseMessage):
     def properties(self):
         """Returns the Message Properties.
 
-            If auto_decode is enabled, the any strings will automatically be
+            If auto_decode is enabled, all strings will automatically be
             decoded using decode('utf-8') if possible.
 
         :rtype: dict
