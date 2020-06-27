@@ -74,8 +74,8 @@ Credits
 =======
 Special thanks to gmr (Gavin M. Roy) for creating pamqp, and in addition amqpstorm is heavily influenced by his pika and rabbitpy libraries.
 
-.. |Version| image:: https://badge.fury.io/py/amqpstorm.svg?
-  :target: http://badge.fury.io/py/amqpstorm
+.. |Version| image:: https://badge.fury.io/py/AMQPStorm.svg
+  :target: https://badge.fury.io/py/AMQPStorm
 
 .. |CodeClimate| image:: https://codeclimate.com/github/eandersson/amqpstorm/badges/gpa.svg
   :target: https://codeclimate.com/github/eandersson/amqpstorm
