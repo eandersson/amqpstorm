@@ -1,8 +1,8 @@
 import time
 
 from amqpstorm.exception import AMQPChannelError
-from amqpstorm.tests.utility import TestFunctionalFramework
-from amqpstorm.tests.utility import setup
+from amqpstorm.tests.functional.utility import TestFunctionalFramework
+from amqpstorm.tests.functional.utility import setup
 
 
 class TxFunctionalTests(TestFunctionalFramework):

@@ -1,5 +1,5 @@
-from amqpstorm.tests.utility import TestFunctionalFramework
-from amqpstorm.tests.utility import setup
+from amqpstorm.tests.functional.utility import TestFunctionalFramework
+from amqpstorm.tests.functional.utility import setup
 
 
 class BasicFunctionalTests(TestFunctionalFramework):

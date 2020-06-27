@@ -4,7 +4,7 @@ from amqpstorm.management import ManagementApi
 from amqpstorm.tests import HTTP_URL
 from amqpstorm.tests import PASSWORD
 from amqpstorm.tests import USERNAME
-from amqpstorm.tests.utility import TestFunctionalFramework
+from amqpstorm.tests.functional.utility import TestFunctionalFramework
 
 
 class ApiUserFunctionalTests(TestFunctionalFramework):

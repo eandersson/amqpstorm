@@ -5,9 +5,9 @@ from amqpstorm import Connection
 from amqpstorm.tests import HOST
 from amqpstorm.tests import PASSWORD
 from amqpstorm.tests import USERNAME
-from amqpstorm.tests.utility import TestFunctionalFramework
-from amqpstorm.tests.utility import retry_function_wrapper
-from amqpstorm.tests.utility import setup
+from amqpstorm.tests.functional.utility import TestFunctionalFramework
+from amqpstorm.tests.functional.utility import retry_function_wrapper
+from amqpstorm.tests.functional.utility import setup
 
 LOGGER = logging.getLogger(__name__)
 

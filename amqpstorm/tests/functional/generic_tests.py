@@ -4,8 +4,8 @@ from amqpstorm import AMQPChannelError
 from amqpstorm import AMQPMessageError
 from amqpstorm import Channel
 from amqpstorm import Message
-from amqpstorm.tests.utility import TestFunctionalFramework
-from amqpstorm.tests.utility import setup
+from amqpstorm.tests.functional.utility import TestFunctionalFramework
+from amqpstorm.tests.functional.utility import setup
 
 
 class GenericTest(TestFunctionalFramework):
