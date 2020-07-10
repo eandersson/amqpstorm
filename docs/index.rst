@@ -3,8 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-AMQPStorm package
-=================
+AMQPStorm Documentation
+=======================
 Thread-safe Python RabbitMQ Client & Management library.
 
 Installation
@@ -14,21 +14,24 @@ The latest version can be installed using `pip <https://pip.pypa.io/en/stable/qu
 
     pip install amqpstorm
 
-Examples
---------
-
-A wide verity of examples is available on Github at `here <https://github.com/eandersson/amqpstorm/tree/master/examples>`_
-
-Simple Example
---------------
+Basic Example
+-------------
 
 ::
 
-   connection = Connection('rmq.amqpstorm.io', 'guest', 'guest')
-   channel = connection.channel()
-   message = Message.create(channel, 'Hello RabbitMQ!')
-   message.publish('simple_queue')
+   with amqpstorm.Connection('rmq.amqpstorm.io', 'guest', 'guest') as connection:
+       with connection.channel() as channel:
+           channel.queue.declare('fruits')
+           message = amqpstorm.Message.create(
+               channel, body='Hello RabbitMQ!', properties={
+                   'content_type': 'text/plain'
+               })
+           message.publish('fruits')
 
+Additional Examples
+-------------------
+
+A wide verity of examples are available on Github at `here <https://github.com/eandersson/amqpstorm/tree/master/examples>`_
 
 .. toctree::
    :caption: Usage
