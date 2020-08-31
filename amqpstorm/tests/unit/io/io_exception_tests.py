@@ -36,6 +36,15 @@ class IOExceptionTests(TestFramework):
             connection.check_for_errors
         )
 
+    def test_io_receive_raises_ssl_want_read_error(self):
+        connection = FakeConnection()
+
+        io = IO(connection.parameters, exceptions=connection.exceptions)
+        io.socket = mock.Mock(name='socket', spec=socket.socket)
+        io.socket.recv.side_effect = compatibility.SSLWantReadError()
+        io._receive()
+        self.assertIsNone(connection.check_for_errors())
+
     def test_io_receive_does_not_raise_on_block(self):
         connection = FakeConnection()
 

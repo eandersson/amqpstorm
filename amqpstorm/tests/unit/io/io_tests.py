@@ -11,6 +11,7 @@ from amqpstorm.tests.utility import TestFramework
 
 
 class IOTests(TestFramework):
+
     def test_io_socket_close(self):
         connection = FakeConnection()
         io = IO(connection.parameters)
