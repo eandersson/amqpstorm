@@ -8,6 +8,7 @@ from pamqp.header import ContentHeader
 
 from amqpstorm import compatibility
 from amqpstorm.base import BaseChannel
+from amqpstorm.base import BaseMessage
 from amqpstorm.base import IDLE_WAIT
 from amqpstorm.basic import Basic
 from amqpstorm.compatibility import try_utf8_decode
@@ -121,7 +122,7 @@ class Channel(BaseChannel):
         return self._tx
 
     def build_inbound_messages(self, break_on_empty=False, to_tuple=False,
-                               auto_decode=True):
+                               auto_decode=True, message_impl=None):
         """Build messages in the inbound queue.
 
         :param bool break_on_empty: Should we break the loop when there are
@@ -135,7 +136,10 @@ class Channel(BaseChannel):
         :param bool to_tuple: Should incoming messages be converted to a
                               tuple before delivery.
         :param bool auto_decode: Auto-decode strings when possible.
-
+        :param class message_impl: Optional message class to use, derived from
+                                   BaseMessage, for created messages. Defaults
+                                   to Message.
+        :raises AMQPInvalidArgument: Invalid Parameters
         :raises AMQPChannelError: Raises if the channel encountered an error.
         :raises AMQPConnectionError: Raises if the connection
                                      encountered an error.
@@ -143,8 +147,13 @@ class Channel(BaseChannel):
         :rtype: :py:class:`generator`
         """
         self.check_for_errors()
+        if message_impl:
+            if not isinstance(message_impl, BaseMessage):
+                raise AMQPInvalidArgument('message_impl must derive from BaseMessage')
+        else:
+            message_impl = Message
         while not self.is_closed:
-            message = self._build_message(auto_decode=auto_decode)
+            message = self._build_message(auto_decode=auto_decode, message_impl=message_impl)
             if not message:
                 self.check_for_errors()
                 sleep(IDLE_WAIT)
@@ -422,10 +431,11 @@ class Channel(BaseChannel):
                                      reply_code=frame_in.reply_code)
         self.exceptions.append(exception)
 
-    def _build_message(self, auto_decode):
+    def _build_message(self, auto_decode, message_impl):
         """Fetch and build a complete Message from the inbound queue.
 
         :param bool auto_decode: Auto-decode strings when possible.
+        :param class message_impl: Message implementation from BaseMessage
 
         :rtype: Message
         """
@@ -438,7 +448,7 @@ class Channel(BaseChannel):
             basic_deliver, content_header = headers
             body = self._build_message_body(content_header.body_size)
 
-        message = Message(channel=self,
+        message = message_impl(channel=self,
                           body=body,
                           method=dict(basic_deliver),
                           properties=dict(content_header.properties),
