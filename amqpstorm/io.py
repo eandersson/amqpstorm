@@ -279,6 +279,8 @@ class IO(object):
         except (IOError, OSError) as why:
             if why.args[0] not in (EWOULDBLOCK, EAGAIN):
                 self._exceptions.append(AMQPConnectionError(why))
+                if self._running.is_set():
+                    LOGGER.warning("Stopping inbound thread due to %s", why)
                 self._running.clear()
         return data_in
 
