@@ -29,6 +29,16 @@ if PYTHON3:
 else:
     RANGE = xrange
 
+
+class DummyException(Exception):
+    """
+    Never raised by anything.
+
+    This is used in except blocks if the intended
+    exception cannot be imported.
+    """
+
+
 SSL_CERT_MAP = {}
 SSL_VERSIONS = {}
 SSL_OPTIONS = [
@@ -69,6 +79,9 @@ if SSL_SUPPORTED:
         'cert_optional': ssl.CERT_OPTIONAL,
         'cert_required': ssl.CERT_REQUIRED
     }
+    SSLWantReadError = ssl.SSLWantReadError
+else:
+    SSLWantReadError = DummyException
 
 
 def is_string(obj):
