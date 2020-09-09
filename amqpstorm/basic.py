@@ -79,7 +79,7 @@ class Basic(Handler):
             raise AMQPChannelError("Cannot call 'get' when channel is "
                                    "set to consume")
         if message_impl:
-            if not isinstance(message_impl, BaseMessage):
+            if not issubclass(message_impl, BaseMessage):
                 raiseAMQPInvalidArgument('message_impl should be derived from BaseMessage')
         else:
             message_impl = Message

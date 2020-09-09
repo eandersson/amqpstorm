@@ -148,7 +148,7 @@ class Channel(BaseChannel):
         """
         self.check_for_errors()
         if message_impl:
-            if not isinstance(message_impl, BaseMessage):
+            if not issubclass(message_impl, BaseMessage):
                 raise AMQPInvalidArgument('message_impl must derive from BaseMessage')
         else:
             message_impl = Message
