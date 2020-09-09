@@ -289,7 +289,7 @@ class BasicTests(TestFramework):
         channel.set_state(Channel.OPEN)
         basic = Basic(channel)
 
-        result = basic._get_message(get_frame, auto_decode=False, 
+        result = basic._get_message(get_frame, auto_decode=False,
                                     message_impl=Message)
 
         self.assertEqual(result.body, message)
@@ -311,7 +311,7 @@ class BasicTests(TestFramework):
         channel.set_state(Channel.OPEN)
         basic = Basic(channel)
 
-        result = basic._get_message(get_frame, auto_decode=True, 
+        result = basic._get_message(get_frame, auto_decode=True,
                                     message_impl=Message)
 
         self.assertEqual(result.body.encode('utf-8'), message)
@@ -328,7 +328,7 @@ class BasicTests(TestFramework):
         channel.set_state(Channel.OPEN)
         basic = Basic(channel)
 
-        result = basic._get_message(get_frame, auto_decode=False, 
+        result = basic._get_message(get_frame, auto_decode=False,
                                     message_impl=Message)
 
         self.assertEqual(result, None)
