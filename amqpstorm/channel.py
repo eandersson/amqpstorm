@@ -154,7 +154,7 @@ class Channel(BaseChannel):
         else:
             message_impl = Message
         while not self.is_closed:
-            message = self._build_message(auto_decode=auto_decode, 
+            message = self._build_message(auto_decode=auto_decode,
                                           message_impl=message_impl)
             if not message:
                 self.check_for_errors()

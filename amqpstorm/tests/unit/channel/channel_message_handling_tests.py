@@ -24,7 +24,8 @@ class ChannelBuildMessageTests(TestFramework):
         body = ContentBody(value=message)
 
         channel._inbound = [deliver, header, body]
-        result = channel._build_message(auto_decode=False, message_impl=Message)
+        result = channel._build_message(auto_decode=False, 
+                                        message_impl=Message)
 
         self.assertIsInstance(result.body, bytes)
         self.assertEqual(result.body, message)

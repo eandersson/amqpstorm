@@ -87,7 +87,7 @@ class Basic(Handler):
         get_frame = specification.Basic.Get(queue=queue,
                                             no_ack=no_ack)
         with self._channel.lock and self._channel.rpc.lock:
-            message = self._get_message(get_frame, auto_decode=auto_decode,  
+            message = self._get_message(get_frame, auto_decode=auto_decode,
                                         message_impl=message_impl)
             if message and to_dict:
                 return message.to_dict()
