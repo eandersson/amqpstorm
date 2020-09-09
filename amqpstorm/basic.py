@@ -80,13 +80,14 @@ class Basic(Handler):
                                    "set to consume")
         if message_impl:
             if not issubclass(message_impl, BaseMessage):
-                raiseAMQPInvalidArgument('message_impl should be derived from BaseMessage')
+                raiseAMQPInvalidArgument('message_impl should be derived " \
+                       "from BaseMessage')
         else:
             message_impl = Message
         get_frame = specification.Basic.Get(queue=queue,
                                             no_ack=no_ack)
         with self._channel.lock and self._channel.rpc.lock:
-            message = self._get_message(get_frame, auto_decode=auto_decode,  \
+            message = self._get_message(get_frame, auto_decode=auto_decode,  
                                         message_impl=message_impl)
             if message and to_dict:
                 return message.to_dict()
@@ -379,10 +380,10 @@ class Basic(Handler):
         finally:
             self._channel.rpc.remove(message_uuid)
         return message_impl(channel=self._channel,
-                       body=body,
-                       method=dict(get_ok_frame),
-                       properties=dict(content_header.properties),
-                       auto_decode=auto_decode)
+                            body=body,
+                            method=dict(get_ok_frame),
+                            properties=dict(content_header.properties),
+                            auto_decode=auto_decode)
 
     def _publish_confirm(self, frames_out, mandatory):
         """Confirm that message was published successfully.

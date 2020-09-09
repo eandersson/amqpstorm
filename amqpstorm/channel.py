@@ -149,11 +149,13 @@ class Channel(BaseChannel):
         self.check_for_errors()
         if message_impl:
             if not issubclass(message_impl, BaseMessage):
-                raise AMQPInvalidArgument('message_impl must derive from BaseMessage')
+                raise AMQPInvalidArgument('message_impl must derive " \
+                      "from BaseMessage')
         else:
             message_impl = Message
         while not self.is_closed:
-            message = self._build_message(auto_decode=auto_decode, message_impl=message_impl)
+            message = self._build_message(auto_decode=auto_decode, 
+                                          message_impl=message_impl)
             if not message:
                 self.check_for_errors()
                 sleep(IDLE_WAIT)
@@ -449,10 +451,10 @@ class Channel(BaseChannel):
             body = self._build_message_body(content_header.body_size)
 
         message = message_impl(channel=self,
-                          body=body,
-                          method=dict(basic_deliver),
-                          properties=dict(content_header.properties),
-                          auto_decode=auto_decode)
+                               body=body,
+                               method=dict(basic_deliver),
+                               properties=dict(content_header.properties),
+                               auto_decode=auto_decode)
         return message
 
     def _build_message_headers(self):
