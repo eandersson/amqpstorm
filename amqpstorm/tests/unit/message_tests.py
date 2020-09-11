@@ -37,6 +37,9 @@ class MessageTests(TestFramework):
         self.assertIsNone(message.content_type)
         self.assertIsNone(message.priority)
         self.assertIsNone(message.delivery_mode)
+        self.assertIsNone(message.user_id)
+        self.assertIsNone(message.message_type)
+        self.assertIsNone(message.expiration)
         self.assertIsInstance(message.message_id, str)
         self.assertIsInstance(message.correlation_id, str)
         self.assertIsInstance(message.timestamp, datetime)
@@ -113,6 +116,30 @@ class MessageTests(TestFramework):
         message.reply_to = reply_to
 
         self.assertEqual(reply_to, message.reply_to)
+
+    def test_message_expiration_custom_value(self):
+        expiration = '2000'
+
+        message = Message.create(None, '')
+        message.expiration = expiration
+
+        self.assertEqual(expiration, message.expiration)
+
+    def test_message_user_id_custom_value(self):
+        user_id = 'guest'
+
+        message = Message.create(None, '')
+        message.user_id = user_id
+
+        self.assertEqual(user_id, message.user_id)
+
+    def test_message_message_type_custom_value(self):
+        message_type = 'mymessage'
+
+        message = Message.create(None, '')
+        message.message_type = message_type
+
+        self.assertEqual(message_type, message.message_type)
 
     def test_message_redelivered(self):
         message = Message.create(body='',
