@@ -20,6 +20,11 @@ Additional documentation is available on `amqpstorm.io <https://www.amqpstorm.io
 Changelog
 =========
 
+Version 2.8.2
+-------------
+- Retry on SSLWantReadErrors [#82] - Thanks Bernhard Thiel.
+- Added getter/setter methods for Message properties expiration, message_type and user_id [#86] - Thanks Jay Hogg.
+
 Version 2.8.1
 -------------
 - Cleaned up documentation.
