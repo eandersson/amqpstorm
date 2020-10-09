@@ -105,7 +105,7 @@ class Basic(Handler):
                 exclusive=False, no_ack=False, no_local=False, arguments=None):
         """Start a queue consumer.
 
-        :param function callback: Message callback
+        :param typing.Callable callback: Message callback
         :param str queue: Queue name
         :param str consumer_tag: Consumer tag
         :param bool no_local: Do not deliver own messages
