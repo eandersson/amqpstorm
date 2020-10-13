@@ -20,6 +20,11 @@ Additional documentation is available on `amqpstorm.io <https://www.amqpstorm.io
 Changelog
 =========
 
+Version 2.8.3
+-------------
+- Fixed pip sdist circular dependency [#88] - Thanks Jay Hogg.
+- Fixed basic.consume argument type in documentation [#86] - Thanks TechmarkDavid.
+
 Version 2.8.2
 -------------
 - Retry on SSLWantReadErrors [#82] - Thanks Bernhard Thiel.
