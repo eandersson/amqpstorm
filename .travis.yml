@@ -10,6 +10,7 @@ python:
   - 3.7
   - 3.8
   - 3.9
+  - 3.10-dev
 before_install:
   - docker build -t amqpstormdev ./docker/
   - docker run -d --hostname rmq.eandersson.net --name amqpstormdev -p 5671:5671 -p 5672:5672 -p 15671:15671 -p 15672:15672 amqpstormdev
