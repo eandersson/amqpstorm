@@ -44,6 +44,27 @@ class MessageTests(TestFramework):
         self.assertIsInstance(message.correlation_id, str)
         self.assertIsInstance(message.timestamp, datetime)
 
+    def test_message_create_does_not_mutate_properties(self):
+        properties = {
+            'content_type': 'application/json',
+            'headers': {'key': 'value'}
+        }
+
+        message1 = Message.create(None, self.message, properties)
+        message2 = Message.create(None, self.message, properties)
+
+        self.assertNotIn('correlation_id', properties)
+        self.assertNotIn('message_id', properties)
+        self.assertNotIn('timestamp', properties)
+
+        self.assertIsNotNone(message1.message_id)
+        self.assertIsNotNone(message1.correlation_id)
+        self.assertIsNotNone(message1.timestamp)
+
+        self.assertNotEqual(message1.message_id, message2.message_id)
+        self.assertNotEqual(message1.correlation_id, message2.correlation_id)
+        self.assertNotEqual(message1.timestamp, message2.timestamp)
+
     def test_message_app_id_custom_value(self):
         app_id = 'my-app'
 

@@ -52,7 +52,7 @@ class Message(BaseMessage):
 
         :rtype: Message
         """
-        properties = properties or {}
+        properties = dict(properties or {})
         if 'correlation_id' not in properties:
             properties['correlation_id'] = str(uuid.uuid4())
         if 'message_id' not in properties:
