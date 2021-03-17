@@ -24,7 +24,8 @@ class ChannelBuildMessageTests(TestFramework):
         body = ContentBody(value=message)
 
         channel._inbound = [deliver, header, body]
-        result = channel._build_message(auto_decode=False)
+        result = channel._build_message(auto_decode=False,
+                                        message_impl=Message)
 
         self.assertIsInstance(result.body, bytes)
         self.assertEqual(result.body, message)
@@ -40,7 +41,7 @@ class ChannelBuildMessageTests(TestFramework):
         body = ContentBody(value=message)
 
         channel._inbound = [deliver, header, body]
-        result = channel._build_message(auto_decode=True)
+        result = channel._build_message(auto_decode=True, message_impl=Message)
 
         self.assertIsInstance(result.body, str)
         self.assertEqual(result.body, message.decode('utf-8'))
@@ -55,7 +56,7 @@ class ChannelBuildMessageTests(TestFramework):
         header = ContentHeader(body_size=message_len)
 
         channel._inbound = [deliver, deliver, header]
-        result = channel._build_message(auto_decode=True)
+        result = channel._build_message(auto_decode=True, message_impl=Message)
 
         self.assertEqual(result, None)
         self.assertIn("Received an out-of-order frame:",
@@ -72,7 +73,7 @@ class ChannelBuildMessageTests(TestFramework):
         body = ContentBody(value=message)
 
         channel._inbound = [header, deliver, header, body]
-        result = channel._build_message(auto_decode=True)
+        result = channel._build_message(auto_decode=True, message_impl=Message)
 
         self.assertEqual(result, None)
         self.assertIn("Received an out-of-order frame:",

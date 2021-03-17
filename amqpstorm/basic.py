@@ -9,6 +9,7 @@ from pamqp import specification
 
 from amqpstorm import compatibility
 from amqpstorm.base import Handler
+from amqpstorm.base import BaseMessage
 from amqpstorm.base import MAX_FRAME_SIZE
 from amqpstorm.exception import AMQPChannelError
 from amqpstorm.exception import AMQPInvalidArgument
@@ -50,7 +51,8 @@ class Basic(Handler):
                                             global_=global_)
         return self._channel.rpc_request(qos_frame)
 
-    def get(self, queue='', no_ack=False, to_dict=False, auto_decode=True):
+    def get(self, queue='', no_ack=False, to_dict=False, auto_decode=True,
+            message_impl=None):
         """Fetch a single message.
 
         :param str queue: Queue name
@@ -58,7 +60,7 @@ class Basic(Handler):
         :param bool to_dict: Should incoming messages be converted to a
                     dictionary before delivery.
         :param bool auto_decode: Auto-decode strings when possible.
-
+        :param class message_impl: Message implementation based on BaseMessage
         :raises AMQPInvalidArgument: Invalid Parameters
         :raises AMQPChannelError: Raises if the channel encountered an error.
         :raises AMQPConnectionError: Raises if the connection
@@ -76,10 +78,17 @@ class Basic(Handler):
         elif self._channel.consumer_tags:
             raise AMQPChannelError("Cannot call 'get' when channel is "
                                    "set to consume")
+        if message_impl:
+            if not issubclass(message_impl, BaseMessage):
+                raiseAMQPInvalidArgument('message_impl should be derived " \
+                       "from BaseMessage')
+        else:
+            message_impl = Message
         get_frame = specification.Basic.Get(queue=queue,
                                             no_ack=no_ack)
         with self._channel.lock and self._channel.rpc.lock:
-            message = self._get_message(get_frame, auto_decode=auto_decode)
+            message = self._get_message(get_frame, auto_decode=auto_decode,
+                                        message_impl=message_impl)
             if message and to_dict:
                 return message.to_dict()
             return message
@@ -344,11 +353,12 @@ class Basic(Handler):
             body = bytes(body, encoding=encoding)
         return body
 
-    def _get_message(self, get_frame, auto_decode):
+    def _get_message(self, get_frame, auto_decode, message_impl):
         """Get and return a message using a Basic.Get frame.
 
         :param Basic.Get get_frame:
         :param bool auto_decode: Auto-decode strings when possible.
+        :param class message_impl: Message implementation based on BaseMessage
 
         :rtype: Message
         """
@@ -369,11 +379,11 @@ class Basic(Handler):
                                           content_header.body_size)
         finally:
             self._channel.rpc.remove(message_uuid)
-        return Message(channel=self._channel,
-                       body=body,
-                       method=dict(get_ok_frame),
-                       properties=dict(content_header.properties),
-                       auto_decode=auto_decode)
+        return message_impl(channel=self._channel,
+                            body=body,
+                            method=dict(get_ok_frame),
+                            properties=dict(content_header.properties),
+                            auto_decode=auto_decode)
 
     def _publish_confirm(self, frames_out, mandatory):
         """Confirm that message was published successfully.
