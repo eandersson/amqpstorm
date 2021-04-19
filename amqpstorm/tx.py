@@ -2,7 +2,7 @@
 
 import logging
 
-from pamqp import specification
+from pamqp import commands
 
 from amqpstorm.base import Handler
 
@@ -48,7 +48,7 @@ class Tx(Handler):
         :return:
         """
         self._tx_active = True
-        return self._channel.rpc_request(specification.Tx.Select())
+        return self._channel.rpc_request(commands.Tx.Select())
 
     def commit(self):
         """Commit the current transaction.
@@ -62,7 +62,7 @@ class Tx(Handler):
         :return:
         """
         self._tx_active = False
-        return self._channel.rpc_request(specification.Tx.Commit())
+        return self._channel.rpc_request(commands.Tx.Commit())
 
     def rollback(self):
         """Abandon the current transaction.
@@ -79,4 +79,4 @@ class Tx(Handler):
         :return:
         """
         self._tx_active = False
-        return self._channel.rpc_request(specification.Tx.Rollback())
+        return self._channel.rpc_request(commands.Tx.Rollback())

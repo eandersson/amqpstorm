@@ -31,7 +31,7 @@ setup(
     packages=find_packages(),
     license='MIT License',
     url='https://www.amqpstorm.io',
-    install_requires=['pamqp>=2.0.0,<3.0'],
+    install_requires=['pamqp>=3.0.0'],
     extras_require={
         'management': ['requests']
     },

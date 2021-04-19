@@ -1,6 +1,6 @@
 import mock
 from mock import Mock
-from pamqp import specification
+from pamqp import commands
 
 import amqpstorm
 from amqpstorm import AMQPChannelError
@@ -167,7 +167,7 @@ class ChannelExceptionTests(TestFramework):
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(channel.OPEN)
 
-        basic_return = specification.Basic.Return(
+        basic_return = commands.Basic.Return(
             reply_code=500,
             reply_text='Error'
         )
@@ -189,7 +189,7 @@ class ChannelExceptionTests(TestFramework):
         channel.set_state(channel.OPEN)
         channel._consumer_tags = [4, 5, 6]
 
-        close_frame = specification.Channel.Close(
+        close_frame = commands.Channel.Close(
             reply_code=500,
             reply_text='travis-ci'
         )

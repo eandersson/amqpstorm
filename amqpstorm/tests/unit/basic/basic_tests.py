@@ -4,7 +4,7 @@ import string
 import sys
 
 from mock import Mock
-from pamqp import specification
+from pamqp import commands
 from pamqp.body import ContentBody
 from pamqp.header import ContentHeader
 
@@ -21,7 +21,7 @@ from amqpstorm.tests.utility import unittest
 class BasicTests(TestFramework):
     def test_basic_qos(self):
         def on_qos_frame(*_):
-            channel.rpc.on_frame(specification.Basic.QosOk())
+            channel.rpc.on_frame(commands.Basic.QosOk())
 
         connection = FakeConnection(on_write=on_qos_frame)
         channel = Channel(9, connection, 1)
@@ -35,7 +35,7 @@ class BasicTests(TestFramework):
         message_len = len(message)
 
         def on_get_frame(*_):
-            channel.rpc.on_frame(specification.Basic.GetOk())
+            channel.rpc.on_frame(commands.Basic.GetOk())
             channel.rpc.on_frame(ContentHeader(body_size=message_len))
             channel.rpc.on_frame(ContentBody(value=message))
 
@@ -55,7 +55,7 @@ class BasicTests(TestFramework):
         message_len = len(message)
 
         def on_get_frame(*_):
-            channel.rpc.on_frame(specification.Basic.GetOk())
+            channel.rpc.on_frame(commands.Basic.GetOk())
             channel.rpc.on_frame(ContentHeader(body_size=message_len))
             channel.rpc.on_frame(ContentBody(value=message))
 
@@ -72,7 +72,7 @@ class BasicTests(TestFramework):
 
     def test_basic_get_empty(self):
         def on_get_frame(*_):
-            channel.rpc.on_frame(specification.Basic.GetEmpty())
+            channel.rpc.on_frame(commands.Basic.GetEmpty())
 
         connection = FakeConnection(on_write=on_get_frame)
         channel = Channel(9, connection, 1)
@@ -105,7 +105,7 @@ class BasicTests(TestFramework):
 
     def test_basic_recover(self):
         def on_recover_frame(*_):
-            channel.rpc.on_frame(specification.Basic.RecoverOk())
+            channel.rpc.on_frame(commands.Basic.RecoverOk())
 
         connection = FakeConnection(on_write=on_recover_frame)
         channel = Channel(9, connection, 1)
@@ -118,7 +118,7 @@ class BasicTests(TestFramework):
         tag = 'travis-ci'
 
         def on_consume_frame(*_):
-            channel.rpc.on_frame(specification.Basic.ConsumeOk(tag))
+            channel.rpc.on_frame(commands.Basic.ConsumeOk(tag))
 
         connection = FakeConnection(on_write=on_consume_frame)
         channel = Channel(9, connection, 1)
@@ -130,7 +130,7 @@ class BasicTests(TestFramework):
     def test_basic_ack(self):
         def on_write(channel, frame):
             self.assertEqual(channel, 9)
-            self.assertIsInstance(frame, specification.Basic.Ack)
+            self.assertIsInstance(frame, commands.Basic.Ack)
 
         connection = FakeConnection(on_write=on_write)
         channel = Channel(9, connection, 1)
@@ -142,7 +142,7 @@ class BasicTests(TestFramework):
     def test_basic_nack(self):
         def on_write(channel, frame):
             self.assertEqual(channel, 9)
-            self.assertIsInstance(frame, specification.Basic.Nack)
+            self.assertIsInstance(frame, commands.Basic.Nack)
 
         connection = FakeConnection(on_write=on_write)
         channel = Channel(9, connection, 1)
@@ -154,7 +154,7 @@ class BasicTests(TestFramework):
     def test_basic_reject(self):
         def on_write(channel, frame):
             self.assertEqual(channel, 9)
-            self.assertIsInstance(frame, specification.Basic.Reject)
+            self.assertIsInstance(frame, commands.Basic.Reject)
 
         connection = FakeConnection(on_write=on_write)
         channel = Channel(9, connection, 1)
@@ -188,7 +188,7 @@ class BasicTests(TestFramework):
         self.assertEqual(channel_id, 9)
 
         # Verify Classes
-        self.assertIsInstance(basic_publish, specification.Basic.Publish)
+        self.assertIsInstance(basic_publish, commands.Basic.Publish)
         self.assertIsInstance(content_header, ContentHeader)
         self.assertIsInstance(content_body, ContentBody)
 
@@ -202,7 +202,7 @@ class BasicTests(TestFramework):
 
     def test_basic_publish_confirms_ack(self):
         def on_publish_return_ack(*_):
-            channel.rpc.on_frame(specification.Basic.Ack())
+            channel.rpc.on_frame(commands.Basic.Ack())
 
         connection = FakeConnection(on_write=on_publish_return_ack)
         channel = Channel(9, connection, 1)
@@ -215,7 +215,7 @@ class BasicTests(TestFramework):
 
     def test_basic_publish_confirms_nack(self):
         def on_publish_return_nack(*_):
-            channel.rpc.on_frame(specification.Basic.Nack())
+            channel.rpc.on_frame(commands.Basic.Nack())
 
         connection = FakeConnection(on_write=on_publish_return_nack)
         channel = Channel(9, connection, 1)
@@ -276,11 +276,11 @@ class BasicTests(TestFramework):
         message = self.message.encode('utf-8')
         message_len = len(message)
 
-        get_frame = specification.Basic.Get(queue='travis-ci',
+        get_frame = commands.Basic.Get(queue='travis-ci',
                                             no_ack=False)
 
         def on_get_frame(*_):
-            channel.rpc.on_frame(specification.Basic.GetOk())
+            channel.rpc.on_frame(commands.Basic.GetOk())
             channel.rpc.on_frame(ContentHeader(body_size=message_len))
             channel.rpc.on_frame(ContentBody(value=message))
 
@@ -298,11 +298,11 @@ class BasicTests(TestFramework):
         message = self.message.encode('utf-8')
         message_len = len(message)
 
-        get_frame = specification.Basic.Get(queue='travis-ci',
+        get_frame = commands.Basic.Get(queue='travis-ci',
                                             no_ack=False)
 
         def on_get_frame(*_):
-            channel.rpc.on_frame(specification.Basic.GetOk())
+            channel.rpc.on_frame(commands.Basic.GetOk())
             channel.rpc.on_frame(ContentHeader(body_size=message_len))
             channel.rpc.on_frame(ContentBody(value=message))
 
@@ -317,11 +317,11 @@ class BasicTests(TestFramework):
         self.assertEqual(result.body.encode('utf-8'), message)
 
     def test_basic_get_message_empty_queue(self):
-        get_frame = specification.Basic.Get(queue='travis-ci',
+        get_frame = commands.Basic.Get(queue='travis-ci',
                                             no_ack=False)
 
         def on_get_frame(*_):
-            channel.rpc.on_frame(specification.Basic.GetEmpty())
+            channel.rpc.on_frame(commands.Basic.GetEmpty())
 
         connection = FakeConnection(on_write=on_get_frame)
         channel = Channel(9, connection, 1)
@@ -400,14 +400,14 @@ class BasicTests(TestFramework):
         tag = 'travis-ci'
 
         def on_publish_return_ack(_, frame):
-            self.assertIsInstance(frame, specification.Basic.Consume)
+            self.assertIsInstance(frame, commands.Basic.Consume)
             self.assertEqual(frame.arguments, {})
             self.assertEqual(frame.consumer_tag, tag)
             self.assertEqual(frame.exclusive, True)
             self.assertEqual(frame.no_ack, True)
             self.assertEqual(frame.exclusive, True)
             self.assertEqual(frame.queue, '')
-            channel.rpc.on_frame(specification.Basic.ConsumeOk(tag))
+            channel.rpc.on_frame(commands.Basic.ConsumeOk(tag))
 
         connection = FakeConnection(on_write=on_publish_return_ack)
         channel = Channel(9, connection, 1)

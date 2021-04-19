@@ -3,7 +3,7 @@
 import logging
 import platform
 
-from pamqp import specification
+from pamqp import commands
 from pamqp.heartbeat import Heartbeat
 
 from amqpstorm import __version__
@@ -64,7 +64,7 @@ class Channel0(object):
 
         :return:
         """
-        self._write_frame(specification.Connection.Close())
+        self._write_frame(commands.Connection.Close())
 
     def send_heartbeat(self):
         """Send Heartbeat frame.
@@ -78,7 +78,7 @@ class Channel0(object):
     def _close_connection(self, frame_in):
         """Connection Close.
 
-        :param specification.Connection.Close frame_in: Amqp frame.
+        :param commands.Connection.Close frame_in: Amqp frame.
         :return:
         """
         self._set_connection_state(Stateful.CLOSED)
@@ -141,7 +141,7 @@ class Channel0(object):
     def _send_start_ok(self, frame_in):
         """Send Start OK frame.
 
-        :param specification.Connection.Start frame_in: Amqp frame.
+        :param commands.Connection.Start frame_in: Amqp frame.
         :return:
         """
         mechanisms = try_utf8_decode(frame_in.mechanisms)
@@ -158,7 +158,7 @@ class Channel0(object):
             )
             self._connection.exceptions.append(exception)
             return
-        start_ok_frame = specification.Connection.StartOk(
+        start_ok_frame = commands.Connection.StartOk(
             mechanism=mechanism,
             client_properties=self._client_properties(),
             response=credentials,
@@ -169,7 +169,7 @@ class Channel0(object):
     def _send_tune_ok(self, frame_in):
         """Send Tune OK frame.
 
-        :param specification.Connection.Tune frame_in: Tune frame.
+        :param commands.Connection.Tune frame_in: Tune frame.
 
         :return:
         """
@@ -182,7 +182,7 @@ class Channel0(object):
             self.max_frame_size, self.max_allowed_channels
         )
 
-        tune_ok_frame = specification.Connection.TuneOk(
+        tune_ok_frame = commands.Connection.TuneOk(
             channel_max=self.max_allowed_channels,
             frame_max=self.max_frame_size,
             heartbeat=self._heartbeat)
@@ -193,7 +193,7 @@ class Channel0(object):
 
         :return:
         """
-        open_frame = specification.Connection.Open(
+        open_frame = commands.Connection.Open(
             virtual_host=self._parameters['virtual_host']
         )
         self._write_frame(open_frame)

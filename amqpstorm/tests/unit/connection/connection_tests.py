@@ -3,8 +3,8 @@ import threading
 
 from mock import Mock
 from pamqp import frame as pamqp_frame
-from pamqp import specification
-from pamqp.specification import Basic as spec_basic
+from pamqp import commands as commands
+from pamqp.commands import Basic as spec_basic
 
 from amqpstorm import Channel
 from amqpstorm import Connection
@@ -111,7 +111,7 @@ class ConnectionTests(TestFramework):
 
         self.assertEqual(data_in, b'')
         self.assertEqual(channel_id, 0)
-        self.assertIsInstance(frame_in, specification.Connection.Tune)
+        self.assertIsInstance(frame_in, commands.Connection.Tune)
 
     def test_connection_handle_amqp_frame_none_returns_none(self):
         connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
@@ -125,7 +125,7 @@ class ConnectionTests(TestFramework):
         connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
 
         def throw_error(*_):
-            raise specification.AMQPFrameError()
+            raise commands.AMQPFrameError()
 
         restore_func = pamqp_frame.unmarshal
         try:
@@ -288,7 +288,7 @@ class ConnectionTests(TestFramework):
                 index + 1, connection, 360)
 
         def on_write(frame_out):
-            self.assertIsInstance(frame_out, specification.Connection.Close)
+            self.assertIsInstance(frame_out, commands.Connection.Close)
             connection._channel0._close_connection_ok()
 
         connection._channel0._write_frame = on_write
@@ -410,8 +410,8 @@ class ConnectionTests(TestFramework):
         connection.set_state(connection.OPEN)
 
         def on_open_ok(_, frame_out):
-            self.assertIsInstance(frame_out, specification.Channel.Open)
-            connection._channels[1].on_frame(specification.Channel.OpenOk())
+            self.assertIsInstance(frame_out, commands.Channel.Open)
+            connection._channels[1].on_frame(commands.Channel.OpenOk())
 
         connection.write_frame = on_open_ok
 

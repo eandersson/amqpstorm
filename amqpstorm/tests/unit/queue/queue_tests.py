@@ -1,4 +1,4 @@
-from pamqp.specification import Queue as pamqp_queue
+from pamqp.commands import Queue as pamqp_queue
 
 from amqpstorm.channel import Channel
 from amqpstorm.channel import Queue
