@@ -5,6 +5,8 @@ import time
 from amqpstorm import Connection
 from amqpstorm import UriConnection
 from amqpstorm.tests import CAFILE
+from amqpstorm.tests import CERTFILE
+from amqpstorm.tests import KEYFILE
 from amqpstorm.tests import PASSWORD
 from amqpstorm.tests import SSL_HOST
 from amqpstorm.tests import SSL_URI
@@ -16,8 +18,13 @@ from amqpstorm.tests.functional.utility import setup
 class SSLReliabilityFunctionalTests(TestFunctionalFramework):
     @setup(new_connection=False, queue=True)
     def test_functional_ssl_open_new_connection_loop(self):
+        context = ssl.create_default_context(cafile=CAFILE)
+        context.load_cert_chain(
+            certfile=CERTFILE,
+            keyfile=KEYFILE,
+        )
         ssl_options = {
-            'context': ssl.create_default_context(cafile=CAFILE),
+            'context': context,
             'server_hostname': SSL_HOST
         }
 
@@ -49,8 +56,13 @@ class SSLReliabilityFunctionalTests(TestFunctionalFramework):
 
     @setup(new_connection=False, queue=True)
     def test_functional_ssl_open_close_connection_loop(self):
+        context = ssl.create_default_context(cafile=CAFILE)
+        context.load_cert_chain(
+            certfile=CERTFILE,
+            keyfile=KEYFILE,
+        )
         ssl_options = {
-            'context': ssl.create_default_context(cafile=CAFILE),
+            'context': context,
             'server_hostname': SSL_HOST
         }
         self.connection = self.connection = Connection(
@@ -84,11 +96,16 @@ class SSLReliabilityFunctionalTests(TestFunctionalFramework):
 
     @setup(new_connection=False, queue=False)
     def test_functional_ssl_open_close_channel_loop(self):
+        context = ssl.create_default_context(cafile=CAFILE)
+        context.load_cert_chain(
+            certfile=CERTFILE,
+            keyfile=KEYFILE,
+        )
         ssl_options = {
-            'context': ssl.create_default_context(cafile=CAFILE),
+            'context': context,
             'server_hostname': SSL_HOST
         }
-        self.connection = self.connection = Connection(
+        self.connection = Connection(
             SSL_HOST, USERNAME, PASSWORD, port=5671, ssl=True,
             ssl_options=ssl_options)
 
@@ -110,8 +127,13 @@ class SSLReliabilityFunctionalTests(TestFunctionalFramework):
 
     @setup(new_connection=False, queue=True)
     def test_functional_ssl_open_multiple_channels(self):
+        context = ssl.create_default_context(cafile=CAFILE)
+        context.load_cert_chain(
+            certfile=CERTFILE,
+            keyfile=KEYFILE,
+        )
         ssl_options = {
-            'context': ssl.create_default_context(cafile=CAFILE),
+            'context': context,
             'server_hostname': SSL_HOST
         }
         self.connection = self.connection = Connection(
@@ -137,8 +159,13 @@ class SSLReliabilityFunctionalTests(TestFunctionalFramework):
         :return:
         """
         for _ in range(10):
+            context = ssl.create_default_context(cafile=CAFILE)
+            context.load_cert_chain(
+                certfile=CERTFILE,
+                keyfile=KEYFILE,
+            )
             ssl_options = {
-                'context': ssl.create_default_context(cafile=CAFILE),
+                'context': context,
                 'server_hostname': SSL_HOST
             }
             self.connection = self.connection = Connection(
@@ -151,14 +178,29 @@ class SSLReliabilityFunctionalTests(TestFunctionalFramework):
 
     @setup(new_connection=False)
     def test_functional_ssl_uri_connection(self):
-        self.connection = UriConnection(SSL_URI)
+        context = ssl.create_default_context(cafile=CAFILE)
+        context.load_cert_chain(
+            certfile=CERTFILE,
+            keyfile=KEYFILE,
+        )
+        ssl_options = {
+            'context': context,
+            'server_hostname': SSL_HOST
+        }
+
+        self.connection = UriConnection(SSL_URI, ssl_options=ssl_options)
         self.channel = self.connection.channel()
         self.assertTrue(self.connection.is_open)
 
     @setup(new_connection=False)
     def test_functional_ssl_uri_connection_with_context(self):
+        context = ssl.create_default_context(cafile=CAFILE)
+        context.load_cert_chain(
+            certfile=CERTFILE,
+            keyfile=KEYFILE,
+        )
         ssl_options = {
-            'context': ssl.create_default_context(cafile=CAFILE),
+            'context': context,
             'server_hostname': SSL_HOST
         }
 
@@ -197,8 +239,13 @@ class PublishAndConsume1kWithSSLTest(TestFunctionalFramework):
 
     @setup(new_connection=False, queue=False)
     def test_functional_publish_1k_with_ssl(self):
+        context = ssl.create_default_context(cafile=CAFILE)
+        context.load_cert_chain(
+            certfile=CERTFILE,
+            keyfile=KEYFILE,
+        )
         ssl_options = {
-            'context': ssl.create_default_context(cafile=CAFILE),
+            'context': context,
             'server_hostname': SSL_HOST
         }
         self.connection = self.connection = Connection(
@@ -244,8 +291,13 @@ class Consume1kWithSSLUntilEmpty(TestFunctionalFramework):
 
     @setup(new_connection=False, queue=True)
     def test_functional_consume_with_ssl_until_empty(self):
+        context = ssl.create_default_context(cafile=CAFILE)
+        context.load_cert_chain(
+            certfile=CERTFILE,
+            keyfile=KEYFILE,
+        )
         ssl_options = {
-            'context': ssl.create_default_context(cafile=CAFILE),
+            'context': context,
             'server_hostname': SSL_HOST
         }
         self.connection = self.connection = Connection(

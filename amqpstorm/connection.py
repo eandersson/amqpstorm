@@ -42,7 +42,7 @@ class Connection(Stateful):
         import ssl
         import amqpstorm
         ssl_options = {
-            'context': ssl.create_default_context(cafile='cacert.pem'),
+            'context': ssl.create_default_context(cafile='ca_certificate.pem'),
             'server_hostname': 'rmq.eandersson.net',
             'check_hostname': True,        # New 2.8.0, default is False
             'verify_mode': 'required',     # New 2.8.0, default is 'none'

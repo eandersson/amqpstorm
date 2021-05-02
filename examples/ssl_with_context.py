@@ -28,7 +28,7 @@ def on_message(message):
 
 
 SSL_OPTIONS = {
-    'context': ssl.create_default_context(cafile='cacert.pem'),
+    'context': ssl.create_default_context(cafile='ca_certificate.pem'),
     'server_hostname': 'rmq.eandersson.net'
 }
 
