@@ -31,7 +31,7 @@ class UriConnection(Connection):
         import ssl
         import amqpstorm
         ssl_options = {
-            'context': ssl.create_default_context(cafile='cacert.pem'),
+            'context': ssl.create_default_context(cafile='ca_certificate.pem'),
             'server_hostname': 'rmq.eandersson.net'
         }
         connection = amqpstorm.UriConnection(
