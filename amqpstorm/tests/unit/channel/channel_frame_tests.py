@@ -80,8 +80,8 @@ class ChannelFrameTests(TestFramework):
 
         self.assertRaisesRegexp(
             AMQPMessageError,
-            "Message not delivered: travis-ci \(500\) to queue "
-            "'routing_key' from exchange 'exchange'",
+            r"Message not delivered: travis-ci \(500\) to queue "
+            r"'routing_key' from exchange 'exchange'",
             channel.check_for_errors
         )
 

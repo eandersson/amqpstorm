@@ -96,7 +96,7 @@ class BasicTests(TestFramework):
 
         self.assertRaisesRegexp(
             AMQPChannelError,
-            'rpc requests .* \(.*\) took too long',
+            r'rpc requests .* \(.*\) took too long',
             basic.get, 'travis-ci'
         )
 

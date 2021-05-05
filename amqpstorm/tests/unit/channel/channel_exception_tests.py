@@ -175,8 +175,8 @@ class ChannelExceptionTests(TestFramework):
 
         self.assertRaisesRegexp(
             AMQPMessageError,
-            "Message not delivered: Error \(500\) to queue "
-            "'' from exchange ''",
+            r"Message not delivered: Error \(500\) to queue "
+            r"'' from exchange ''",
             channel.check_for_errors
         )
 

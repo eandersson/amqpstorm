@@ -102,7 +102,7 @@ class Channel0FrameTests(TestFramework):
 
         self.assertRaisesRegexp(
             AMQPConnectionError,
-            'Unsupported Security Mechanism\(s\): invalid',
+            r'Unsupported Security Mechanism\(s\): invalid',
             connection.check_for_errors
         )
 

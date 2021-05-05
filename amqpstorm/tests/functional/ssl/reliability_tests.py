@@ -1,6 +1,8 @@
+import os.path
 import ssl
 import threading
 import time
+import unittest
 
 from amqpstorm import Connection
 from amqpstorm import UriConnection
@@ -15,6 +17,7 @@ from amqpstorm.tests.functional.utility import TestFunctionalFramework
 from amqpstorm.tests.functional.utility import setup
 
 
+@unittest.skipIf(os.path.exists(CAFILE), 'SSL tests not configured')
 class SSLReliabilityFunctionalTests(TestFunctionalFramework):
     @setup(new_connection=False, queue=True)
     def test_functional_ssl_open_new_connection_loop(self):
@@ -209,6 +212,7 @@ class SSLReliabilityFunctionalTests(TestFunctionalFramework):
         self.assertTrue(self.connection.is_open)
 
 
+@unittest.skipIf(os.path.exists(CAFILE), 'SSL tests not configured')
 class PublishAndConsume1kWithSSLTest(TestFunctionalFramework):
     messages_to_send = 1000
     messages_consumed = 0
@@ -278,6 +282,7 @@ class PublishAndConsume1kWithSSLTest(TestFunctionalFramework):
                          'test took too long')
 
 
+@unittest.skipIf(os.path.exists(CAFILE), 'SSL tests not configured')
 class Consume1kWithSSLUntilEmpty(TestFunctionalFramework):
     messages_to_send = 1000
 
