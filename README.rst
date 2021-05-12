@@ -19,6 +19,11 @@ Additional documentation is available on `amqpstorm.io <https://www.amqpstorm.io
 Changelog
 =========
 
+Version 3.0.0 Alpha 1
+---------------------
+- This version requires Python 3.6 or newer.
+- Upgraded to pamqp3.
+
 .. |Version| image:: https://badge.fury.io/py/AMQPStorm.svg
   :target: https://badge.fury.io/py/AMQPStorm
 

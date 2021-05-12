@@ -1,6 +1,11 @@
 Changelog
 =========
 
+Version 3.0.0 Alpha 1
+---------------------
+- This version requires Python 3.6 or newer.
+- Upgraded to pamqp3.
+
 Version 2.8.4
 -------------
 - Fixed a bug in Message.create where it would mutate the properties dict [#92] - Thanks Killerama.
