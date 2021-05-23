@@ -39,14 +39,13 @@ class Channel(BaseChannel):
         '_connection', '_exchange', '_inbound', '_queue', '_tx'
     ]
 
-    def __init__(self, channel_id, connection, rpc_timeout,
-                 on_close_impl=None):
+    def __init__(self, channel_id, connection, rpc_timeout):
         super(Channel, self).__init__(channel_id)
+        self.on_close_impl = None
         self.rpc = Rpc(self, timeout=rpc_timeout)
         self._consumer_callbacks = {}
         self._confirming_deliveries = False
         self._connection = connection
-        self._on_close_impl = on_close_impl
         self._inbound = []
         self._basic = Basic(self, connection.max_frame_size)
         self._exchange = Exchange(self)
@@ -204,8 +203,8 @@ class Channel(BaseChannel):
             if self._inbound:
                 del self._inbound[:]
             self.set_state(self.CLOSED)
-            if self._on_close_impl:
-                self._on_close_impl(self.channel_id)
+            if self.on_close_impl:
+                self.on_close_impl(self.channel_id)
         LOGGER.debug('Channel #%d Closed', self.channel_id)
 
     def check_for_errors(self,):
