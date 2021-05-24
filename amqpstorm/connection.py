@@ -189,10 +189,9 @@ class Connection(Stateful):
             self._channels[channel_id] = channel
             if not lazy:
                 channel.open()
-
-        channel.on_close_impl = self._cleanup_channel
-        LOGGER.debug('Channel #%d Opened', channel_id)
-        return self._channels[channel_id]
+            channel.on_close_impl = self._cleanup_channel
+            LOGGER.debug('Channel #%d Opened', channel_id)
+            return self._channels[channel_id]
 
     def check_for_errors(self):
         """Check Connection for errors.
