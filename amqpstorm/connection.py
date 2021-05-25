@@ -183,15 +183,20 @@ class Connection(Stateful):
         elif self.is_closed:
             raise AMQPConnectionError('socket/connection closed')
 
-        with self.lock:
+        channel_id = None
+        self.lock.acquire()
+        try:
             channel_id = self._get_next_available_channel_id()
             channel = Channel(channel_id, self, rpc_timeout)
             self._channels[channel_id] = channel
             if not lazy:
                 channel.open()
             channel.on_close_impl = self._cleanup_channel
-            LOGGER.debug('Channel #%d Opened', channel_id)
             return self._channels[channel_id]
+        finally:
+            self.lock.release()
+            if channel_id is not None:
+                LOGGER.debug('Channel #%d Opened', channel_id)
 
     def check_for_errors(self):
         """Check Connection for errors.
