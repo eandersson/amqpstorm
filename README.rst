@@ -20,6 +20,10 @@ Additional documentation is available on `amqpstorm.io <https://www.amqpstorm.io
 Changelog
 =========
 
+Version 2.8.5
+-------------
+- Fixed a potential deadlock when opening a channel with a broken connection [#97] - Thanks mehdigmira.
+
 Version 2.8.4
 -------------
 - Fixed a bug in Message.create where it would mutate the properties dict [#92] - Thanks Killerama.
