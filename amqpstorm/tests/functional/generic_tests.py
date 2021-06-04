@@ -530,3 +530,27 @@ class GenericTest(TestFunctionalFramework):
 
         # Make sure all five messages were downloaded.
         self.assertEqual(len(inbound_messages), 5)
+
+    @setup(new_channel=False)
+    def test_functional_reuse_channel_with_confirm_deliveries(self):
+        channel = self.connection.channel()
+        channel.confirm_deliveries()
+        self.assertTrue(channel._confirming_deliveries)
+        self.assertTrue(channel.basic.publish(body=self.message,
+                                              routing_key=self.queue_name))
+
+        channel.close()
+        channel.open()
+
+        # Make sure the re-opened channel does not have confirm deliveries
+        # enabled.
+        self.assertFalse(channel._confirming_deliveries)
+        self.assertIsNone(channel.basic.publish(body=self.message,
+                                                routing_key=self.queue_name))
+
+        # But make sure we can safely enable it again.
+        channel.confirm_deliveries()
+        self.assertTrue(channel._confirming_deliveries)
+        self.assertTrue(channel.basic.publish(body=self.message,
+                                              routing_key=self.queue_name))
+        channel.close()

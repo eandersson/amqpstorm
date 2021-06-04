@@ -428,10 +428,15 @@ class ConnectionTests(TestFramework):
     def test_connection_get_channel_ids(self):
         connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
         self.assertEqual(connection._last_channel_id, None)
-        connection._channels[1] = None
+        channel = Channel(1, connection, 1)
+        channel.set_state(channel.OPEN)
+        connection._channels[1] = channel
+
         for index in range(2, 100):
             channel_id = connection._get_next_available_channel_id()
-            connection._channels[channel_id] = None
+            channel = Channel(channel_id, connection, 1)
+            channel.set_state(channel.OPEN)
+            connection._channels[channel_id] = channel
             self.assertEqual(
                 channel_id, index
             )
@@ -442,46 +447,97 @@ class ConnectionTests(TestFramework):
         connection.set_state(connection.OPEN)
 
         for index in compatibility.RANGE(1, 301):
-            connection._channels[index] = None
+            channel = Channel(index, connection, 1)
+            channel.set_state(channel.OPEN)
+            connection._channels[index] = channel
         for index in compatibility.RANGE(302, 65535):
-            connection._channels[index] = None
+            channel = Channel(index, connection, 1)
+            channel.set_state(channel.OPEN)
+            connection._channels[index] = channel
 
-        last_channel_id = int(connection.channel(lazy=True))
+        channel = connection.channel(lazy=True)
+        channel.set_state(channel.OPEN)
+        last_channel_id = int(channel)
 
         self.assertEqual(
             last_channel_id, 301
         )
         self.assertEqual(connection._last_channel_id, 301)
 
-        last_channel_id = int(connection.channel(lazy=True))
+        channel = connection.channel(lazy=True)
+        channel.set_state(channel.OPEN)
+        last_channel_id = int(channel)
 
         self.assertEqual(
             last_channel_id, 65535
         )
         self.assertEqual(connection._last_channel_id, 65535)
 
-    def test_connection_close_old_ids_with_channel(self):
+    def test_connection_reuse_predictable(self):
         max_channels = 1024
         connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
         connection._channel0.max_allowed_channels = max_channels
         connection.set_state(connection.OPEN)
 
         for _ in compatibility.RANGE(max_channels):
-            connection.channel(lazy=True)
+            channel = connection.channel(lazy=True)
+            channel.set_state(channel.OPEN)
+
+        ids_to_close = [2, 8, 16, 32, 64, 128, 256, 512, 768, 1024]
+
+        for channel_id in ids_to_close:
+            connection._channels[channel_id].set_state(Channel.CLOSED)
+
+        for _ in ids_to_close:
+            channel = connection.channel(lazy=True)
+            channel.set_state(channel.OPEN)
+            self.assertIn(int(channel), ids_to_close)
+
+    def test_connection_reuse_old_closed_channels(self):
+        max_channels = 1024
+        connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
+        connection._channel0.max_allowed_channels = max_channels
+        connection.set_state(connection.OPEN)
+
+        for _ in compatibility.RANGE(max_channels):
+            channel = connection.channel(lazy=True)
+            channel.set_state(channel.OPEN)
 
         ids_to_close = [2, 8, 16, 32, 64, 128, 256, 512, 768, 1024]
 
         for _ in range(100):
-            for index in ids_to_close:
-                del connection._channels[index]
-
-            self.assertEqual(len(connection._channels),
-                             max_channels - len(ids_to_close))
+            for channel_id in ids_to_close:
+                connection._channels[channel_id].set_state(Channel.CLOSED)
 
             for _ in ids_to_close:
                 self.assertIn(
                     int(connection.channel(lazy=True)), ids_to_close
                 )
+
+    def test_connection_close_old_ids_with_channel_deleted(self):
+        max_channels = 1024
+        connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
+        connection._channel0.max_allowed_channels = max_channels
+        connection.set_state(connection.OPEN)
+
+        for _ in compatibility.RANGE(max_channels):
+            channel = connection.channel(lazy=True)
+            channel.set_state(channel.OPEN)
+
+        ids_to_close = [2, 8, 16, 32, 64, 128, 256, 512, 768, 1024]
+
+        for _ in range(100):
+            for channel_id in ids_to_close:
+                del connection._channels[channel_id]
+
+            self.assertEqual(len(connection._channels),
+                             max_channels - len(ids_to_close))
+
+            for _ in ids_to_close:
+                channel = connection.channel(lazy=True)
+                channel.set_state(channel.OPEN)
+
+                self.assertIn(int(channel), ids_to_close)
 
             self.assertEqual(len(connection._channels), max_channels)
 
@@ -490,7 +546,9 @@ class ConnectionTests(TestFramework):
         connection.set_state(connection.OPEN)
 
         for index in compatibility.RANGE(MAX_CHANNELS - 1):
-            self.assertEqual(int(connection.channel(lazy=True)), index + 1)
+            channel = connection.channel(lazy=True)
+            channel.set_state(channel.OPEN)
+            self.assertEqual(int(channel), index + 1)
 
     def test_connection_maximum_channels_reached(self):
         connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
@@ -498,7 +556,10 @@ class ConnectionTests(TestFramework):
 
         for index in compatibility.RANGE(MAX_CHANNELS):
             channel_id = connection._get_next_available_channel_id()
-            connection._channels[channel_id] = None
+            channel = Channel(channel_id, connection, 1)
+            channel.set_state(channel.OPEN)
+            connection._channels[channel_id] = channel
+
             self.assertEqual(connection._last_channel_id, index + 1)
 
         self.assertRaisesRegexp(
