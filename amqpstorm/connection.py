@@ -183,20 +183,14 @@ class Connection(Stateful):
         elif self.is_closed:
             raise AMQPConnectionError('socket/connection closed')
 
-        channel_id = None
-        self.lock.acquire()
-        try:
+        with self.lock:
             channel_id = self._get_next_available_channel_id()
             channel = Channel(channel_id, self, rpc_timeout)
             self._channels[channel_id] = channel
             if not lazy:
                 channel.open()
-            channel.on_close_impl = self._cleanup_channel
-            return self._channels[channel_id]
-        finally:
-            self.lock.release()
-            if channel_id is not None:
-                LOGGER.debug('Channel #%d Opened', channel_id)
+        LOGGER.debug('Channel #%d Opened', channel_id)
+        return self._channels[channel_id]
 
     def check_for_errors(self):
         """Check Connection for errors.
@@ -296,12 +290,16 @@ class Connection(Stateful):
         :raises AMQPConnectionError: Raises if there is no available channel.
         :rtype: int
         """
-        for index in compatibility.RANGE(self._last_channel_id or 1,
-                                         self.max_allowed_channels + 1):
-            if index in self._channels:
-                continue
-            self._last_channel_id = index
-            return index
+        for channel_id in compatibility.RANGE(self._last_channel_id or 1,
+                                              self.max_allowed_channels + 1):
+            if channel_id in self._channels:
+                channel = self._channels[channel_id]
+                if channel.current_state == Channel.CLOSED:
+                    del self._channels[channel_id]
+                else:
+                    continue
+            self._last_channel_id = channel_id
+            return channel_id
 
         if self._last_channel_id:
             self._last_channel_id = None
