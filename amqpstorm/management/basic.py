@@ -86,7 +86,13 @@ class Basic(ManagementHandler):
             return response
         messages = []
         for message in response:
-            if 'payload' in message:
-                message['body'] = message.pop('payload')
-            messages.append(Message(channel=None, auto_decode=True, **message))
+            body = message.get('body')
+            if not body:
+                body = message.get('payload')
+            messages.append(Message(
+                channel=None,
+                body=body,
+                properties=message.get('properties'),
+                auto_decode=True,
+            ))
         return messages

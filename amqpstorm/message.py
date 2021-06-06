@@ -27,20 +27,22 @@ class Message(BaseMessage):
         message.publish('my_queue')
 
     :param Channel channel: AMQPStorm Channel
-    :param bool auto_decode: Auto-decode strings when possible. Does not
-                             apply to to_dict, or to_tuple.
     :param bytes,str,unicode body: Message payload
     :param dict method: Message method
     :param dict properties: Message properties
+    :param bool auto_decode: Auto-decode strings when possible. Does not
+                             apply to to_dict, or to_tuple.
     """
     __slots__ = [
-        '_auto_decode', '_decode_cache'
+        '_decode_cache'
     ]
 
-    def __init__(self, channel, auto_decode=True, **message):
-        super(Message, self).__init__(channel, **message)
+    def __init__(self, channel, body=None, method=None, properties=None,
+                 auto_decode=True):
+        super(Message, self).__init__(
+            channel, body, method, properties, auto_decode
+        )
         self._decode_cache = dict()
-        self._auto_decode = auto_decode
 
     @staticmethod
     def create(channel, body, properties=None):
