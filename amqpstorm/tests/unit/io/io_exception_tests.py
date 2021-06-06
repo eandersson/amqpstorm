@@ -191,6 +191,23 @@ class IOExceptionTests(TestFramework):
             connection.check_for_errors
         )
 
+    def test_io_receive_log_warning_when_inbound_thread_stopped(self):
+        connection = FakeConnection()
+        io = IO(connection.parameters, exceptions=connection.exceptions)
+        io._running.set()
+
+        self.assertEqual(io._receive(), bytes())
+        self.assertRaisesRegexp(
+            AMQPConnectionError,
+            'connection/socket error',
+            connection.check_for_errors
+        )
+
+        self.assertEqual(
+            'Stopping inbound thread due to connection/socket error',
+            self.get_last_log()
+        )
+
     def test_io_socket_read_fails(self):
         connection = FakeConnection()
         parameters = FakeConnection().parameters
