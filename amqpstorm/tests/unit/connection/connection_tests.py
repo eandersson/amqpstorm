@@ -541,6 +541,29 @@ class ConnectionTests(TestFramework):
 
             self.assertEqual(len(connection._channels), max_channels)
 
+    def test_connection_dont_reuse_when_not_closed(self):
+        connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
+        connection.set_state(connection.OPEN)
+
+        # Open and close Channel 1
+        channel1 = connection.channel(lazy=True)
+        channel1.set_state(Channel.CLOSED)
+
+        # Channel 1 is re-used
+        channel2 = connection.channel(lazy=True)
+        channel2.set_state(Channel.OPEN)
+
+        self.assertEqual(1, int(channel2))
+
+        # New channel id is used for the second channel
+        channel3 = connection.channel(lazy=True)
+        channel3.set_state(Channel.OPEN)
+
+        self.assertEqual(2, int(channel3))
+
+        # We should now have two channels.
+        self.assertEqual(2, len(connection._channels))
+
     def test_connection_open_many_channels(self):
         connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
         connection.set_state(connection.OPEN)
