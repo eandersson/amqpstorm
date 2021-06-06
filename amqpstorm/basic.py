@@ -80,8 +80,9 @@ class Basic(Handler):
                                    "set to consume")
         if message_impl:
             if not issubclass(message_impl, BaseMessage):
-                raiseAMQPInvalidArgument('message_impl should be derived " \
-                       "from BaseMessage')
+                raise AMQPInvalidArgument(
+                    'message_impl should be derived from BaseMessage'
+                )
         else:
             message_impl = Message
         get_frame = specification.Basic.Get(queue=queue,

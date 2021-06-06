@@ -166,7 +166,7 @@ class BaseMessage(object):
 
     def __iter__(self):
         for attribute in ['_body', '_channel', '_method', '_properties']:
-            yield (attribute[1::], getattr(self, attribute))
+            yield attribute[1::], getattr(self, attribute)
 
     def to_dict(self):
         """Message to Dictionary.

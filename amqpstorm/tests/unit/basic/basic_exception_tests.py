@@ -58,6 +58,17 @@ class BasicExceptionTests(TestFramework):
             basic.get, '', True, 'travis-ci'
         )
 
+    def test_basic_get_invalid_message_impl(self):
+        channel = Channel(0, FakeConnection(), 360)
+        channel.set_state(Channel.OPEN)
+        basic = Basic(channel)
+
+        self.assertRaisesRegexp(
+            exception.AMQPInvalidArgument,
+            'message_impl should be derived from BaseMessage',
+            basic.get, message_impl=int
+        )
+
     def test_basic_recover_invalid_parameter(self):
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(Channel.OPEN)

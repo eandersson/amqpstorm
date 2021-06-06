@@ -144,6 +144,29 @@ class ChannelExceptionTests(TestFramework):
         else:
             self.assertRaises(AMQPChannelError, generator.__next__)
 
+    @mock.patch('amqpstorm.Channel._build_message',
+                side_effect=AMQPChannelError())
+    def test_channel_build_inbound_with_invalid_message_impl(self, _):
+        channel = Channel(0, FakeConnection(), 360)
+        channel.set_state(Channel.OPEN)
+
+        generator = channel.build_inbound_messages(
+            break_on_empty=False,
+            message_impl=int
+        )
+        if hasattr(generator, 'next'):
+            self.assertRaisesRegexp(
+                AMQPInvalidArgument,
+                'message_impl must derive from BaseMessage',
+                generator.next
+            )
+        else:
+            self.assertRaisesRegexp(
+                AMQPInvalidArgument,
+                'message_impl must derive from BaseMessage',
+                generator.__next__
+            )
+
     def test_channel_build_inbound_raises_in_loop(self):
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(Channel.OPEN)
