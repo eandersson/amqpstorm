@@ -294,10 +294,9 @@ class Connection(Stateful):
                                               self.max_allowed_channels + 1):
             if channel_id in self._channels:
                 channel = self._channels[channel_id]
-                if channel.current_state == Channel.CLOSED:
-                    del self._channels[channel_id]
-                else:
+                if channel.current_state != Channel.CLOSED:
                     continue
+                del self._channels[channel_id]
             self._last_channel_id = channel_id
             return channel_id
 

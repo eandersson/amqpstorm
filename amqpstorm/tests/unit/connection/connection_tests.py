@@ -545,24 +545,30 @@ class ConnectionTests(TestFramework):
         connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
         connection.set_state(connection.OPEN)
 
-        # Open and close Channel 1
+        # Open Channel 1
         channel1 = connection.channel(lazy=True)
-        channel1.set_state(Channel.CLOSED)
+        channel1.set_state(Channel.OPEN)
 
-        # Channel 1 is re-used
+        # Open Channel 2 (but leave it closed)
+        channel2 = connection.channel(lazy=True)
+        channel2.set_state(Channel.CLOSED)
+
+        self.assertEqual(2, int(channel2))
+
+        # Channel 2 is re-used
         channel2 = connection.channel(lazy=True)
         channel2.set_state(Channel.OPEN)
 
-        self.assertEqual(1, int(channel2))
+        self.assertEqual(2, int(channel2))
 
-        # New channel id is used for the second channel
+        # New channel id is used for the third channel
         channel3 = connection.channel(lazy=True)
         channel3.set_state(Channel.OPEN)
 
-        self.assertEqual(2, int(channel3))
+        self.assertEqual(3, int(channel3))
 
-        # We should now have two channels.
-        self.assertEqual(2, len(connection._channels))
+        # We should now have three channels.
+        self.assertEqual(3, len(connection._channels))
 
     def test_connection_open_many_channels(self):
         connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
