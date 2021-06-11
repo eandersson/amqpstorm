@@ -1,6 +1,12 @@
 Changelog
 =========
 
+Version 2.9.0
+-------------
+- Added support for custom Message implementations - Thanks Jay Hogg.
+- Fixed a bug with confirm_delivery not working after closing and re-opening an existing channel.
+- Re-worked the channel re-use code.
+
 Version 2.8.5
 -------------
 - Fixed a potential deadlock when opening a channel with a broken connection [#97] - Thanks mehdigmira.
