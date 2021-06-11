@@ -153,16 +153,19 @@ class BaseMessage(object):
     :param str,unicode body: Message body
     :param dict method: Message method
     :param dict properties: Message properties
+    :param bool auto_decode: This is not implemented in the base message class.
     """
     __slots__ = [
-        '_body', '_channel', '_method', '_properties'
+        '_auto_decode', '_body', '_channel', '_method', '_properties'
     ]
 
-    def __init__(self, channel, **message):
+    def __init__(self, channel, body=None, method=None, properties=None,
+                 auto_decode=None):
+        self._auto_decode = auto_decode
         self._channel = channel
-        self._body = message.get('body', None)
-        self._method = message.get('method', None)
-        self._properties = message.get('properties', {'headers': {}})
+        self._body = body
+        self._method = method
+        self._properties = properties or {}
 
     def __iter__(self):
         for attribute in ['_body', '_channel', '_method', '_properties']:

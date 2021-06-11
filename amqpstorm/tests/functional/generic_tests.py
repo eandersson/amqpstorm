@@ -4,6 +4,7 @@ from amqpstorm import AMQPChannelError
 from amqpstorm import AMQPMessageError
 from amqpstorm import Channel
 from amqpstorm import Message
+from amqpstorm.base import BaseMessage
 from amqpstorm.tests.functional.utility import TestFunctionalFramework
 from amqpstorm.tests.functional.utility import setup
 
@@ -272,6 +273,34 @@ class GenericTest(TestFunctionalFramework):
         self.assertEqual(len(inbound_messages), 5)
 
     @setup(queue=True)
+    def test_functional_consume_with_custom_message_impl(self):
+        self.channel.queue.declare(self.queue_name)
+        self.channel.confirm_deliveries()
+        for _ in range(5):
+            self.channel.basic.publish(body=self.message,
+                                       routing_key=self.queue_name)
+        self.channel.basic.consume(queue=self.queue_name,
+                                   no_ack=True)
+        # Sleep for 0.01s to make sure RabbitMQ has time to catch up.
+        time.sleep(0.01)
+
+        # Store and inbound messages.
+        inbound_messages = []
+
+        class CustomMessage(BaseMessage):
+            pass
+
+        for message in self.channel.build_inbound_messages(
+                break_on_empty=True,
+                message_impl=CustomMessage):
+            self.assertIsInstance(message, CustomMessage)
+            self.assertEqual(message._body, self.message.encode('utf-8'))
+            inbound_messages.append(message)
+
+        # Make sure all five messages were downloaded.
+        self.assertEqual(len(inbound_messages), 5)
+
+    @setup(queue=True)
     def test_functional_consume_and_redeliver(self):
         self.channel.queue.declare(self.queue_name)
         self.channel.confirm_deliveries()
@@ -384,6 +413,22 @@ class GenericTest(TestFunctionalFramework):
                                          auto_decode=False)
         self.assertIsInstance(message.body, bytes)
         self.assertEqual(message.body, self.message.encode('utf-8'))
+
+    @setup(queue=True)
+    def test_functional_publish_and_get_with_custom_message_impl(self):
+        self.channel.queue.declare(self.queue_name)
+        self.channel.confirm_deliveries()
+        self.channel.basic.publish(body=self.message,
+                                   routing_key=self.queue_name)
+
+        class CustomMessage(BaseMessage):
+            pass
+
+        message = self.channel.basic.get(self.queue_name, no_ack=True,
+                                         auto_decode=False,
+                                         message_impl=CustomMessage)
+        self.assertIsInstance(message, CustomMessage)
+        self.assertEqual(message._body, self.message.encode('utf-8'))
 
     @setup(queue=True)
     def test_functional_publish_and_get_auto_decode(self):
