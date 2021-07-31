@@ -63,4 +63,10 @@ class ApiFunctionalTests(TestFunctionalFramework):
 
         self.assertIsInstance(result, dict)
         self.assertEqual(result['name'], USERNAME)
-        self.assertEqual(result['tags'], 'administrator')
+
+        # RabbitMQ 3.9.X compatibility
+        if isinstance(result['tags'], list):
+            tag = result['tags'][0]
+        else:
+            tag = result['tags']
+        self.assertEqual('administrator', tag)
