@@ -14,7 +14,13 @@ class ApiUserFunctionalTests(TestFunctionalFramework):
         user = api.user.get(USERNAME)
         self.assertIsInstance(user, dict)
         self.assertEqual(user['name'], USERNAME)
-        self.assertEqual(user['tags'], 'administrator')
+
+        # RabbitMQ 3.9.X compatibility
+        if isinstance(user['tags'], list):
+            tag = user['tags'][0]
+        else:
+            tag = user['tags']
+        self.assertEqual('administrator', tag)
 
     def test_api_user_list(self):
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
@@ -39,7 +45,13 @@ class ApiUserFunctionalTests(TestFunctionalFramework):
                 api.user.create(username, password, tags='monitor'))
             user = api.user.get(username)
             self.assertEqual(user['name'], username)
-            self.assertEqual(user['tags'], 'monitor')
+
+            # RabbitMQ 3.9.X compatibility
+            if isinstance(user['tags'], list):
+                tag = user['tags'][0]
+            else:
+                tag = user['tags']
+            self.assertEqual('monitor', tag)
         finally:
             api.user.delete(username)
 
