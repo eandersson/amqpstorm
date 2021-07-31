@@ -22,6 +22,7 @@ def get_version(rel_path):
 
 setup(
     name='AMQPStorm',
+    python_requires='>=2.7',
     version=get_version('amqpstorm/__init__.py'),
     description='Thread-safe Python RabbitMQ Client & Management library.',
     long_description=open('README.rst').read(),
