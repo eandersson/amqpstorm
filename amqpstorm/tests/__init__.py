@@ -22,6 +22,10 @@ HTTP_URL = os.environ.get(
     'AMQP_HTTP_URL',
     'http://rmq.eandersson.net:15672'
 )
+HTTPS_URL = os.environ.get(
+    'AMQP_HTTP_URL',
+    'https://rmq.eandersson.net:15671'
+)
 SSL_URI = os.environ.get(
     'AMQP_SSL_URI',
     'amqps://eandersson:2a55f70a841f18b@rmq.eandersson.net:5671/%2F'

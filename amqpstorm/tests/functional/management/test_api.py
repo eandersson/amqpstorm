@@ -1,7 +1,9 @@
 from amqpstorm.management import ManagementApi
 from amqpstorm.management.exception import ApiConnectionError
 from amqpstorm.management.exception import ApiError
+from amqpstorm.tests import CAFILE
 from amqpstorm.tests import HTTP_URL
+from amqpstorm.tests import HTTPS_URL
 from amqpstorm.tests import PASSWORD
 from amqpstorm.tests import USERNAME
 from amqpstorm.tests.functional.utility import TestFunctionalFramework
@@ -38,9 +40,18 @@ class ApiFunctionalTests(TestFunctionalFramework):
             api.aliveness_test
         )
 
+    def test_api_ssl_test(self):
+        api = ManagementApi(HTTPS_URL, USERNAME, PASSWORD,
+                            verify=CAFILE)
+        self.assertEqual(api.aliveness_test(), {'status': 'ok'})
+
     def test_api_aliveness_test(self):
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
         self.assertEqual(api.aliveness_test(), {'status': 'ok'})
+
+    def test_api_context_manager(self):
+        with ManagementApi(HTTP_URL, USERNAME, PASSWORD) as api:
+            self.assertEqual(api.aliveness_test(), {'status': 'ok'})
 
     def test_api_overview(self):
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
