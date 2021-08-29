@@ -1,5 +1,4 @@
 import mock
-from mock import Mock
 from pamqp import commands
 
 import amqpstorm
@@ -15,23 +14,23 @@ from amqpstorm.tests.utility import TestFramework
 
 class ChannelExceptionTests(TestFramework):
     def test_chanel_invalid_close_parameter(self):
-        channel = Channel(0, Mock(name='Connection'), 360)
+        channel = Channel(0, mock.Mock(name='Connection'), 360)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPInvalidArgument,
             'reply_code should be an integer',
             channel.close, 'travis-ci', 'travis-ci'
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPInvalidArgument,
             'reply_text should be a string',
             channel.close, 200, 200
         )
 
     def test_chanel_callback_not_set(self):
-        channel = Channel(0, Mock(name='Connection'), 360)
+        channel = Channel(0, mock.Mock(name='Connection'), 360)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPChannelError,
             'no consumer callback defined',
             channel.process_data_events
@@ -42,7 +41,7 @@ class ChannelExceptionTests(TestFramework):
         channel.set_state(channel.OPEN)
         channel.exceptions.append(AMQPConnectionError('travis-ci'))
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPConnectionError,
             'travis-ci',
             channel.check_for_errors
@@ -56,7 +55,7 @@ class ChannelExceptionTests(TestFramework):
     def test_channel_check_error_when_closed(self):
         channel = Channel(0, FakeConnection(), 360)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPChannelError,
             'channel was closed',
             channel.check_for_errors
@@ -65,7 +64,7 @@ class ChannelExceptionTests(TestFramework):
     def test_channel_check_error_connection_closed(self):
         channel = Channel(0, FakeConnection(FakeConnection.CLOSED), 360)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPConnectionError,
             'connection was closed',
             channel.check_for_errors
@@ -76,7 +75,7 @@ class ChannelExceptionTests(TestFramework):
         channel.set_state(channel.CLOSED)
 
         self.assertFalse(channel.is_open)
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPChannelError,
             'channel was closed',
             channel.check_for_errors
@@ -88,7 +87,7 @@ class ChannelExceptionTests(TestFramework):
         channel.set_state(channel.OPEN)
 
         self.assertTrue(channel.is_open)
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPConnectionError,
             'connection was closed',
             channel.check_for_errors
@@ -104,7 +103,7 @@ class ChannelExceptionTests(TestFramework):
 
         self.assertTrue(connection.is_closed)
         self.assertTrue(channel.is_open)
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPConnectionError,
             'travis-ci',
             channel.check_for_errors
@@ -122,7 +121,7 @@ class ChannelExceptionTests(TestFramework):
         self.assertTrue(connection.is_open)
         self.assertTrue(channel.is_open)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPChannelError,
             'no-route',
             channel.check_for_errors
@@ -155,13 +154,13 @@ class ChannelExceptionTests(TestFramework):
             message_impl=int
         )
         if hasattr(generator, 'next'):
-            self.assertRaisesRegexp(
+            self.assertRaisesRegex(
                 AMQPInvalidArgument,
                 'message_impl must derive from BaseMessage',
                 generator.next
             )
         else:
-            self.assertRaisesRegexp(
+            self.assertRaisesRegex(
                 AMQPInvalidArgument,
                 'message_impl must derive from BaseMessage',
                 generator.__next__
@@ -197,7 +196,7 @@ class ChannelExceptionTests(TestFramework):
         )
         channel._basic_return(basic_return)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPMessageError,
             r"Message not delivered: Error \(500\) to queue "
             r"'' from exchange ''",
@@ -223,7 +222,7 @@ class ChannelExceptionTests(TestFramework):
         self.assertEqual(channel._consumer_tags, [])
         self.assertEqual(channel._state, channel.CLOSED)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPChannelError,
             'Channel 0 was closed by remote server: travis-ci',
             channel.check_for_errors

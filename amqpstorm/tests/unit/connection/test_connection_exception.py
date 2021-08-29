@@ -42,44 +42,44 @@ class ConnectionExceptionTests(TestFramework):
                          ssl.PROTOCOL_TLSv1)
 
     def test_connection_invalid_hostname(self):
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPInvalidArgument,
             'hostname should be a string',
             Connection, 1, 'guest', 'guest', lazy=True
         )
 
     def test_connection_invalid_username(self):
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPInvalidArgument,
             'username should be a string',
             Connection, '127.0.0.1', 2, 'guest', lazy=True
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPInvalidArgument,
             'username should be a string',
             Connection, '127.0.0.1', None, 'guest', lazy=True
         )
 
     def test_connection_invalid_password(self):
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPInvalidArgument,
             'password should be a string',
             Connection, '127.0.0.1', 'guest', 3, lazy=True
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPInvalidArgument,
             'password should be a string',
             Connection, '127.0.0.1', 'guest', None, lazy=True
         )
 
     def test_connection_invalid_virtual_host(self):
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPInvalidArgument,
             'virtual_host should be a string',
             Connection, '127.0.0.1', 'guest', 'guest', virtual_host=4,
             lazy=True
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPInvalidArgument,
             'virtual_host should be a string',
             Connection, '127.0.0.1', 'guest', 'guest', virtual_host=None,
@@ -87,25 +87,25 @@ class ConnectionExceptionTests(TestFramework):
         )
 
     def test_connection_invalid_port(self):
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPInvalidArgument,
             'port should be an integer',
             Connection, '127.0.0.1', 'guest', 'guest', port='', lazy=True
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPInvalidArgument,
             'port should be an integer',
             Connection, '127.0.0.1', 'guest', 'guest', port=None, lazy=True
         )
 
     def test_connection_invalid_heartbeat(self):
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPInvalidArgument,
             'heartbeat should be an integer',
             Connection, '127.0.0.1', 'guest', 'guest', heartbeat='5',
             lazy=True
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPInvalidArgument,
             'heartbeat should be an integer',
             Connection, '127.0.0.1', 'guest', 'guest', heartbeat=None,
@@ -113,12 +113,12 @@ class ConnectionExceptionTests(TestFramework):
         )
 
     def test_connection_invalid_timeout(self):
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPInvalidArgument,
             'timeout should be an integer or float',
             Connection, '127.0.0.1', 'guest', 'guest', timeout='6', lazy=True
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPInvalidArgument,
             'timeout should be an integer or float',
             Connection, '127.0.0.1', 'guest', 'guest', timeout=None, lazy=True
@@ -130,7 +130,7 @@ class ConnectionExceptionTests(TestFramework):
             lazy=True
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPInvalidArgument,
             'rpc_timeout should be an integer',
             connection.channel, None

@@ -1,7 +1,7 @@
 import socket
 import threading
 
-from mock import Mock
+import mock
 from pamqp import exceptions as pamqp_exception
 from pamqp import frame as pamqp_frame
 from pamqp import commands
@@ -57,7 +57,7 @@ class ConnectionTests(TestFramework):
         connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
         connection.set_state(connection.OPENING)
         io = IO(connection.parameters, [])
-        io.socket = Mock(name='socket', spec=socket.socket)
+        io.socket = mock.Mock(name='socket', spec=socket.socket)
         connection._io = io
         io.socket.fileno.return_value = 5
 
@@ -216,7 +216,7 @@ class ConnectionTests(TestFramework):
         connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
         connection.set_state(connection.OPENING)
         io = IO(connection.parameters, [])
-        io.socket = Mock(name='socket', spec=socket.socket)
+        io.socket = mock.Mock(name='socket', spec=socket.socket)
         connection._io = io
 
         self.assertFalse(connection.is_open)
@@ -246,7 +246,7 @@ class ConnectionTests(TestFramework):
                                 lazy=True)
         connection.set_state(connection.OPENING)
         io = IO(connection.parameters, [])
-        io.socket = Mock(name='socket', spec=socket.socket)
+        io.socket = mock.Mock(name='socket', spec=socket.socket)
         connection._io = io
 
         self.assertRaises(
@@ -258,7 +258,7 @@ class ConnectionTests(TestFramework):
     def test_connection_open(self):
         connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
         io = IO(connection.parameters, [])
-        io.socket = Mock(name='socket', spec=socket.socket)
+        io.socket = mock.Mock(name='socket', spec=socket.socket)
         connection._io = io
 
         def open():
@@ -280,7 +280,7 @@ class ConnectionTests(TestFramework):
         connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
         connection.set_state(connection.OPEN)
         io = IO(connection.parameters, [])
-        io.socket = Mock(name='socket', spec=socket.socket)
+        io.socket = mock.Mock(name='socket', spec=socket.socket)
         connection._io = io
 
         # Create some fake channels.
@@ -308,7 +308,7 @@ class ConnectionTests(TestFramework):
         connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
         connection.set_state(connection.OPEN)
         io = IO(connection.parameters, [])
-        io.socket = Mock(name='socket', spec=socket.socket)
+        io.socket = mock.Mock(name='socket', spec=socket.socket)
         connection._io = io
 
         connection.set_state(connection.CLOSED)
@@ -338,7 +338,7 @@ class ConnectionTests(TestFramework):
         connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
         connection.set_state(connection.OPEN)
         io = IO(connection.parameters, [])
-        io.socket = Mock(name='socket', spec=socket.socket)
+        io.socket = mock.Mock(name='socket', spec=socket.socket)
         connection._io = io
 
         # Create some fake channels.
@@ -592,7 +592,7 @@ class ConnectionTests(TestFramework):
 
             self.assertEqual(connection._last_channel_id, index + 1)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPConnectionError,
             'reached the maximum number of channels %d' % MAX_CHANNELS,
             connection.channel, lazy=True)

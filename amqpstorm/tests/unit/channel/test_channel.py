@@ -1,4 +1,4 @@
-from mock import Mock
+import mock
 from pamqp import commands
 
 from amqpstorm import Channel
@@ -13,7 +13,7 @@ from amqpstorm.tx import Tx
 
 class ChannelTests(TestFramework):
     def test_channel_with_statement_when_closed(self):
-        with Channel(0, Mock(name='Connection'), 360) as channel:
+        with Channel(0, mock.Mock(name='Connection'), 360) as channel:
             self.assertIsInstance(channel, Channel)
 
     def test_channel_with_statement_when_open(self):
@@ -36,11 +36,11 @@ class ChannelTests(TestFramework):
                          'error')
 
     def test_channel_id(self):
-        channel = Channel(0, Mock(name='Connection'), 360)
+        channel = Channel(0, mock.Mock(name='Connection'), 360)
 
         self.assertEqual(int(channel), 0)
 
-        channel = Channel(1557, Mock(name='Connection'), 360)
+        channel = Channel(1557, mock.Mock(name='Connection'), 360)
 
         self.assertEqual(int(channel), 1557)
 
@@ -154,21 +154,21 @@ class ChannelTests(TestFramework):
         self.assertEqual(channel._state, channel.CLOSED)
 
     def test_channel_basic_handler_is_defined(self):
-        channel = Channel(0, Mock(name='Connection'), 360)
+        channel = Channel(0, mock.Mock(name='Connection'), 360)
 
         self.assertIsInstance(channel.basic, Basic)
 
     def test_channel_exchange_handler_is_defined(self):
-        channel = Channel(0, Mock(name='Connection'), 360)
+        channel = Channel(0, mock.Mock(name='Connection'), 360)
 
         self.assertIsInstance(channel.exchange, Exchange)
 
     def test_channel_queue_handler_is_defined(self):
-        channel = Channel(0, Mock(name='Connection'), 360)
+        channel = Channel(0, mock.Mock(name='Connection'), 360)
 
         self.assertIsInstance(channel.queue, Queue)
 
     def test_channel_tx_handler_is_defined(self):
-        channel = Channel(0, Mock(name='Connection'), 360)
+        channel = Channel(0, mock.Mock(name='Connection'), 360)
 
         self.assertIsInstance(channel.tx, Tx)

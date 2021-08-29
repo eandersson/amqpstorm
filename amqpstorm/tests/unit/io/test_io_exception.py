@@ -30,7 +30,7 @@ class IOExceptionTests(TestFramework):
         io.socket = mock.Mock(name='socket', spec=socket.socket)
         io.socket.recv.side_effect = socket.error('travis-ci')
         io._receive()
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPConnectionError,
             'travis-ci',
             connection.check_for_errors
@@ -127,7 +127,7 @@ class IOExceptionTests(TestFramework):
             parameters = FakeConnection().parameters
             parameters['ssl'] = True
             io = IO(parameters)
-            self.assertRaisesRegexp(
+            self.assertRaisesRegex(
                 AMQPConnectionError,
                 'Python not compiled with support for TLSv1 or higher',
                 io.open
@@ -143,7 +143,7 @@ class IOExceptionTests(TestFramework):
         connection.parameters['port'] = 1234
         parameters = connection.parameters
         io = IO(parameters)
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPConnectionError,
             'Could not connect to localhost:1234 error: Connection refused',
             io.open
@@ -157,7 +157,7 @@ class IOExceptionTests(TestFramework):
         connection.parameters['port'] = 1234
         parameters = connection.parameters
         io = IO(parameters)
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPConnectionError,
             'could not connect',
             io._get_socket_addresses
@@ -185,7 +185,7 @@ class IOExceptionTests(TestFramework):
         self.assertFalse(io.use_ssl)
 
         self.assertEqual(io._receive(), bytes())
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPConnectionError,
             'connection/socket error',
             connection.check_for_errors
@@ -197,7 +197,7 @@ class IOExceptionTests(TestFramework):
         io._running.set()
 
         self.assertEqual(io._receive(), bytes())
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPConnectionError,
             'connection/socket error',
             connection.check_for_errors
@@ -216,7 +216,7 @@ class IOExceptionTests(TestFramework):
 
         self.assertFalse(io.use_ssl)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             socket.error,
             'connection/socket error',
             io._read_from_socket
@@ -230,7 +230,7 @@ class IOExceptionTests(TestFramework):
 
         self.assertTrue(io.use_ssl)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             socket.error,
             'connection/socket error',
             io._read_from_socket

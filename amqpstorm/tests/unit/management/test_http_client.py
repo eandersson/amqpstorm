@@ -47,7 +47,7 @@ class ApiHTTPTests(TestFramework):
             'error': 'travis-ci'
         }
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ApiError, 'travis-ci',
             HTTPClient._check_for_errors,
             FakeResponse(raises=requests.HTTPError('travis-ci')),
@@ -59,7 +59,7 @@ class ApiHTTPTests(TestFramework):
             'error': 'travis-ci'
         }
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ApiError, 'travis-ci',
             HTTPClient._check_for_errors,
             FakeResponse(),

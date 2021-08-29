@@ -1,4 +1,4 @@
-from mock import Mock
+import mock
 from pamqp.header import ContentHeader
 from pamqp import commands
 from pamqp.body import ContentBody
@@ -47,7 +47,7 @@ class ChannelFrameTests(TestFramework):
 
     def test_channel_cancel_ok_frame(self):
         tag = 'travis-ci'
-        channel = Channel(0, Mock(name='Connection'), rpc_timeout=1)
+        channel = Channel(0, mock.Mock(name='Connection'), rpc_timeout=1)
         channel.add_consumer_tag(tag)
 
         channel.on_frame(commands.Basic.CancelOk(tag))
@@ -56,7 +56,7 @@ class ChannelFrameTests(TestFramework):
 
     def test_channel_consume_ok_frame(self):
         tag = 'travis-ci'
-        channel = Channel(0, Mock(name='Connection'), rpc_timeout=1)
+        channel = Channel(0, mock.Mock(name='Connection'), rpc_timeout=1)
 
         channel.on_frame(commands.Basic.ConsumeOk(tag))
 
@@ -78,7 +78,7 @@ class ChannelFrameTests(TestFramework):
             )
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPMessageError,
             r"Message not delivered: travis-ci \(500\) to queue "
             r"'routing_key' from exchange 'exchange'",
@@ -97,7 +97,7 @@ class ChannelFrameTests(TestFramework):
             )
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPChannelError,
             'Channel 0 was closed by remote server: travis-ci',
             channel.check_for_errors

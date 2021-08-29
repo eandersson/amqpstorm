@@ -14,19 +14,19 @@ class BasicExceptionTests(TestFramework):
         channel.set_state(Channel.OPEN)
         basic = Basic(channel)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'prefetch_count should be an integer',
             basic.qos, 'travis-ci'
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'prefetch_size should be an integer',
             basic.qos, 1, 'travis-ci'
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'global_ should be a boolean',
             basic.qos, 1, 1, 'travis-ci'
@@ -37,13 +37,13 @@ class BasicExceptionTests(TestFramework):
         channel.set_state(Channel.OPEN)
         basic = Basic(channel)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'queue should be a string',
             basic.get, None
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'no_ack should be a boolean',
             basic.get, '', 'travis-ci'
@@ -51,7 +51,7 @@ class BasicExceptionTests(TestFramework):
 
         channel.consumer_tags.append('travis-ci')
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPChannelError,
             "Cannot call 'get' when channel "
             "is set to consume",
@@ -63,7 +63,7 @@ class BasicExceptionTests(TestFramework):
         channel.set_state(Channel.OPEN)
         basic = Basic(channel)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'message_impl should be derived from BaseMessage',
             basic.get, message_impl=int
@@ -74,7 +74,7 @@ class BasicExceptionTests(TestFramework):
         channel.set_state(Channel.OPEN)
         basic = Basic(channel)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'requeue should be a boolean',
             basic.recover, None
@@ -85,37 +85,37 @@ class BasicExceptionTests(TestFramework):
         channel.set_state(Channel.OPEN)
         basic = Basic(channel)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'queue should be a string',
             basic.consume, None, 1
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'consumer_tag should be a string',
             basic.consume, None, '', 1
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'exclusive should be a boolean',
             basic.consume, None, '', '', None
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'no_ack should be a boolean',
             basic.consume, None, '', '', True, None
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'no_local should be a boolean',
             basic.consume, None, '', '', True, True, None
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'arguments should be a dict or None',
             basic.consume, None, '', '', True, True, True, []
@@ -126,7 +126,7 @@ class BasicExceptionTests(TestFramework):
         channel.set_state(Channel.OPEN)
         basic = Basic(channel)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'consumer_tag should be a string',
             basic.cancel, None
@@ -137,43 +137,43 @@ class BasicExceptionTests(TestFramework):
         channel.set_state(Channel.OPEN)
         basic = Basic(channel)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'body should be a string',
             basic.publish, None, ''
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'routing_key should be a string',
             basic.publish, '', None
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'exchange should be a string',
             basic.publish, '', '', None
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'properties should be a dict or None',
             basic.publish, '', '', '', []
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'properties should be a dict or None',
             basic.publish, '', '', '', 1
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'mandatory should be a boolean',
             basic.publish, '', '', '', {}, None
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'immediate should be a boolean',
             basic.publish, '', '', '', {}, True, None
@@ -184,19 +184,19 @@ class BasicExceptionTests(TestFramework):
         channel.set_state(Channel.OPEN)
         basic = Basic(channel)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'delivery_tag should be an integer',
             basic.ack, 'travis-ci'
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'delivery_tag should be an integer',
             basic.ack, None
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'multiple should be a boolean',
             basic.ack, 1, None
@@ -207,19 +207,19 @@ class BasicExceptionTests(TestFramework):
         channel.set_state(Channel.OPEN)
         basic = Basic(channel)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'delivery_tag should be an integer',
             basic.nack, 'travis-ci'
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'multiple should be a boolean',
             basic.nack, 1, None
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'requeue should be a boolean',
             basic.nack, 1, True, None
@@ -230,19 +230,19 @@ class BasicExceptionTests(TestFramework):
         channel.set_state(Channel.OPEN)
         basic = Basic(channel)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'delivery_tag should be an integer',
             basic.reject, 'travis-ci'
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'delivery_tag should be an integer',
             basic.reject, None
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'requeue should be a boolean',
             basic.reject, 1, None
@@ -255,7 +255,7 @@ class BasicExceptionTests(TestFramework):
         basic = Basic(channel)
         uuid = channel.rpc.register_request([body.name])
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPChannelError,
             r'rpc requests .* \(.*\) took too long',
             basic._get_content_body, uuid, len(self.message)
@@ -268,7 +268,7 @@ class BasicExceptionTests(TestFramework):
         channel.set_state(Channel.OPEN)
         basic = Basic(channel)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPChannelError,
             r'rpc requests .* \(.*\) took too long',
             basic.publish, body=self.message,
@@ -285,7 +285,7 @@ class BasicExceptionTests(TestFramework):
         channel.set_state(Channel.OPEN)
         basic = Basic(channel)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPChannelError,
             r'rpc requests .* \(.*\) took too long',
             basic.publish, body=self.message,

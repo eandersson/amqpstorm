@@ -14,7 +14,7 @@ class ApiFunctionalTests(TestFunctionalFramework):
 
     def test_api_with_invalid_url(self):
         api = ManagementApi('abc', USERNAME, PASSWORD)
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ApiConnectionError,
             'Invalid URL',
             api.aliveness_test, '/'
@@ -23,7 +23,7 @@ class ApiFunctionalTests(TestFunctionalFramework):
     def test_api_with_inaccessible(self):
         api = ManagementApi('http://192.168.1.50', USERNAME, PASSWORD,
                             timeout=0.1)
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ApiConnectionError,
             'Max retries exceeded with url',
             api.aliveness_test
@@ -32,7 +32,7 @@ class ApiFunctionalTests(TestFunctionalFramework):
     def test_api_with_invalid_credentials(self):
         api = ManagementApi(HTTP_URL, 'travis_ci', PASSWORD)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ApiError,
             '401 Client Error: Unauthorized',
             api.aliveness_test

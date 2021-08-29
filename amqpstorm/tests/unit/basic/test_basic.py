@@ -2,7 +2,7 @@
 import random
 import string
 
-from mock import Mock
+import mock
 from pamqp import commands
 from pamqp.body import ContentBody
 from pamqp.header import ContentHeader
@@ -92,7 +92,7 @@ class BasicTests(TestFramework):
         channel.set_state(Channel.OPEN)
         basic = Basic(channel)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPChannelError,
             r'rpc requests .* \(.*\) took too long',
             basic.get, 'travis-ci'
@@ -377,7 +377,7 @@ class BasicTests(TestFramework):
 
     def test_basic_consume_add_tag(self):
         tag = 'travis-ci'
-        channel = Channel(0, Mock(name='Connection'), 1)
+        channel = Channel(0, mock.Mock(name='Connection'), 1)
         basic = Basic(channel)
 
         self.assertEqual(basic._consume_add_and_get_tag({'consumer_tag': tag}),

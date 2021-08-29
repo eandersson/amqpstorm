@@ -177,7 +177,7 @@ class ReliabilityFunctionalTests(TestFunctionalFramework):
             sys.modules['ssl'] = None
             imp.reload(compatibility)
             self.assertIsNone(compatibility.ssl)
-            self.assertRaisesRegexp(
+            self.assertRaisesRegex(
                 AMQPConnectionError,
                 'Python not compiled with support for TLSv1 or higher',
                 Connection, HOST, USERNAME, PASSWORD, ssl=True
