@@ -117,12 +117,24 @@ class FakeFrame(object):
             yield (attribute[1::], getattr(self, attribute))
 
 
+class FakeSession(object):
+    def close(self):
+        pass
+
+
 class FakeHTTPClient(object):
     """Fake HTTP client for Unit-Testing."""
 
     def __init__(self, on_get=None, on_post=None):
+        self.session = FakeSession()
         self.on_get = on_get
         self.on_post = on_post
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_):
+        pass
 
     def get(self, path):
         return self.on_get(path)

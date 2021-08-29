@@ -4,11 +4,11 @@ CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 
 HOST = os.environ.get(
     'AMQP_HOST',
-    'rmq.eandersson.net'
+    'rmq.amqpstorm.io'
 )
 USERNAME = os.environ.get(
     'AMQP_USERNAME',
-    'eandersson'
+    'amqpstorm'
 )
 PASSWORD = os.environ.get(
     'AMQP_PASSWORD',
@@ -16,23 +16,23 @@ PASSWORD = os.environ.get(
 )
 URI = os.environ.get(
     'AMQP_URI',
-    'amqp://eandersson:2a55f70a841f18b@rmq.eandersson.net:5672/%2F'
+    'amqp://{0}:{1}@rmq.amqpstorm.io:5672/%2F'.format(USERNAME, PASSWORD)
 )
 HTTP_URL = os.environ.get(
     'AMQP_HTTP_URL',
-    'http://rmq.eandersson.net:15672'
+    'http://rmq.amqpstorm.io:15672'
 )
 HTTPS_URL = os.environ.get(
     'AMQP_HTTP_URL',
-    'https://rmq.eandersson.net:15671'
+    'https://rmq.amqpstorm.io:15671'
 )
 SSL_URI = os.environ.get(
     'AMQP_SSL_URI',
-    'amqps://eandersson:2a55f70a841f18b@rmq.eandersson.net:5671/%2F'
+    'amqps://{0}:{1}@rmq.amqpstorm.io:5671/%2F'.format(USERNAME, PASSWORD)
 )
 SSL_HOST = os.environ.get(
     'AMQP_SSL_HOST',
-    'rmq.eandersson.net'
+    'rmq.amqpstorm.io'
 )
 CAFILE = os.environ.get(
     'AMQP_CAFILE',

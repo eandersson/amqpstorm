@@ -43,12 +43,12 @@ class Connection(Stateful):
         import amqpstorm
         ssl_options = {
             'context': ssl.create_default_context(cafile='ca_certificate.pem'),
-            'server_hostname': 'rmq.eandersson.net',
+            'server_hostname': 'rmq.amqpstorm.io',
             'check_hostname': True,        # New 2.8.0, default is False
             'verify_mode': 'required',     # New 2.8.0, default is 'none'
         }
         connection = amqpstorm.Connection(
-            'rmq.eandersson.net', 'guest', 'guest', port=5671,
+            'rmq.amqpstorm.io', 'guest', 'guest', port=5671,
             ssl=True, ssl_options=ssl_options
         )
 
