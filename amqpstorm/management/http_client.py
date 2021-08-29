@@ -8,12 +8,12 @@ from amqpstorm.management.exception import ApiError
 
 class HTTPClient(object):
     def __init__(self, api_url, username, password, verify, cert, timeout):
+        self.session = requests.Session()
+        self.session.verify = verify
+        self.session.cert = cert
         self._auth = HTTPBasicAuth(username, password)
         self._base_url = api_url
         self._timeout = timeout
-        self._session = requests.Session()
-        self._session.verify = verify
-        self._session.cert = cert
 
     def get(self, path, payload=None, headers=None):
         """HTTP GET operation.
@@ -127,7 +127,7 @@ class HTTPClient(object):
         headers = headers or {}
         headers['content-type'] = 'application/json'
         try:
-            response = self._session.request(
+            response = self.session.request(
                 method, url,
                 auth=self._auth,
                 data=payload,

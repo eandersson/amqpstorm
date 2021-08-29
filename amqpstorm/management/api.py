@@ -49,6 +49,15 @@ class ManagementApi(object):
         self._user = User(self.http_client)
         self._virtual_host = VirtualHost(self.http_client)
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_):
+        pass
+
+    def __del__(self):
+        self.http_client.session.close()
+
     @property
     def basic(self):
         """RabbitMQ Basic Operations.
