@@ -1,4 +1,8 @@
 [run]
-branch = true
+branch = True
 source = amqpstorm
 omit = amqpstorm/tests/*
+parallel = True
+
+[report]
+ignore_errors = True

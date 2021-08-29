@@ -7,9 +7,8 @@ addons:
 python:
   - 2.7
   - 3.6
-  - 3.7
-  - 3.8
   - 3.9
+  - 3.10-dev
 before_install:
   - docker build -t amqpstormdev ./docker/
   - docker run -d --hostname rmq.eandersson.net --name amqpstormdev -p 5671:5671 -p 5672:5672 -p 15671:15671 -p 15672:15672 amqpstormdev
@@ -26,7 +25,7 @@ install:
   - pip install -r requirements.txt
   - pip install -r test-requirements.txt
 script:
-  - nosetests -v -l DEBUG --logging-level=DEBUG --with-coverage --cover-package=amqpstorm --with-timer --timer-top-n 10
+  - pytest --cov=./amqpstorm --durations=5
   - flake8 --ignore=F821 .
 after_success:
   - bash <(curl -s https://codecov.io/bash)

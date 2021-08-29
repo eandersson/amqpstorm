@@ -1,6 +1,7 @@
-nose
-nose-timer
-mock
 coverage
+pytest
+pytest-cov
+mock
 requests
 flake8
+unittest2;python_version=='2.7'

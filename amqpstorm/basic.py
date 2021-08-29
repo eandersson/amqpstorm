@@ -8,8 +8,8 @@ from pamqp import header as pamqp_header
 from pamqp import specification
 
 from amqpstorm import compatibility
-from amqpstorm.base import Handler
 from amqpstorm.base import BaseMessage
+from amqpstorm.base import Handler
 from amqpstorm.base import MAX_FRAME_SIZE
 from amqpstorm.exception import AMQPChannelError
 from amqpstorm.exception import AMQPInvalidArgument

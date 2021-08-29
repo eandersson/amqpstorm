@@ -11,37 +11,37 @@ class ExchangeExceptionTests(TestFramework):
         channel.set_state(Channel.OPEN)
         exchange = Exchange(channel)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'exchange should be a string',
             exchange.declare, None
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'exchange_type should be a string',
             exchange.declare, 'travis-ci', None
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'passive should be a boolean',
             exchange.declare, 'travis-ci', 'travis-ci', None
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'durable should be a boolean',
             exchange.declare, 'travis-ci', 'travis-ci', True, None
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'auto_delete should be a boolean',
             exchange.declare, 'travis-ci', 'travis-ci', True, True, None
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'arguments should be a dict or None',
             exchange.declare, 'travis-ci', 'travis-ci', True, True, True, []
@@ -52,7 +52,7 @@ class ExchangeExceptionTests(TestFramework):
         channel.set_state(Channel.OPEN)
         exchange = Exchange(channel)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'exchange should be a string',
             exchange.delete, None
@@ -63,25 +63,25 @@ class ExchangeExceptionTests(TestFramework):
         channel.set_state(Channel.OPEN)
         exchange = Exchange(channel)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'destination should be a string',
             exchange.bind, None
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'source should be a string',
             exchange.bind, '', None
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'routing_key should be a string',
             exchange.bind, '', '', None
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'arguments should be a dict or None',
             exchange.bind, '', '', '', []
@@ -92,25 +92,25 @@ class ExchangeExceptionTests(TestFramework):
         channel.set_state(Channel.OPEN)
         exchange = Exchange(channel)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'destination should be a string',
             exchange.unbind, None
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'source should be a string',
             exchange.unbind, '', None
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'routing_key should be a string',
             exchange.unbind, '', '', None
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'arguments should be a dict or None',
             exchange.unbind, '', '', '', []
