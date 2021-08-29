@@ -30,11 +30,15 @@ class Exchange(ManagementHandler):
                 exchange)
         )
 
-    def list(self, virtual_host='/', show_all=False):
+    def list(self, virtual_host='/', show_all=False,
+             name=None, page_size=None, use_regex=False):
         """List Exchanges.
 
         :param str virtual_host: Virtual host name
-        :param bool show_all: List all Exchanges
+        :param bool show_all: List Exchanges across all virtual hosts
+        :param name: Filter by name
+        :param use_regex: Enables regular expression for the param name
+        :param page_size: Number of elements per page
 
         :raises ApiError: Raises if the remote server encountered an error.
         :raises ApiConnectionError: Raises if there was a connectivity issue.
@@ -42,10 +46,14 @@ class Exchange(ManagementHandler):
         :rtype: list
         """
         if show_all:
-            return self.http_client.get(API_EXCHANGES)
+            return self.http_client.list(
+                API_EXCHANGES,
+                name=name, use_regex=use_regex, page_size=page_size,
+            )
         virtual_host = quote(virtual_host, '')
-        return self.http_client.get(
-            API_EXCHANGES_VIRTUAL_HOST % virtual_host
+        return self.http_client.list(
+            API_EXCHANGES_VIRTUAL_HOST % virtual_host,
+            name=name, use_regex=use_regex, page_size=page_size,
         )
 
     def declare(self, exchange='', exchange_type='direct', virtual_host='/',

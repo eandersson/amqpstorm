@@ -28,6 +28,44 @@ class HTTPClient(object):
         """
         return self._request('get', path, payload, headers)
 
+    def list(self, path, name=None, page_size=None, use_regex=False):
+        """List operation (e.g. queue list).
+
+        :param path: URI Path
+        :param name: Filter by name, for example queue name, exchange name etc
+        :param use_regex: Enables regular expression for the param name
+        :param page_size: Number of elements per page
+
+        :raises ApiError: Raises if the remote server encountered an error.
+        :raises ApiConnectionError: Raises if there was a connectivity issue.
+
+        :return: Response
+        """
+        results = []
+        params = {
+            'page': 1,
+            'pagination': True,
+        }
+        if name is not None:
+            params['name'] = name
+        if use_regex:
+            if isinstance(use_regex, bool):
+                use_regex = str(use_regex)
+            params['use_regex'] = use_regex.lower()
+        if page_size is not None:
+            params['page_size'] = page_size
+
+        first_result = self._request('get', path, params=params)
+        num_pages = first_result['page_count']
+        results.extend(first_result['items'])
+
+        for page in range(2, num_pages + 1):
+            params['page'] = page
+            next_result = self._request('get', path, params=params)
+            results.extend(next_result['items'])
+
+        return results
+
     def post(self, path, payload=None, headers=None):
         """HTTP POST operation.
 
@@ -70,13 +108,14 @@ class HTTPClient(object):
         """
         return self._request('put', path, payload, headers)
 
-    def _request(self, method, path, payload=None, headers=None):
+    def _request(self, method, path, payload=None, headers=None, params=None):
         """HTTP operation.
 
         :param method: Operation type (e.g. post)
         :param path: URI Path
         :param payload: HTTP Body
         :param headers: HTTP Headers
+        :param params: HTTP Parameters
 
         :raises ApiError: Raises if the remote server encountered an error.
         :raises ApiConnectionError: Raises if there was a connectivity issue.
@@ -94,7 +133,8 @@ class HTTPClient(object):
                 headers=headers,
                 cert=self._cert,
                 verify=self._verify,
-                timeout=self._timeout
+                timeout=self._timeout,
+                params=params,
             )
         except requests.RequestException as why:
             raise ApiConnectionError(str(why))
