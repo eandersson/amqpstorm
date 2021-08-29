@@ -8,7 +8,7 @@ from amqpstorm.tests.functional.utility import setup
 
 
 class ApiQueueFunctionalTests(TestFunctionalFramework):
-    @setup(queue=True)
+    @setup(queue=False)
     def test_api_queue_get(self):
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
         api.queue.declare(self.queue_name)
@@ -19,7 +19,7 @@ class ApiQueueFunctionalTests(TestFunctionalFramework):
         self.assertIn('name', queue)
         self.assertIn('auto_delete', queue)
 
-    @setup(queue=True)
+    @setup(queue=False)
     def test_api_queue_list(self):
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
 
@@ -39,7 +39,79 @@ class ApiQueueFunctionalTests(TestFunctionalFramework):
             self.assertIn('arguments', queue)
             self.assertIn('auto_delete', queue)
 
-    @setup(queue=True)
+    @setup(queue=False)
+    def test_api_queue_list_pagination(self):
+        api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
+
+        try:
+            api.queue.declare('abc')
+            api.queue.declare('def')
+            api.queue.declare('ghi')
+
+            queues = api.queue.list(page_size=1)
+        finally:
+            api.queue.delete('abc')
+            api.queue.delete('def')
+            api.queue.delete('ghi')
+
+        self.assertIsInstance(queues, list)
+        self.assertGreater(len(queues), 3)
+
+    @setup(queue=False)
+    def test_api_queue_list_filter_with_regex(self):
+        api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
+
+        try:
+            api.queue.declare('abc')
+            api.queue.declare('def')
+            api.queue.declare('ghi')
+
+            queues = api.queue.list(name='^ab', use_regex='true')
+        finally:
+            api.queue.delete('abc')
+            api.queue.delete('def')
+            api.queue.delete('ghi')
+
+        self.assertIsInstance(queues, list)
+        self.assertEqual(len(queues), 1)
+
+    @setup(queue=False)
+    def test_api_queue_list_filter_with_regex_boolean(self):
+        api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
+
+        try:
+            api.queue.declare('abc')
+            api.queue.declare('def')
+            api.queue.declare('ghi')
+
+            queues = api.queue.list(name='^ab', use_regex=True)
+        finally:
+            api.queue.delete('abc')
+            api.queue.delete('def')
+            api.queue.delete('ghi')
+
+        self.assertIsInstance(queues, list)
+        self.assertEqual(len(queues), 1)
+
+    @setup(queue=False)
+    def test_api_queue_list_filter_without_regex(self):
+        api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
+
+        try:
+            api.queue.declare('abc')
+            api.queue.declare('def')
+            api.queue.declare('ghi')
+
+            queues = api.queue.list(name='ab', use_regex=False)
+        finally:
+            api.queue.delete('abc')
+            api.queue.delete('def')
+            api.queue.delete('ghi')
+
+        self.assertIsInstance(queues, list)
+        self.assertEqual(len(queues), 1)
+
+    @setup(queue=False)
     def test_api_queue_list_all(self):
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
 
@@ -59,7 +131,7 @@ class ApiQueueFunctionalTests(TestFunctionalFramework):
             self.assertIn('arguments', queue)
             self.assertIn('auto_delete', queue)
 
-    @setup(queue=True)
+    @setup(queue=False)
     def test_api_queue_declare(self):
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
         self.assertIsNone(api.queue.declare(self.queue_name, durable=True))

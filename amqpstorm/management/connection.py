@@ -19,15 +19,22 @@ class Connection(ManagementHandler):
         """
         return self.http_client.get(API_CONNECTION % connection)
 
-    def list(self):
+    def list(self, name=None, page_size=None, use_regex=False):
         """Get Connections.
+
+        :param name: Filter by name
+        :param use_regex: Enables regular expression for the param name
+        :param page_size: Number of elements per page
 
         :raises ApiError: Raises if the remote server encountered an error.
         :raises ApiConnectionError: Raises if there was a connectivity issue.
 
         :rtype: list
         """
-        return self.http_client.get(API_CONNECTIONS)
+        return self.http_client.list(
+            API_CONNECTIONS,
+            name=name, use_regex=use_regex, page_size=page_size,
+        )
 
     def close(self, connection, reason='Closed via management api'):
         """Close Connection.
