@@ -1,3 +1,3 @@
 #!/bin/bash
-while [ ! -f /var/lib/rabbitmq/mnesia/rabbit@rmq.eandersson.net.pid ]; do sleep 1; done
-rabbitmqctl --timeout 16 wait /var/lib/rabbitmq/mnesia/rabbit@rmq.eandersson.net.pid --longnames
+while [ ! -f /var/lib/rabbitmq/mnesia/rabbit@rmq.amqpstorm.io.pid ]; do sleep 1; done
+rabbitmqctl --timeout 16 wait /var/lib/rabbitmq/mnesia/rabbit@rmq.amqpstorm.io.pid --longnames
