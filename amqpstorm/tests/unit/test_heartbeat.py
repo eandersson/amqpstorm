@@ -227,7 +227,7 @@ class HeartbeatTests(TestFramework):
     def test_heartbeat_raise_exception(self):
         heartbeat = Heartbeat(60, None)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPConnectionError,
             'Connection dead, no heartbeat or data received in >= 120s',
             heartbeat._raise_or_append_exception
@@ -235,7 +235,7 @@ class HeartbeatTests(TestFramework):
 
         heartbeat = Heartbeat(120, None)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPConnectionError,
             'Connection dead, no heartbeat or data received in >= 240',
             heartbeat._raise_or_append_exception
@@ -250,7 +250,7 @@ class HeartbeatTests(TestFramework):
             if exception:
                 raise exception.pop()
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPConnectionError,
             'Connection dead, no heartbeat or data received in >= 120s',
             check, heartbeat._exceptions
@@ -258,7 +258,7 @@ class HeartbeatTests(TestFramework):
 
         heartbeat._interval = 120
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPConnectionError,
             'Connection dead, no heartbeat or data received in >= 240',
             check, heartbeat._exceptions

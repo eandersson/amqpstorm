@@ -1,7 +1,7 @@
 import socket
 import ssl
 
-from mock import Mock
+import mock
 
 import amqpstorm.io
 from amqpstorm.exception import AMQPConnectionError
@@ -15,7 +15,7 @@ class IOTests(TestFramework):
     def test_io_socket_close(self):
         connection = FakeConnection()
         io = IO(connection.parameters)
-        io.socket = Mock(name='socket', spec=socket.socket)
+        io.socket = mock.Mock(name='socket', spec=socket.socket)
         io.close()
 
         self.assertIsNone(io.socket)
@@ -79,7 +79,7 @@ class IOTests(TestFramework):
 
         self.assertFalse(io.use_ssl)
 
-        io.socket = Mock(name='socket', spec=socket.socket)
+        io.socket = mock.Mock(name='socket', spec=socket.socket)
         io.socket.recv.return_value = '12345'
 
         self.assertEqual(io._receive(), '12345')
@@ -92,9 +92,9 @@ class IOTests(TestFramework):
         self.assertTrue(io.use_ssl)
 
         if hasattr(ssl, 'SSLObject'):
-            io.socket = Mock(name='socket', spec=ssl.SSLObject)
+            io.socket = mock.Mock(name='socket', spec=ssl.SSLObject)
         elif hasattr(ssl, 'SSLSocket'):
-            io.socket = Mock(name='socket', spec=ssl.SSLSocket)
+            io.socket = mock.Mock(name='socket', spec=ssl.SSLSocket)
 
         io.socket.read.return_value = '12345'
 
@@ -104,11 +104,11 @@ class IOTests(TestFramework):
         connection = FakeConnection()
 
         io = IO(connection.parameters, exceptions=connection.exceptions)
-        io.socket = Mock(name='socket', spec=socket.socket)
+        io.socket = mock.Mock(name='socket', spec=socket.socket)
         io.socket.send.return_value = 0
         io.write_to_socket(self.message)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPConnectionError,
             'connection/socket error',
             connection.check_for_errors

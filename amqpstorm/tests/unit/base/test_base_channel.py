@@ -18,7 +18,7 @@ class BaseChannelTests(TestFramework):
 
     def test_base_channel_add_consumer_tag_none_raises(self):
         channel = BaseChannel(0)
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPChannelError,
             'consumer tag needs to be a string',
             channel.add_consumer_tag, None

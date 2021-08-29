@@ -2,12 +2,12 @@ import functools
 import time
 
 from amqpstorm import Connection
-from amqpstorm.management import exception
 from amqpstorm.management import ManagementApi
-from amqpstorm.tests import HTTP_URL
-from amqpstorm.tests import USERNAME
-from amqpstorm.tests import PASSWORD
+from amqpstorm.management import exception
 from amqpstorm.tests import HOST
+from amqpstorm.tests import HTTP_URL
+from amqpstorm.tests import PASSWORD
+from amqpstorm.tests import USERNAME
 from amqpstorm.tests.utility import TestFramework
 
 

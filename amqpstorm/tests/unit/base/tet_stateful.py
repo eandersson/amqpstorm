@@ -21,6 +21,10 @@ class StatefulTests(TestFramework):
 
         self.assertTrue(stateful.is_opening)
 
+        stateful.set_state(Stateful.OPEN)
+
+        self.assertFalse(stateful.is_opening)
+
     def test_stateful_set_closed(self):
         stateful = Stateful()
         stateful.set_state(Stateful.CLOSED)
@@ -32,6 +36,10 @@ class StatefulTests(TestFramework):
         stateful.set_state(Stateful.CLOSING)
 
         self.assertTrue(stateful.is_closing)
+
+        stateful.set_state(Stateful.CLOSED)
+
+        self.assertFalse(stateful.is_closing)
 
     def test_stateful_get_current_state(self):
         stateful = Stateful()
