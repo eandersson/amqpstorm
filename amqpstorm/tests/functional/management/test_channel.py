@@ -9,16 +9,6 @@ from amqpstorm.tests.functional.utility import setup
 
 class ApiChannelFunctionalTests(TestFunctionalFramework):
     @setup()
-    def test_channel_get(self):
-        api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
-
-        channels = retry_function_wrapper(api.channel.list)
-        self.assertIsNotNone(channels)
-
-        for channel in channels:
-            self.assertIsInstance(api.channel.get(channel['name']), dict)
-
-    @setup()
     def test_channel_list(self):
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
 

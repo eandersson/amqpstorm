@@ -42,35 +42,40 @@ class ApiQueueFunctionalTests(TestFunctionalFramework):
     @setup(queue=False)
     def test_api_queue_list_pagination(self):
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
+        api.virtual_host.create(self.queue_name)
 
         try:
-            api.queue.declare('abc')
-            api.queue.declare('def')
-            api.queue.declare('ghi')
+            api.queue.declare('abc', virtual_host=self.queue_name)
+            api.queue.declare('def', virtual_host=self.queue_name)
+            api.queue.declare('ghi', virtual_host=self.queue_name)
 
-            queues = api.queue.list(page_size=1)
+            queues = api.queue.list(page_size=1, virtual_host=self.queue_name)
         finally:
-            api.queue.delete('abc')
-            api.queue.delete('def')
-            api.queue.delete('ghi')
+            api.queue.delete('abc', virtual_host=self.queue_name)
+            api.queue.delete('def', virtual_host=self.queue_name)
+            api.queue.delete('ghi', virtual_host=self.queue_name)
+            self.api.virtual_host.delete(self.queue_name)
 
         self.assertIsInstance(queues, list)
-        self.assertGreater(len(queues), 3)
+        self.assertEqual(len(queues), 3)
 
     @setup(queue=False)
     def test_api_queue_list_filter_with_regex(self):
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
+        api.virtual_host.create(self.queue_name)
 
         try:
-            api.queue.declare('abc')
-            api.queue.declare('def')
-            api.queue.declare('ghi')
+            api.queue.declare('abc', virtual_host=self.queue_name)
+            api.queue.declare('def', virtual_host=self.queue_name)
+            api.queue.declare('ghi', virtual_host=self.queue_name)
 
-            queues = api.queue.list(name='^ab', use_regex='true')
+            queues = api.queue.list(name='^ab', use_regex='true',
+                                    virtual_host=self.queue_name)
         finally:
-            api.queue.delete('abc')
-            api.queue.delete('def')
-            api.queue.delete('ghi')
+            api.queue.delete('abc', virtual_host=self.queue_name)
+            api.queue.delete('def', virtual_host=self.queue_name)
+            api.queue.delete('ghi', virtual_host=self.queue_name)
+            self.api.virtual_host.delete(self.queue_name)
 
         self.assertIsInstance(queues, list)
         self.assertEqual(len(queues), 1)
@@ -78,17 +83,20 @@ class ApiQueueFunctionalTests(TestFunctionalFramework):
     @setup(queue=False)
     def test_api_queue_list_filter_with_regex_boolean(self):
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
+        api.virtual_host.create(self.queue_name)
 
         try:
-            api.queue.declare('abc')
-            api.queue.declare('def')
-            api.queue.declare('ghi')
+            api.queue.declare('abc', virtual_host=self.queue_name)
+            api.queue.declare('def', virtual_host=self.queue_name)
+            api.queue.declare('ghi', virtual_host=self.queue_name)
 
-            queues = api.queue.list(name='^ab', use_regex=True)
+            queues = api.queue.list(name='^ab', use_regex=True,
+                                    virtual_host=self.queue_name)
         finally:
-            api.queue.delete('abc')
-            api.queue.delete('def')
-            api.queue.delete('ghi')
+            api.queue.delete('abc', virtual_host=self.queue_name)
+            api.queue.delete('def', virtual_host=self.queue_name)
+            api.queue.delete('ghi', virtual_host=self.queue_name)
+            self.api.virtual_host.delete(self.queue_name)
 
         self.assertIsInstance(queues, list)
         self.assertEqual(len(queues), 1)
@@ -96,17 +104,20 @@ class ApiQueueFunctionalTests(TestFunctionalFramework):
     @setup(queue=False)
     def test_api_queue_list_filter_without_regex(self):
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
+        api.virtual_host.create(self.queue_name)
 
         try:
-            api.queue.declare('abc')
-            api.queue.declare('def')
-            api.queue.declare('ghi')
+            api.queue.declare('abc', virtual_host=self.queue_name)
+            api.queue.declare('def', virtual_host=self.queue_name)
+            api.queue.declare('ghi', virtual_host=self.queue_name)
 
-            queues = api.queue.list(name='ab', use_regex=False)
+            queues = api.queue.list(name='ab', use_regex=False,
+                                    virtual_host=self.queue_name)
         finally:
-            api.queue.delete('abc')
-            api.queue.delete('def')
-            api.queue.delete('ghi')
+            api.queue.delete('abc', virtual_host=self.queue_name)
+            api.queue.delete('def', virtual_host=self.queue_name)
+            api.queue.delete('ghi', virtual_host=self.queue_name)
+            self.api.virtual_host.delete(self.queue_name)
 
         self.assertIsInstance(queues, list)
         self.assertEqual(len(queues), 1)

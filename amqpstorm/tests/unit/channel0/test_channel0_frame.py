@@ -28,7 +28,7 @@ class Channel0FrameTests(TestFramework):
 
         self.assertTrue(self.connection.exceptions)
         self.assertTrue(self.connection.is_closed)
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPConnectionError,
             'Connection was closed by remote server: ',
             self.connection.check_for_errors
@@ -100,7 +100,7 @@ class Channel0FrameTests(TestFramework):
 
         channel.on_frame(Connection.Start(mechanisms='invalid'))
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPConnectionError,
             r'Unsupported Security Mechanism\(s\): invalid',
             connection.check_for_errors

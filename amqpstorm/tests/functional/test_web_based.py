@@ -6,7 +6,6 @@ from amqpstorm.tests import HOST
 from amqpstorm.tests import PASSWORD
 from amqpstorm.tests import USERNAME
 from amqpstorm.tests.functional.utility import TestFunctionalFramework
-from amqpstorm.tests.functional.utility import retry_function_wrapper
 from amqpstorm.tests.functional.utility import setup
 
 LOGGER = logging.getLogger(__name__)
@@ -15,21 +14,6 @@ LOGGER = logging.getLogger(__name__)
 class WebFunctionalTests(TestFunctionalFramework):
     def configure(self):
         self.disable_logging_validation()
-
-    @setup()
-    def test_functional_client_properties(self):
-        connections = retry_function_wrapper(self.api.connection.list)
-        self.assertIsNotNone(connections)
-
-        client_properties = connections[0]['client_properties']
-
-        result = self.connection._channel0._client_properties()
-
-        self.assertIsInstance(result, dict)
-        self.assertEqual(result['information'],
-                         client_properties['information'])
-        self.assertEqual(result['product'], client_properties['product'])
-        self.assertEqual(result['platform'], client_properties['platform'])
 
     @setup(queue=True)
     def test_functional_consume_web_message(self):

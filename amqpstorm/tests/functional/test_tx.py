@@ -58,7 +58,7 @@ class TxFunctionalTests(TestFunctionalFramework):
 
     @setup()
     def test_functional_tx_commit_without_select(self):
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPChannelError,
             'Channel 1 was closed by remote server: '
             'PRECONDITION_FAILED - channel is not transactional',
@@ -94,7 +94,7 @@ class TxFunctionalTests(TestFunctionalFramework):
 
     @setup()
     def test_functional_tx_rollback_without_select(self):
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPChannelError,
             'Channel 1 was closed by remote server: '
             'PRECONDITION_FAILED - channel is not transactional',

@@ -11,37 +11,37 @@ class QueueExceptionTests(TestFramework):
         channel.set_state(Channel.OPEN)
         queue = Queue(channel)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'queue should be a string',
             queue.declare, None
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'passive should be a boolean',
             queue.declare, 'travis-ci', None
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'durable should be a boolean',
             queue.declare, 'travis-ci', True, None
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'exclusive should be a boolean',
             queue.declare, 'travis-ci', True, True, None
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'auto_delete should be a boolean',
             queue.declare, 'travis-ci', True, True, True, None
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'arguments should be a dict or None',
             queue.declare, 'travis-ci', True, True, True, True, []
@@ -52,19 +52,19 @@ class QueueExceptionTests(TestFramework):
         channel.set_state(Channel.OPEN)
         queue = Queue(channel)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'queue should be a string',
             queue.delete, None
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'if_unused should be a boolean',
             queue.delete, '', None
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'if_empty should be a boolean',
             queue.delete, '', True, None
@@ -75,7 +75,7 @@ class QueueExceptionTests(TestFramework):
         channel.set_state(Channel.OPEN)
         queue = Queue(channel)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'queue should be a string',
             queue.purge, None
@@ -86,25 +86,25 @@ class QueueExceptionTests(TestFramework):
         channel.set_state(Channel.OPEN)
         queue = Queue(channel)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'queue should be a string',
             queue.bind, None
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'exchange should be a string',
             queue.bind, '', None
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'routing_key should be a string',
             queue.bind, '', '', None
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'arguments should be a dict or None',
             queue.bind, '', '', '', []
@@ -115,25 +115,25 @@ class QueueExceptionTests(TestFramework):
         channel.set_state(Channel.OPEN)
         queue = Queue(channel)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'queue should be a string',
             queue.unbind, None
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'exchange should be a string',
             queue.unbind, '', None
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'routing_key should be a string',
             queue.unbind, '', '', None
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.AMQPInvalidArgument,
             'arguments should be a dict or None',
             queue.unbind, '', '', '', []

@@ -52,7 +52,7 @@ class RpcTests(TestFramework):
     def test_rpc_get_request_timeout(self):
         rpc = Rpc(FakeConnection(), timeout=0.1)
         uuid = rpc.register_request(['travis-ci'])
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPChannelError,
             r'rpc requests %s \(travis-ci\) took too long'
             % uuid,
@@ -62,7 +62,7 @@ class RpcTests(TestFramework):
     def test_rpc_get_request_timeout_raw(self):
         rpc = Rpc(FakeConnection(), timeout=0.1)
         uuid = rpc.register_request(['travis-ci'])
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPChannelError,
             r'rpc requests %s \(travis-ci\) took too long'
             % uuid,
@@ -164,7 +164,7 @@ class RpcTests(TestFramework):
         rpc.register_request(['travis-ci-3'])
         self.assertEqual(rpc._response[uuid], [])
         time.sleep(0.1)
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AMQPChannelError,
             r'rpc requests %s \(travis-ci-2\) took too long' % uuid,
             rpc.get_request, uuid

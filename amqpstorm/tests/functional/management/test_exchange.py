@@ -95,7 +95,7 @@ class ApiExchangeFunctionalTests(TestFunctionalFramework):
 
         self.assertIsNone(api.exchange.delete(self.exchange_name))
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ApiError,
             'NOT-FOUND - The client attempted to work '
             'with a server entity that does not exist.',
