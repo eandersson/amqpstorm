@@ -20,6 +20,13 @@ Additional documentation is available on `amqpstorm.io <https://www.amqpstorm.io
 Changelog
 =========
 
+Version 2.10.0
+-------------
+- Added Pagination support to Management list calls (e.g. queues list).
+- Added Filtering support to Management list calls.
+- Re-use the requests sessions for Management calls.
+- Updated to use pytest framework instead of nose for testing.
+
 Version 2.9.0
 -------------
 - Added support for custom Message implementations - Thanks Jay Hogg.
