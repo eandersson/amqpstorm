@@ -60,6 +60,28 @@ class ApiQueueFunctionalTests(TestFunctionalFramework):
         self.assertEqual(len(queues), 3)
 
     @setup(queue=False)
+    def test_api_queue_list_no_pagination(self):
+        api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
+        api.virtual_host.create(self.queue_name)
+
+        try:
+            api.queue.declare('abc', virtual_host=self.queue_name)
+            api.queue.declare('def', virtual_host=self.queue_name)
+            api.queue.declare('ghi', virtual_host=self.queue_name)
+
+            queues = api.queue.list(
+                page_size=None, virtual_host=self.queue_name
+            )
+        finally:
+            api.queue.delete('abc', virtual_host=self.queue_name)
+            api.queue.delete('def', virtual_host=self.queue_name)
+            api.queue.delete('ghi', virtual_host=self.queue_name)
+            self.api.virtual_host.delete(self.queue_name)
+
+        self.assertIsInstance(queues, list)
+        self.assertEqual(len(queues), 3)
+
+    @setup(queue=False)
     def test_api_queue_list_filter_with_regex(self):
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
         api.virtual_host.create(self.queue_name)

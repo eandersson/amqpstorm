@@ -42,28 +42,32 @@ class HTTPClient(object):
 
         :return: Response
         """
-        results = []
-        params = {
-            'page': 1,
-            'pagination': True,
-        }
+        params = dict()
         if name is not None:
             params['name'] = name
         if use_regex:
             if isinstance(use_regex, bool):
                 use_regex = str(use_regex)
             params['use_regex'] = use_regex.lower()
-        if page_size is not None:
-            params['page_size'] = page_size
 
+        if page_size is None:
+            return self._request('get', path, params=params)
+
+        results = list()
+        params['page'] = 1
+        params['page_size'] = page_size
+        params['pagination'] = True
         first_result = self._request('get', path, params=params)
         num_pages = first_result['page_count']
+        current_page = first_result.get('page', 1)
         results.extend(first_result['items'])
 
-        for page in range(2, num_pages + 1):
-            params['page'] = page
+        while current_page < num_pages:
+            params['page'] = current_page + 1
             next_result = self._request('get', path, params=params)
-            results.extend(next_result['items'])
+            current_page = next_result.get['page']
+            num_pages = next_result['page_count']
+            results.extend(next_result.get('items', []))
 
         return results
 
