@@ -19,7 +19,7 @@ class Connection(ManagementHandler):
         """
         return self.http_client.get(API_CONNECTION % connection)
 
-    def list(self, name=None, page_size=None, use_regex=False):
+    def list(self, name=None, page_size=100, use_regex=False):
         """Get Connections.
 
         :param name: Filter by name

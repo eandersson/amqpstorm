@@ -32,7 +32,7 @@ class Queue(ManagementHandler):
         )
 
     def list(self, virtual_host='/', show_all=False,
-             name=None, page_size=None, use_regex=False):
+             name=None, page_size=100, use_regex=False):
         """List Queues.
 
         :param str virtual_host: Virtual host name
