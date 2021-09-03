@@ -65,7 +65,7 @@ class HTTPClient(object):
         while current_page < num_pages:
             params['page'] = current_page + 1
             next_result = self._request('get', path, params=params)
-            current_page = next_result.get['page']
+            current_page = next_result['page']
             num_pages = next_result['page_count']
             results.extend(next_result.get('items', []))
 
