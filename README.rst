@@ -21,7 +21,7 @@ Changelog
 =========
 
 Version 2.10.0
--------------
+--------------
 - Added Pagination support to Management list calls (e.g. queues list).
 - Added Filtering support to Management list calls.
 - Re-use the requests sessions for Management calls.
