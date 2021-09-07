@@ -224,7 +224,7 @@ class Channel(BaseChannel):
         self.check_for_exceptions()
 
         if self.is_closed:
-            raise AMQPChannelError('channel was closed')
+            raise AMQPChannelError('channel closed')
 
     def check_for_exceptions(self):
         """Check channel for exceptions.

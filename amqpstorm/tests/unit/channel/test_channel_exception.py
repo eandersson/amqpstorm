@@ -57,7 +57,7 @@ class ChannelExceptionTests(TestFramework):
 
         self.assertRaisesRegex(
             exception.AMQPChannelError,
-            'channel was closed',
+            'channel closed',
             channel.check_for_errors
         )
 
@@ -66,7 +66,7 @@ class ChannelExceptionTests(TestFramework):
 
         self.assertRaisesRegex(
             exception.AMQPConnectionError,
-            'connection was closed',
+            'connection closed',
             channel.check_for_errors
         )
 
@@ -77,7 +77,7 @@ class ChannelExceptionTests(TestFramework):
         self.assertFalse(channel.is_open)
         self.assertRaisesRegex(
             exception.AMQPChannelError,
-            'channel was closed',
+            'channel closed',
             channel.check_for_errors
         )
         self.assertTrue(channel.is_closed)
@@ -89,7 +89,7 @@ class ChannelExceptionTests(TestFramework):
         self.assertTrue(channel.is_open)
         self.assertRaisesRegex(
             exception.AMQPConnectionError,
-            'connection was closed',
+            'connection closed',
             channel.check_for_errors
         )
         self.assertTrue(channel.is_closed)

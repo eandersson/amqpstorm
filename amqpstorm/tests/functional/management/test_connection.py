@@ -76,6 +76,6 @@ class ApiConnectionFunctionalTests(TestFunctionalFramework):
 
         self.assertTrue(connection_found)
         self.assertRaisesRegex(
-            AMQPConnectionError, 'socket/connection closed',
+            AMQPConnectionError, 'connection closed',
             connection.channel, 1
         )
