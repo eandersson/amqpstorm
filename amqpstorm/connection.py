@@ -181,7 +181,7 @@ class Connection(Stateful):
         if not compatibility.is_integer(rpc_timeout):
             raise AMQPInvalidArgument('rpc_timeout should be an integer')
         elif self.is_closed:
-            raise AMQPConnectionError('socket/connection closed')
+            raise AMQPConnectionError('connection closed')
 
         with self.lock:
             channel_id = self._get_next_available_channel_id()
@@ -202,7 +202,7 @@ class Connection(Stateful):
         if not self.exceptions:
             if not self.is_closed:
                 return
-            why = AMQPConnectionError('connection was closed')
+            why = AMQPConnectionError('connection closed')
             self.exceptions.append(why)
         self.set_state(self.CLOSED)
         self.close()
@@ -402,5 +402,5 @@ class Connection(Stateful):
         while self.current_state != state:
             self.check_for_errors()
             if time.time() - start_time > rpc_timeout:
-                raise AMQPConnectionError('Connection timed out')
+                raise AMQPConnectionError('connection timed out')
             sleep(IDLE_WAIT)
