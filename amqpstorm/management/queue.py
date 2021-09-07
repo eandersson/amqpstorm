@@ -19,6 +19,8 @@ class Queue(ManagementHandler):
         :param str virtual_host: Virtual host name
 
         :raises ApiError: Raises if the remote server encountered an error.
+                          We also raise an exception if the queue cannot
+                          be found.
         :raises ApiConnectionError: Raises if there was a connectivity issue.
 
         :rtype: dict

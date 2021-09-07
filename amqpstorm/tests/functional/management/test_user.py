@@ -1,5 +1,6 @@
 import uuid
 
+from amqpstorm.management import ApiError
 from amqpstorm.management import ManagementApi
 from amqpstorm.tests import HTTP_URL
 from amqpstorm.tests import PASSWORD
@@ -54,6 +55,7 @@ class ApiUserFunctionalTests(TestFunctionalFramework):
             self.assertEqual('monitor', tag)
         finally:
             api.user.delete(username)
+            self.assertRaises(ApiError, api.user.get, username)
 
     def test_api_user_get_permission(self):
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)

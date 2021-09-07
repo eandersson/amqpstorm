@@ -14,6 +14,11 @@ class User(ManagementHandler):
 
         :param str username: Username
 
+        :raises ApiError: Raises if the remote server encountered an error.
+                          We also raise an exception if the user cannot
+                          be found.
+        :raises ApiConnectionError: Raises if there was a connectivity issue.
+
         :rtype: dict
         """
         return self.http_client.get(API_USER % username)
@@ -32,6 +37,9 @@ class User(ManagementHandler):
         :param str password: Password
         :param str tags: Comma-separate list of tags (e.g. monitoring)
 
+        :raises ApiError: Raises if the remote server encountered an error.
+        :raises ApiConnectionError: Raises if there was a connectivity issue.
+
         :rtype: None
         """
         user_payload = json.dumps({
@@ -45,6 +53,9 @@ class User(ManagementHandler):
         """Delete User.
 
         :param str username: Username
+
+        :raises ApiError: Raises if the remote server encountered an error.
+        :raises ApiConnectionError: Raises if there was a connectivity issue.
 
         :rtype: dict
         """

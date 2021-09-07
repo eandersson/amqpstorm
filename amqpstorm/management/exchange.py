@@ -41,6 +41,8 @@ class Exchange(ManagementHandler):
         :param page_size: Number of elements per page
 
         :raises ApiError: Raises if the remote server encountered an error.
+                          We also raise an exception if the exchange cannot
+                          be found.
         :raises ApiConnectionError: Raises if there was a connectivity issue.
 
         :rtype: list
