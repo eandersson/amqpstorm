@@ -86,6 +86,20 @@ class ConnectionTests(TestFramework):
 
         self.assertEqual(connection._read_buffer(cancel_ok_frame), b'\x00')
 
+    def test_connection_basic_read_buffer_in_one_go(self):
+        connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
+
+        data_in = (
+            b'\x02\x00\x01\x00\x00\x00\x83\x00<\x00\x00\x00\x00\x00\x00\x00'
+            b'\x00\x00\x0c\xe4\xc0\ntext/plain\x05utf-8\x00\x00\x00\x0e\x03'
+            b'keyS\x00\x00\x00\x05value$c2ab75b3-5641-43ae-85a0-79e5ff6b1044'
+            b'$9d5a550d-c91d-493d-8a71-b606f0a64080\x00\x00\x00\x00a6\xac\x87'
+            b'\xce\x03\x00\x01\x00\x00\x00\x0cHello World!\xce'
+        )
+
+        data_in = connection._read_buffer(data_in)
+        self.assertFalse(data_in)
+
     def test_connection_send_handshake(self):
         connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
 

@@ -11,7 +11,8 @@ class Channel(ManagementHandler):
         :param channel: Channel name
 
         :raises ApiError: Raises if the remote server encountered an error.
-        :raises ApiConnectionError: Raises if there was a connectivity issue.
+                          We also raise an exception if the channel cannot
+                          be found.
 
         :rtype: dict
         """
