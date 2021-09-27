@@ -1,13 +1,15 @@
-from amqpstorm.management import ApiError
-from amqpstorm.management import ManagementApi
+from amqpstorm import management
 
 if __name__ == '__main__':
-    API = ManagementApi('http://localhost:15672', 'guest', 'guest')
+    # If using a self-signed certificate, change verify=True to point at your CA bundle.
+    # You can disable certificate verification for testing by passing in verify=False.
+    API = management.ManagementApi('https://rmq.amqpstorm.io:15671', 'guest',
+                                   'guest', verify=True)
     try:
         # Create a new Virtual Host called 'travis_ci'.
         API.virtual_host.create('travis_ci')
-        print("Virtual Host created...")
-    except ApiError as why:
+        print('Virtual Host created...')
+    except management.ApiError as why:
         print('Failed to create virtual host: %s' % why)
 
     try:
@@ -17,6 +19,6 @@ if __name__ == '__main__':
                                 configure_regex='.*',
                                 write_regex='.*',
                                 read_regex='.*')
-        print("Permission updated created...")
-    except ApiError as why:
+        print('Permission updated created...')
+    except management.ApiError as why:
         print('Failed to update permissions: %s' % why)

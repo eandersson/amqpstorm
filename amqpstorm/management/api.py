@@ -23,8 +23,8 @@ class ManagementApi(object):
     ::
 
         from amqpstorm.management import ManagementApi
-        client = ManagementApi('http://localhost:15672', 'guest', 'guest')
-        client.user.create('my_user', 'password')
+        client = ManagementApi('https://localhost:15671', 'guest', 'guest', verify=True)
+        client.user.create('my_user', 'password', tags='administrator')
         client.user.set_permission(
             'my_user',
             virtual_host='/',
@@ -32,6 +32,13 @@ class ManagementApi(object):
             write_regex='.*',
             read_regex='.*'
         )
+
+    :param str api_url: RabbitMQ Management url (e.g. https://rmq.amqpstorm.io:15671)
+    :param str username: Username (e.g. guest)
+    :param str password: Password (e.g. guest)
+    :param int timeout: TCP Timeout
+    :param None,str,bool verify: Requests session verify (e.g. True, False or path to CA bundle)
+    :param None,str,tuple cert: Requests session cert
     """
 
     def __init__(self, api_url, username, password, timeout=10,

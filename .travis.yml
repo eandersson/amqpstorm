@@ -25,7 +25,7 @@ install:
   - pip install -r test-requirements.txt
 script:
   - pytest --cov=./amqpstorm --durations=5
-  - flake8 --ignore=F821 .
+  - flake8 .
 after_success:
   - bash <(curl -s https://codecov.io/bash)
 services:

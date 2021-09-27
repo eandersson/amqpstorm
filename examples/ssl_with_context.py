@@ -27,12 +27,17 @@ def on_message(message):
     # message.reject(requeue=True)
 
 
+CONTEXT = ssl.create_default_context(cafile='ca_certificate.pem')
+CONTEXT.load_cert_chain(
+    certfile='client_certificate.pem',
+    keyfile='private_key.pem',
+)
 SSL_OPTIONS = {
-    'context': ssl.create_default_context(cafile='ca_certificate.pem'),
-    'server_hostname': 'rmq.eandersson.net'
+    'context': CONTEXT,
+    'server_hostname': 'rmq.amqpstorm.io'
 }
 
-with Connection('rmq.eandersson.net', 'guest', 'guest', port=5671,
+with Connection('rmq.amqpstorm.io', 'guest', 'guest', port=5671,
                 ssl=True, ssl_options=SSL_OPTIONS) as connection:
     with connection.channel() as channel:
         # Declare the Queue, 'simple_queue'.

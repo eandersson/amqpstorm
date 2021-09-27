@@ -56,7 +56,7 @@ class UriConnection(Connection):
                  lazy=False):
         uri = compatibility.patch_uri(uri)
         parsed_uri = urlparse.urlparse(uri)
-        use_ssl = parsed_uri.scheme == 'https'
+        use_ssl = parsed_uri.scheme == 'amqps' or parsed_uri.scheme == 'https'
         hostname = parsed_uri.hostname or 'localhost'
         port = parsed_uri.port or 5672
         username = urlparse.unquote(parsed_uri.username or 'guest')
