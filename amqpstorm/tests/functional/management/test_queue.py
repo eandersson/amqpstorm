@@ -41,23 +41,31 @@ class ApiQueueFunctionalTests(TestFunctionalFramework):
 
     @setup(queue=False)
     def test_api_queue_list_pagination(self):
+        queues_to_create = 33
+
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
         api.virtual_host.create(self.queue_name)
 
         try:
-            api.queue.declare('abc', virtual_host=self.queue_name)
-            api.queue.declare('def', virtual_host=self.queue_name)
-            api.queue.declare('ghi', virtual_host=self.queue_name)
+            for index in range(queues_to_create):
+                api.queue.declare(
+                    'pagination-%d' % (index + 1), virtual_host=self.queue_name
+                )
 
-            queues = api.queue.list(page_size=1, virtual_host=self.queue_name)
+            queues = api.queue.list(
+                name='pagination-',
+                page_size=3,
+                virtual_host=self.queue_name
+            )
         finally:
-            api.queue.delete('abc', virtual_host=self.queue_name)
-            api.queue.delete('def', virtual_host=self.queue_name)
-            api.queue.delete('ghi', virtual_host=self.queue_name)
+            for index in range(queues_to_create):
+                api.queue.delete(
+                    'pagination-%d' % (index + 1), virtual_host=self.queue_name
+                )
             self.api.virtual_host.delete(self.queue_name)
 
         self.assertIsInstance(queues, list)
-        self.assertEqual(len(queues), 3)
+        self.assertEqual(len(queues), queues_to_create)
 
     @setup(queue=False)
     def test_api_queue_list_no_pagination(self):

@@ -85,3 +85,5 @@ class ApiConnectionFunctionalTests(TestFunctionalFramework):
             AMQPConnectionError, 'connection closed',
             connection.channel, 1
         )
+
+        connection.close()
