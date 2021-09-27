@@ -1,8 +1,5 @@
-try:
-    import requests.api
-    from requests.auth import HTTPBasicAuth
-except ImportError:
-    raise ImportError('amqpstorm.management requires requests>2')
+import requests.api
+from requests.auth import HTTPBasicAuth
 
 from amqpstorm.compatibility import urlparse
 from amqpstorm.management.exception import ApiConnectionError
