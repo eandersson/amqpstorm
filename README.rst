@@ -20,6 +20,11 @@ Additional documentation is available on `amqpstorm.io <https://www.amqpstorm.io
 Changelog
 =========
 
+Version 2.10.1
+--------------
+- Fixed bug with UriConnection not handling amqps:// properly.
+- Improved documentation.
+
 Version 2.10.0
 --------------
 - Added Pagination support to Management list calls (e.g. queues list).
