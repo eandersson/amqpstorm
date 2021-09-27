@@ -1,4 +1,4 @@
-Create A RabbitMQ User
+Create a RabbitMQ User
 ----------------------
 In order to use the management module you first need to install the python library, `requests`.
 ::
