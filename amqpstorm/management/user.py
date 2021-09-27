@@ -35,7 +35,7 @@ class User(ManagementHandler):
 
         :param str username: Username
         :param str password: Password
-        :param str tags: Comma-separate list of tags (e.g. monitoring)
+        :param str,list tags: Comma-separate list of tags (e.g. monitoring)
 
         :raises ApiError: Raises if the remote server encountered an error.
         :raises ApiConnectionError: Raises if there was a connectivity issue.
