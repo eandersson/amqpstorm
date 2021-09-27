@@ -34,7 +34,8 @@ setup(
     url='https://www.amqpstorm.io',
     install_requires=['pamqp>=2.0.0,<3.0'],
     extras_require={
-        'management': ['requests']
+        'management': ['requests>2'],
+        'pool': ['amqpstorm-pool']
     },
     package_data={'': ['README.rst', 'LICENSE', 'CHANGELOG.rst']},
     classifiers=[

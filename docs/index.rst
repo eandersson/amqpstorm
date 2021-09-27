@@ -14,6 +14,18 @@ The latest version can be installed using `pip <https://pip.pypa.io/en/stable/qu
 
     pip install amqpstorm
 
+
+You can also install AMQPStorm with the management dependencies using.
+::
+
+    pip install amqpstorm[management]
+
+You can also install AMQPStorm with the pool dependencies using.
+::
+
+    pip install amqpstorm[pool]
+
+
 Basic Example
 -------------
 
@@ -55,6 +67,20 @@ A wide verity of examples are available on Github at `here <https://github.com/e
    :name: examples
 
    examples/*
+
+.. toctree::
+   :glob:
+   :caption: Pool Examples
+   :name: pool_examples
+
+   pool_examples/*
+
+.. toctree::
+   :glob:
+   :caption: Management Examples
+   :name: management_examples
+
+   management_examples/*
 
 Issues
 ------
