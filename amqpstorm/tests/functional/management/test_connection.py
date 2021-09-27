@@ -1,3 +1,4 @@
+import time
 import uuid
 
 from amqpstorm import AMQPConnectionError
@@ -40,19 +41,22 @@ class ApiConnectionFunctionalTests(TestFunctionalFramework):
         connection = Connection(HOST, USERNAME, PASSWORD, timeout=1,
                                 client_properties=client_properties)
 
-        connections = retry_function_wrapper(api.connection.list)
-
-        self.assertIsNotNone(connections)
-        self.assertGreater(len(connections), 0)
-
-        atari_found = False
-        for conn in api.connection.list():
-            if conn['client_properties']['platform'] == 'Atari':
-                atari_found = True
+        connection_found = False
+        for _ in range(10):
+            for conn in api.connection.list():
+                if conn['client_properties']['platform'] != 'Atari':
+                    continue
+                connection_found = True
+            if connection_found:
                 break
-        self.assertTrue(atari_found, 'Could not find custom client properties')
+            time.sleep(1)
 
         connection.close()
+
+        self.assertTrue(
+            connection_found,
+            'Could not find connection with custom client properties'
+        )
 
     def test_api_connection_close(self):
         connection_id = str(uuid.uuid4())
@@ -62,19 +66,21 @@ class ApiConnectionFunctionalTests(TestFunctionalFramework):
         connection = Connection(HOST, USERNAME, PASSWORD, timeout=1,
                                 client_properties=client_properties)
 
-        connections = retry_function_wrapper(api.connection.list)
-
-        self.assertIsNotNone(connections)
-        self.assertGreater(len(connections), 0)
-
         connection_found = False
-        for conn in api.connection.list():
-            if conn['client_properties']['platform'] != connection_id:
-                continue
-            connection_found = True
-            api.connection.close(conn['name'], reason=connection_id)
+        for _ in range(10):
+            for conn in api.connection.list():
+                if conn['client_properties']['platform'] != connection_id:
+                    continue
+                connection_found = True
+                api.connection.close(conn['name'], reason=connection_id)
+            if connection_found:
+                break
+            time.sleep(1)
 
-        self.assertTrue(connection_found)
+        self.assertTrue(
+            connection_found,
+            'Could not find connection'
+        )
         self.assertRaisesRegex(
             AMQPConnectionError, 'connection closed',
             connection.channel, 1
