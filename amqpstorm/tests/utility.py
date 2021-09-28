@@ -3,6 +3,7 @@ import uuid
 
 from amqpstorm.connection import Channel
 from amqpstorm.connection import Connection
+from amqpstorm.connection import IO
 
 try:
     import unittest2 as unittest
@@ -30,6 +31,16 @@ class SslTLSNone(object):
     pass
 
 
+class FakeIO(IO):
+    """Fake IO for Unit-Testing."""
+
+    def set_state(self, state):
+        if state == Connection.OPEN:
+            self._running.set()
+        else:
+            self._running.clear()
+
+
 class FakeConnection(Connection):
     """Fake Connection for Unit-Testing."""
 
@@ -45,6 +56,8 @@ class FakeConnection(Connection):
             'ssl': False,
             'ssl_options': {}
         }
+        self.io = FakeIO(self.parameters, self.exceptions)
+        self.io.set_state(state)
         self.set_state(state)
         self.on_write = on_write
 

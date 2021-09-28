@@ -68,7 +68,7 @@ class Connection(Stateful):
                                  encountered an error.
     """
     __slots__ = [
-        'heartbeat', 'parameters', '_channel0', '_channels', '_io'
+        'heartbeat', 'io', 'parameters', '_channel0', '_channels'
     ]
 
     def __init__(self, hostname, username, password, port=5672, **kwargs):
@@ -86,11 +86,11 @@ class Connection(Stateful):
             'client_properties': kwargs.get('client_properties', {})
         }
         self._validate_parameters()
-        self._io = IO(self.parameters, exceptions=self._exceptions,
-                      on_read_impl=self._read_buffer)
         self._channel0 = Channel0(self, self.parameters['client_properties'])
         self._channels = {}
         self._last_channel_id = None
+        self.io = IO(self.parameters, exceptions=self._exceptions,
+                     on_read_impl=self._read_buffer)
         self.heartbeat = Heartbeat(self.parameters['heartbeat'],
                                    self._channel0.send_heartbeat)
         if not kwargs.get('lazy', False):
@@ -119,9 +119,9 @@ class Connection(Stateful):
 
         :rtype: integer,None
         """
-        if not self._io.socket:
+        if not self.io.socket:
             return None
-        return self._io.socket.fileno()
+        return self.io.socket.fileno()
 
     @property
     def is_blocked(self):
@@ -162,7 +162,7 @@ class Connection(Stateful):
 
         :rtype: socket.socket
         """
-        return self._io.socket
+        return self.io.socket
 
     def channel(self, rpc_timeout=60, lazy=False):
         """Open a Channel.
@@ -227,7 +227,7 @@ class Connection(Stateful):
             pass
         finally:
             self._close_remaining_channels()
-            self._io.close()
+            self.io.close()
             self.set_state(self.CLOSED)
         LOGGER.debug('Connection Closed')
 
@@ -242,7 +242,7 @@ class Connection(Stateful):
         self._exceptions = []
         self._channels = {}
         self._last_channel_id = None
-        self._io.open()
+        self.io.open()
         self._send_handshake()
         self._wait_for_connection_state(state=Stateful.OPEN)
         self.heartbeat.start(self._exceptions)
@@ -258,7 +258,7 @@ class Connection(Stateful):
         """
         frame_data = pamqp_frame.marshal(frame_out, channel_id)
         self.heartbeat.register_write()
-        self._io.write_to_socket(frame_data)
+        self.io.write_to_socket(frame_data)
 
     def write_frames(self, channel_id, frames_out):
         """Marshal and write multiple outgoing pamqp frames to the Socket.
@@ -272,7 +272,7 @@ class Connection(Stateful):
         for single_frame in frames_out:
             data_out += pamqp_frame.marshal(single_frame, channel_id)
         self.heartbeat.register_write()
-        self._io.write_to_socket(data_out)
+        self.io.write_to_socket(data_out)
 
     def _close_remaining_channels(self):
         """Forcefully close all open channels.
@@ -366,7 +366,7 @@ class Connection(Stateful):
 
         :return:
         """
-        self._io.write_to_socket(pamqp_header.ProtocolHeader().marshal())
+        self.io.write_to_socket(pamqp_header.ProtocolHeader().marshal())
 
     def _validate_parameters(self):
         """Validate Connection Parameters.

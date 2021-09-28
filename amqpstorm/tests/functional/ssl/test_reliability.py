@@ -43,8 +43,8 @@ class SSLReliabilityFunctionalTests(TestFunctionalFramework):
             self.channel.queue.declare(self.queue_name)
 
             # Verify that the Connection/Channel has been opened properly.
-            self.assertIsNotNone(self.connection._io.socket)
-            self.assertIsNotNone(self.connection._io.poller)
+            self.assertIsNotNone(self.connection.io.socket)
+            self.assertIsNotNone(self.connection.io.poller)
             self.assertTrue(self.connection.is_open)
 
             self.channel.close()
@@ -52,9 +52,9 @@ class SSLReliabilityFunctionalTests(TestFunctionalFramework):
 
             # Verify that the Connection has been closed properly.
             self.assertTrue(self.connection.is_closed)
-            self.assertIsNone(self.connection._io.socket)
-            self.assertIsNone(self.connection._io.poller)
-            self.assertFalse(self.connection._io._running.is_set())
+            self.assertIsNone(self.connection.io.socket)
+            self.assertIsNone(self.connection.io.poller)
+            self.assertFalse(self.connection.io._running.is_set())
             self.assertFalse(self.connection.exceptions)
 
     @setup(new_connection=False, queue=True)
@@ -84,17 +84,17 @@ class SSLReliabilityFunctionalTests(TestFunctionalFramework):
             channel.close()
 
             # Verify that the Connection/Channel has been opened properly.
-            self.assertIsNotNone(self.connection._io.socket)
-            self.assertIsNotNone(self.connection._io.poller)
+            self.assertIsNotNone(self.connection.io.socket)
+            self.assertIsNotNone(self.connection.io.poller)
             self.assertTrue(self.connection.is_open)
 
             self.connection.close()
 
             # Verify that the Connection has been closed properly.
             self.assertTrue(self.connection.is_closed)
-            self.assertIsNone(self.connection._io.socket)
-            self.assertIsNone(self.connection._io.poller)
-            self.assertFalse(self.connection._io._running.is_set())
+            self.assertIsNone(self.connection.io.socket)
+            self.assertIsNone(self.connection.io.poller)
+            self.assertFalse(self.connection.io._running.is_set())
             self.assertFalse(self.connection.exceptions)
 
     @setup(new_connection=False, queue=False)

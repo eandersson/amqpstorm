@@ -53,6 +53,7 @@ class Channel0Tests(TestFramework):
 
         self.assertFalse(connection.exceptions)
         self.assertTrue(connection.is_closed)
+        self.assertFalse(connection.io.is_running)
 
     def test_channel0_forcefully_closed_connection(self):
         connection = amqpstorm.Connection('localhost', 'guest', 'guest',

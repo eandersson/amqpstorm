@@ -67,6 +67,20 @@ class IO(object):
         self.socket = None
         self.use_ssl = self._parameters['ssl']
 
+    @property
+    def is_running(self):
+        return self._running.is_set()
+
+    def clear(self):
+        """Clear inbound thread.
+
+            This clears the event used by the running thread to gracefully
+            stop the inbound thread.
+
+        :return:
+        """
+        self._running.clear()
+
     def close(self):
         """Close Socket.
 
@@ -75,7 +89,7 @@ class IO(object):
         self._wr_lock.acquire()
         self._rd_lock.acquire()
         try:
-            self._running.clear()
+            self.clear()
             self._close_socket()
             self.socket = None
             self.poller = None
@@ -254,7 +268,7 @@ class IO(object):
 
         :return:
         """
-        while self._running.is_set():
+        while self.is_running:
             if self.poller.is_ready:
                 self.data_in += self._receive()
                 self.data_in = self._on_read_impl(self.data_in)
@@ -279,7 +293,7 @@ class IO(object):
         except (IOError, OSError) as why:
             if why.args[0] not in (EWOULDBLOCK, EAGAIN):
                 self._exceptions.append(AMQPConnectionError(why))
-                if self._running.is_set():
+                if self.is_running:
                     LOGGER.warning("Stopping inbound thread due to %s", why)
                 self._running.clear()
         return data_in

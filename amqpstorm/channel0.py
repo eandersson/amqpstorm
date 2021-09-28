@@ -91,6 +91,9 @@ class Channel0(object):
                                             reply_code=frame_in.reply_code)
             self._connection.exceptions.append(exception)
 
+        # Make sure that we allow the io thread to gracefully shutdown.
+        self._connection.io.clear()
+
     def _close_connection_ok(self):
         """Connection CloseOk frame received.
 

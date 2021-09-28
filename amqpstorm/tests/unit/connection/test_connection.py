@@ -44,7 +44,7 @@ class ConnectionTests(TestFramework):
 
     def test_connection_socket_property(self):
         connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
-        connection._io.socket = 'FakeSocket'
+        connection.io.socket = 'FakeSocket'
         self.assertEqual(connection.socket, 'FakeSocket')
 
     def test_connection_socket_none_when_closed(self):
@@ -57,7 +57,7 @@ class ConnectionTests(TestFramework):
         connection.set_state(connection.OPENING)
         io = IO(connection.parameters, [])
         io.socket = mock.Mock(name='socket', spec=socket.socket)
-        connection._io = io
+        connection.io = io
         io.socket.fileno.return_value = 5
 
         self.assertEqual(connection.fileno, 5)
@@ -105,7 +105,7 @@ class ConnectionTests(TestFramework):
         def on_write_to_socket(message):
             self.assertEqual(message, b'AMQP\x00\x00\t\x01')
 
-        connection._io.write_to_socket = on_write_to_socket
+        connection.io.write_to_socket = on_write_to_socket
 
         self.assertIsNone(connection._send_handshake())
 
@@ -230,7 +230,7 @@ class ConnectionTests(TestFramework):
         connection.set_state(connection.OPENING)
         io = IO(connection.parameters, [])
         io.socket = mock.Mock(name='socket', spec=socket.socket)
-        connection._io = io
+        connection.io = io
 
         self.assertFalse(connection.is_open)
 
@@ -260,7 +260,7 @@ class ConnectionTests(TestFramework):
         connection.set_state(connection.OPENING)
         io = IO(connection.parameters, [])
         io.socket = mock.Mock(name='socket', spec=socket.socket)
-        connection._io = io
+        connection.io = io
 
         self.assertRaises(
             AMQPConnectionError,
@@ -272,7 +272,7 @@ class ConnectionTests(TestFramework):
         connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
         io = IO(connection.parameters, [])
         io.socket = mock.Mock(name='socket', spec=socket.socket)
-        connection._io = io
+        connection.io = io
 
         def open():
             pass
@@ -280,8 +280,8 @@ class ConnectionTests(TestFramework):
         def on_write_to_socket(_):
             connection.set_state(connection.OPEN)
 
-        connection._io.open = open
-        connection._io.write_to_socket = on_write_to_socket
+        connection.io.open = open
+        connection.io.write_to_socket = on_write_to_socket
 
         self.assertTrue(connection.is_closed)
 
@@ -294,7 +294,7 @@ class ConnectionTests(TestFramework):
         connection.set_state(connection.OPEN)
         io = IO(connection.parameters, [])
         io.socket = mock.Mock(name='socket', spec=socket.socket)
-        connection._io = io
+        connection.io = io
 
         # Create some fake channels.
         for index in range(10):
@@ -322,7 +322,7 @@ class ConnectionTests(TestFramework):
         connection.set_state(connection.OPEN)
         io = IO(connection.parameters, [])
         io.socket = mock.Mock(name='socket', spec=socket.socket)
-        connection._io = io
+        connection.io = io
 
         connection.set_state(connection.CLOSED)
 
@@ -352,7 +352,7 @@ class ConnectionTests(TestFramework):
         connection.set_state(connection.OPEN)
         io = IO(connection.parameters, [])
         io.socket = mock.Mock(name='socket', spec=socket.socket)
-        connection._io = io
+        connection.io = io
 
         # Create some fake channels.
         for index in range(10):
