@@ -2,7 +2,7 @@ AMQPStorm
 =========
 Thread-safe Python RabbitMQ Client & Management library.
 
-|Version| |Travis| |Coverage|
+|Version|
 
 Introduction
 ============
@@ -112,9 +112,3 @@ Special thanks to gmr (Gavin M. Roy) for creating pamqp, and in addition amqpsto
 
 .. |Version| image:: https://badge.fury.io/py/AMQPStorm.svg
   :target: https://badge.fury.io/py/AMQPStorm
-
-.. |Travis| image:: https://travis-ci.org/eandersson/amqpstorm.svg
-  :target: https://travis-ci.org/eandersson/amqpstorm
-
-.. |Coverage| image:: https://codecov.io/gh/eandersson/amqpstorm/branch/master/graph/badge.svg
-  :target: https://codecov.io/gh/eandersson/amqpstorm
