@@ -1,7 +1,6 @@
 import time
 import uuid
 
-from amqpstorm import AMQPConnectionError
 from amqpstorm import Connection
 from amqpstorm.management import ManagementApi
 from amqpstorm.tests import HOST
@@ -37,9 +36,11 @@ class ApiConnectionFunctionalTests(TestFunctionalFramework):
     def test_api_connection_client_properties(self):
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD, timeout=1)
 
-        client_properties = {'platform': 'Atari', 'license': 'MIT'}
-        connection = Connection(HOST, USERNAME, PASSWORD, timeout=1,
-                                client_properties=client_properties)
+        connection = Connection(
+            HOST, USERNAME, PASSWORD,
+            client_properties={'platform': 'Atari', 'license': 'MIT'}
+        )
+        self.assertTrue(connection.is_open)
 
         connection_found = False
         for _ in range(10):
@@ -51,8 +52,6 @@ class ApiConnectionFunctionalTests(TestFunctionalFramework):
                 break
             time.sleep(1)
 
-        connection.close()
-
         self.assertTrue(
             connection_found,
             'Could not find connection with custom client properties'
@@ -62,9 +61,11 @@ class ApiConnectionFunctionalTests(TestFunctionalFramework):
         connection_id = str(uuid.uuid4())
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD, timeout=1)
 
-        client_properties = {'platform': connection_id}
-        connection = Connection(HOST, USERNAME, PASSWORD, timeout=1,
-                                client_properties=client_properties)
+        connection = Connection(
+            HOST, USERNAME, PASSWORD,
+            client_properties={'platform': connection_id}
+        )
+        self.assertTrue(connection.is_open)
 
         connection_found = False
         for _ in range(10):
@@ -72,16 +73,16 @@ class ApiConnectionFunctionalTests(TestFunctionalFramework):
                 if conn['client_properties']['platform'] != connection_id:
                     continue
                 connection_found = True
-                api.connection.close(conn['name'], reason=connection_id)
+                self.assertIsNone(
+                    api.connection.close(conn['name'], reason=connection_id)
+                )
+            time.sleep(1)
             if connection_found:
                 break
-            time.sleep(1)
 
         self.assertTrue(
             connection_found,
             'Could not find connection'
         )
-        self.assertRaisesRegex(
-            AMQPConnectionError, 'connection closed',
-            connection.channel, 1
-        )
+
+        self.assertTrue(connection.is_closed)
