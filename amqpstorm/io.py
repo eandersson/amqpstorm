@@ -270,6 +270,8 @@ class IO(object):
         data_in = EMPTY_BUFFER
         try:
             data_in = self._read_from_socket()
+            if len(data_in) == 0:
+                raise socket.error("connection closed by server")
         except socket.timeout:
             pass
         except compatibility.SSLWantReadError:
