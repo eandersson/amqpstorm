@@ -1,5 +1,10 @@
 name: AMQPStorm
-on: [push]
+
+on:
+  push:
+  pull_request:
+    branches: [ 2.x ]
+
 jobs:
   build:
     runs-on: ubuntu-latest

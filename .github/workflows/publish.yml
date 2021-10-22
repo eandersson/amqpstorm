@@ -4,8 +4,6 @@ on:
   push:
     tags:
     - '2.*'
-  pull_request:
-    branches: [ 2.x ]
 
 jobs:
   build:
