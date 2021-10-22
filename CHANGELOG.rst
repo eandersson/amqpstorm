@@ -1,6 +1,10 @@
 Changelog
 =========
 
+Version 2.10.2
+--------------
+- Fixed bad socket fd causing high cpu usage [#110] - Thanks aiden0z.
+
 Version 2.10.1
 --------------
 - Fixed bug with UriConnection not handling amqps:// properly.
