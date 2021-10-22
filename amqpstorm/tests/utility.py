@@ -114,7 +114,7 @@ class FakeFrame(object):
 
     def __iter__(self):
         for attribute in ['_data_1']:
-            yield (attribute[1::], getattr(self, attribute))
+            yield attribute[1::], getattr(self, attribute)
 
 
 class FakeSession(object):
@@ -197,7 +197,6 @@ class TestFramework(unittest.TestCase):
     def tearDown(self):
         if self.validate_logging:
             try:
-                self.assertFalse(self.logging_handler.messages['warning'])
                 self.assertFalse(self.logging_handler.messages['error'])
                 self.assertFalse(self.logging_handler.messages['critical'])
             finally:
