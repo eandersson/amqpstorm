@@ -67,7 +67,7 @@ Version 2.8.1
 Version 2.8.0
 -------------
 - Introduced a new channel function called check_for_exceptions.
-- Fixed issue where publish was successful but raises an error because connection was closed [#80] - Thanks Pavol Plaskon.
+- Fixed issue where publish was successful but raises an error because connection was closed [#80] - Thanks Pavol Plaskoň.
 - Updated SSL handling to use the non-deprecated way of creating a SSL Connection [#79] - Thanks Carl Hörberg from CloudAMQP.
 - Enabled SNI for SSL connections by default [#79] - Thanks Carl Hörberg from CloudAMQP.
 

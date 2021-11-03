@@ -25,7 +25,7 @@ setup(
     python_requires='>=2.7',
     version=get_version('amqpstorm/__init__.py'),
     description='Thread-safe Python RabbitMQ Client & Management library.',
-    long_description=open('README.rst').read(),
+    long_description=open('README.rst', encoding="utf8").read(),
     author='Erik Olof Gunnar Andersson',
     author_email='me@eandersson.net',
     include_package_data=True,
