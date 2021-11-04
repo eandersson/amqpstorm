@@ -1,6 +1,10 @@
 Changelog
 =========
 
+Version 2.10.3
+--------------
+- Fixed install bug with cp1250 encoding on Windows [#112] - Thanks ZygusPatryk.
+
 Version 2.10.2
 --------------
 - Fixed bad socket fd causing high cpu usage [#110] - Thanks aiden0z.
@@ -48,7 +52,7 @@ Version 2.8.1
 Version 2.8.0
 -------------
 - Introduced a new channel function called check_for_exceptions.
-- Fixed issue where a publish was successful but raised an error because connection was closed [#80] - Thanks Pavol Plaskoň.
+- Fixed issue where a publish was successful but raised an error because connection was closed [#80] - Thanks Pavol Plaskon.
 - Updated TLS handling to use the non-deprecated way of creating a TLS Connection [#79] - Thanks Carl Hörberg from CloudAMQP.
 - Enabled SNI for TLS connections by default [#79] - Thanks Carl Hörberg from CloudAMQP.
 

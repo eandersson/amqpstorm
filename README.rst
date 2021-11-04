@@ -20,6 +20,10 @@ Additional documentation is available on `amqpstorm.io <https://www.amqpstorm.io
 Changelog
 =========
 
+Version 2.10.3
+--------------
+- Fixed install bug with cp1250 encoding on Windows [#112] - Thanks ZygusPatryk.
+
 Version 2.10.2
 --------------
 - Fixed bad socket fd causing high cpu usage [#110] - Thanks aiden0z.
