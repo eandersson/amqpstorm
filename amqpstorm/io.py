@@ -77,14 +77,15 @@ class IO(object):
         try:
             self._running.clear()
             self._close_socket()
-            self.socket = None
-            self.poller = None
         finally:
             self._wr_lock.release()
             self._rd_lock.release()
 
         if self._inbound_thread:
             self._inbound_thread.join(timeout=self._parameters['timeout'])
+
+        self.socket = None
+        self.poller = None
         self._inbound_thread = None
 
     def open(self):
