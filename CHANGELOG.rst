@@ -1,6 +1,10 @@
 Changelog
 =========
 
+Version 2.10.4
+--------------
+- Fixed issue with a forcefully closed channel not sending the appropriate response [#114] - Thanks Bernd Höhl.
+
 Version 2.10.3
 --------------
 - Fixed install bug with cp1250 encoding on Windows [#112] - Thanks ZygusPatryk.
