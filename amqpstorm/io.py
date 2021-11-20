@@ -279,7 +279,7 @@ class IO(object):
             # NOTE(visobet): Retry if the non-blocking socket does not
             # have any meaningful data ready.
             pass
-        except (IOError, OSError) as why:
+        except (IOError, OSError, ValueError) as why:
             if why.args[0] not in (EWOULDBLOCK, EAGAIN):
                 self._exceptions.append(AMQPConnectionError(why))
                 if self._running.is_set():

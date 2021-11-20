@@ -1,7 +1,7 @@
 """AMQPStorm Connection.Channel."""
 
 import logging
-from time import sleep
+import time
 
 from pamqp import specification
 from pamqp.header import ContentHeader
@@ -12,6 +12,7 @@ from amqpstorm.base import BaseMessage
 from amqpstorm.base import IDLE_WAIT
 from amqpstorm.basic import Basic
 from amqpstorm.compatibility import try_utf8_decode
+from amqpstorm.exception import AMQPError
 from amqpstorm.exception import AMQPChannelError
 from amqpstorm.exception import AMQPConnectionError
 from amqpstorm.exception import AMQPInvalidArgument
@@ -157,7 +158,7 @@ class Channel(BaseChannel):
                                           message_impl=message_impl)
             if not message:
                 self.check_for_errors()
-                sleep(IDLE_WAIT)
+                time.sleep(IDLE_WAIT)
                 if break_on_empty and not self._inbound:
                     break
                 continue
@@ -184,7 +185,7 @@ class Channel(BaseChannel):
         elif not compatibility.is_string(reply_text):
             raise AMQPInvalidArgument('reply_text should be a string')
         try:
-            if self._connection.is_closed or self.is_closed:
+            if self._connection.is_closed or not self.is_open:
                 self.stop_consuming()
                 LOGGER.debug('Channel #%d forcefully Closed', self.channel_id)
                 return
@@ -357,7 +358,7 @@ class Channel(BaseChannel):
                 auto_decode=auto_decode
             )
             if self.consumer_tags:
-                sleep(IDLE_WAIT)
+                time.sleep(IDLE_WAIT)
                 continue
             break
 
@@ -488,7 +489,7 @@ class Channel(BaseChannel):
         while len(body) < body_size:
             if not self._inbound:
                 self.check_for_errors()
-                sleep(IDLE_WAIT)
+                time.sleep(IDLE_WAIT)
                 continue
             body_piece = self._inbound.pop(0)
             if not body_piece.value:
@@ -502,12 +503,12 @@ class Channel(BaseChannel):
         :param specification.Channel.Close frame_in: Channel Close frame.
         :return:
         """
-        if self._connection.is_open:
+        self.set_state(self.CLOSING)
+        if not self._connection.is_closed:
             try:
                 self.write_frame(specification.Channel.CloseOk())
-            except AMQPConnectionError:
+            except AMQPError:
                 pass
-        self.set_state(self.CLOSED)
         self.remove_consumer_tag()
         if self._inbound:
             del self._inbound[:]
@@ -519,3 +520,4 @@ class Channel(BaseChannel):
             ),
             reply_code=frame_in.reply_code
         ))
+        self.set_state(self.CLOSED)
