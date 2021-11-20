@@ -508,7 +508,7 @@ class Channel(BaseChannel):
         self.set_state(self.CLOSING)
         if not self._connection.is_closed:
             try:
-                self.write_frame(specification.Channel.CloseOk())
+                self.write_frame(commands.Channel.CloseOk())
             except AMQPError:
                 pass
         self.remove_consumer_tag()
