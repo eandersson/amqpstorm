@@ -20,8 +20,8 @@ class Stateful(object):
     OPENING = 2
     OPEN = 3
 
-    def __init__(self):
-        self._lock = threading.Lock()
+    def __init__(self, lock_type=threading.Lock):
+        self._lock = lock_type()
         self._state = self.CLOSED
         self._exceptions = []
 

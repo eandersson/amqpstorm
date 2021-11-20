@@ -1,6 +1,7 @@
 """AMQPStorm Connection."""
 
 import logging
+import threading
 import time
 from time import sleep
 
@@ -71,7 +72,7 @@ class Connection(Stateful):
     ]
 
     def __init__(self, hostname, username, password, port=5672, **kwargs):
-        super(Connection, self).__init__()
+        super(Connection, self).__init__(lock_type=threading.RLock)
         self.parameters = {
             'hostname': hostname,
             'username': username,

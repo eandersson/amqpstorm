@@ -143,7 +143,7 @@ class ReliabilityFunctionalTests(TestFunctionalFramework):
             self.connection.close()
             self.assertLess(time.time() - start_time, 3)
 
-    @setup(new_connection=False, queue=False)
+    @setup(new_connection=False)
     def test_functional_close_after_channel_close_forced_by_server(self):
         """Make sure the channel is closed instantly when the remote server
         closes it.
@@ -151,19 +151,25 @@ class ReliabilityFunctionalTests(TestFunctionalFramework):
         :return:
         """
         for _ in range(10):
-            self.connection = self.connection = Connection(HOST, USERNAME,
-                                                           PASSWORD)
-            self.channel = self.connection.channel(rpc_timeout=360)
-
+            connection = Connection(
+                HOST, USERNAME, PASSWORD
+            )
+            channel = connection.channel()
+            channel.confirm_deliveries()
+            try:
+                channel.basic.publish(
+                    body=self.message,
+                    routing_key=self.queue_name,
+                    exchange='invalid'
+                )
+            except (AMQPConnectionError, AMQPChannelError):
+                pass
             start_time = time.time()
-            self.channel.basic.publish(body=self.message,
-                                       routing_key=self.queue_name,
-                                       exchange='invalid')
-            self.channel.close()
+            channel.close()
             self.assertLess(time.time() - start_time, 3)
 
             start_time = time.time()
-            self.connection.close()
+            connection.close()
             self.assertLess(time.time() - start_time, 3)
 
     @setup(new_connection=False)
