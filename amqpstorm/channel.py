@@ -504,6 +504,11 @@ class Channel(BaseChannel):
         :param specification.Channel.Close frame_in: Channel Close frame.
         :return:
         """
+        if self._connection.is_open:
+            try:
+                self.write_frame(specification.Channel.CloseOk())
+            except AMQPConnectionError:
+                pass
         self.set_state(self.CLOSED)
         self.remove_consumer_tag()
         if self._inbound:
