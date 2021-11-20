@@ -3,6 +3,7 @@ import sys
 import threading
 import time
 
+from amqpstorm import AMQPChannelError
 from amqpstorm import AMQPConnectionError
 from amqpstorm import AMQPMessageError
 from amqpstorm import Connection
@@ -185,6 +186,35 @@ class ReliabilityFunctionalTests(TestFunctionalFramework):
         finally:
             sys.modules['ssl'] = restore_func
             imp.reload(compatibility)
+
+    @setup(new_connection=False, queue=True)
+    def test_functional_verify_passive_declare(self):
+
+        self.connection = self.connection = Connection(HOST, USERNAME,
+                                                       PASSWORD)
+        self.channel = self.connection.channel()
+        self.assertEqual(int(self.channel), 1)
+
+        self.assertRaises(
+            AMQPChannelError,
+            self.channel.queue.declare, self.queue_name, passive=True
+        )
+
+        self.channel = self.connection.channel()
+        self.assertEqual(int(self.channel), 1)
+
+        self.assertRaises(
+            AMQPChannelError,
+            self.channel.queue.declare, self.queue_name, passive=True
+        )
+
+        self.channel = self.connection.channel()
+        self.assertEqual(int(self.channel), 1)
+
+        self.channel.queue.declare(self.queue_name)
+
+        self.channel.close()
+        self.connection.close()
 
 
 class PublishAndConsume1kTest(TestFunctionalFramework):
