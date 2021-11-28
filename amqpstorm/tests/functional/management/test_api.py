@@ -61,6 +61,14 @@ class ApiFunctionalTests(TestFunctionalFramework):
         self.assertIn('node', result)
         self.assertIn('management_version', result)
 
+    def test_api_cluster_name(self):
+        api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
+        result = api.cluster_name()
+
+        self.assertIsInstance(result, dict)
+        self.assertIn('name', result)
+        self.assertEqual('rabbit@rmq.amqpstorm.io', result['name'])
+
     def test_api_nodes(self):
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
         result = api.nodes()
