@@ -12,6 +12,7 @@ from amqpstorm.management.virtual_host import VirtualHost
 API_ALIVENESS_TEST = 'aliveness-test/%s'
 API_NODES = 'nodes'
 API_OVERVIEW = 'overview'
+API_CLUSTER_NAME = 'cluster-name'
 API_WHOAMI = 'whoami'
 API_TOP = 'top/%s'
 
@@ -198,6 +199,16 @@ class ManagementApi(object):
         :rtype: dict
         """
         return self.http_client.get(API_OVERVIEW)
+
+    def cluster_name(self):
+        """Get Cluster Name.
+
+        :raises ApiError: Raises if the remote server encountered an error.
+        :raises ApiConnectionError: Raises if there was a connectivity issue.
+
+        :rtype: dict
+        """
+        return self.http_client.get(API_CLUSTER_NAME)
 
     def nodes(self):
         """Get Nodes.
