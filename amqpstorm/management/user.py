@@ -8,6 +8,7 @@ API_USER_VIRTUAL_HOST_PERMISSIONS = 'permissions/%s/%s'
 API_USERS = 'users'
 API_USERS_BULK_DELETE = 'users/bulk-delete'
 
+
 class User(ManagementHandler):
     def get(self, username):
         """Get User details.
