@@ -3,11 +3,10 @@ from amqpstorm.compatibility import quote
 from amqpstorm.management.base import ManagementHandler
 
 API_USER = 'users/%s'
+API_USER_PERMISSIONS = 'users/%s/permissions'
+API_USER_VIRTUAL_HOST_PERMISSIONS = 'permissions/%s/%s'
 API_USERS = 'users'
 API_USERS_BULK_DELETE = 'users/bulk-delete'
-API_USER_VIRTUAL_HOST_PERMISSIONS = 'permissions/%s/%s'
-API_USER_PERMISSIONS = 'users/%s/permissions'
-
 
 class User(ManagementHandler):
     def get(self, username):

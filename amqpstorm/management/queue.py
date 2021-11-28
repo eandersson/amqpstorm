@@ -3,12 +3,12 @@ from amqpstorm.compatibility import quote
 from amqpstorm.management.base import ManagementHandler
 
 API_QUEUE = 'queues/%s/%s'
+API_QUEUE_BIND = 'bindings/%s/e/%s/q/%s'
+API_QUEUE_BINDINGS = 'queues/%s/%s/bindings'
 API_QUEUE_PURGE = 'queues/%s/%s/contents'
+API_QUEUE_UNBIND = 'bindings/%s/e/%s/q/%s/%s'
 API_QUEUES = 'queues'
 API_QUEUES_VIRTUAL_HOST = 'queues/%s'
-API_QUEUE_BINDINGS = 'queues/%s/%s/bindings'
-API_QUEUE_BIND = 'bindings/%s/e/%s/q/%s'
-API_QUEUE_UNBIND = 'bindings/%s/e/%s/q/%s/%s'
 
 
 class Queue(ManagementHandler):

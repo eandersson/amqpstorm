@@ -10,11 +10,12 @@ from amqpstorm.management.user import User
 from amqpstorm.management.virtual_host import VirtualHost
 
 API_ALIVENESS_TEST = 'aliveness-test/%s'
+API_CLUSTER_NAME = 'cluster-name'
+API_NODE = 'nodes/%s'
 API_NODES = 'nodes'
 API_OVERVIEW = 'overview'
-API_CLUSTER_NAME = 'cluster-name'
-API_WHOAMI = 'whoami'
 API_TOP = 'top/%s'
+API_WHOAMI = 'whoami'
 
 
 class ManagementApi(object):
@@ -37,7 +38,7 @@ class ManagementApi(object):
     :param str api_url: RabbitMQ Management url (e.g. https://rmq.amqpstorm.io:15671)
     :param str username: Username (e.g. guest)
     :param str password: Password (e.g. guest)
-    :param int timeout: TCP Timeout
+    :param int,float timeout: TCP Timeout
     :param None,str,bool verify: Requests session verify (e.g. True, False or path to CA bundle)
     :param None,str,tuple cert: Requests session cert
     """
@@ -190,16 +191,6 @@ class ManagementApi(object):
         return self.http_client.get(API_ALIVENESS_TEST %
                                     virtual_host)
 
-    def overview(self):
-        """Get Overview.
-
-        :raises ApiError: Raises if the remote server encountered an error.
-        :raises ApiConnectionError: Raises if there was a connectivity issue.
-
-        :rtype: dict
-        """
-        return self.http_client.get(API_OVERVIEW)
-
     def cluster_name(self):
         """Get Cluster Name.
 
@@ -210,6 +201,16 @@ class ManagementApi(object):
         """
         return self.http_client.get(API_CLUSTER_NAME)
 
+    def node(self, name):
+        """Get Nodes.
+
+        :raises ApiError: Raises if the remote server encountered an error.
+        :raises ApiConnectionError: Raises if there was a connectivity issue.
+
+        :rtype: dict
+        """
+        return self.http_client.get(API_NODE % name)
+
     def nodes(self):
         """Get Nodes.
 
@@ -219,6 +220,16 @@ class ManagementApi(object):
         :rtype: dict
         """
         return self.http_client.get(API_NODES)
+
+    def overview(self):
+        """Get Overview.
+
+        :raises ApiError: Raises if the remote server encountered an error.
+        :raises ApiConnectionError: Raises if there was a connectivity issue.
+
+        :rtype: dict
+        """
+        return self.http_client.get(API_OVERVIEW)
 
     def top(self):
         """Top Processes.
