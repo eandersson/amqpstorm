@@ -4,6 +4,7 @@ from amqpstorm.management.base import ManagementHandler
 
 API_USER = 'users/%s'
 API_USERS = 'users'
+API_USERS_BULK_DELETE = 'users/bulk-delete'
 API_USER_VIRTUAL_HOST_PERMISSIONS = 'permissions/%s/%s'
 API_USER_PERMISSIONS = 'users/%s/permissions'
 
@@ -50,15 +51,20 @@ class User(ManagementHandler):
                                     payload=user_payload)
 
     def delete(self, username):
-        """Delete User.
+        """Delete User or a list of Users.
 
-        :param str username: Username
+        :param str,list username: Username or a list of Usernames
 
         :raises ApiError: Raises if the remote server encountered an error.
         :raises ApiConnectionError: Raises if there was a connectivity issue.
 
         :rtype: dict
         """
+        if isinstance(username, list):
+            return self.http_client.post(
+                API_USERS_BULK_DELETE,
+                payload=json.dumps({'users': username})
+            )
         return self.http_client.delete(API_USER % username)
 
     def get_permission(self, username, virtual_host):

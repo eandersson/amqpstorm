@@ -57,6 +57,28 @@ class ApiUserFunctionalTests(TestFunctionalFramework):
             api.user.delete(username)
             self.assertRaises(ApiError, api.user.get, username)
 
+    def test_api_delete_bulk(self):
+        users = []
+        password = str(uuid.uuid4())
+        api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
+
+        try:
+            for _ in range(5):
+                username = str(uuid.uuid4())
+                users.append(username)
+                api.user.create(username, password)
+
+            api.user.delete(users)
+
+            for username in users:
+                self.assertRaises(ApiError, api.user.get, username)
+        finally:
+            for username in users:
+                try:
+                    api.user.delete(username)
+                except Exception:
+                    pass
+
     def test_api_user_get_permission(self):
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
 
