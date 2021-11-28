@@ -3,11 +3,11 @@ from amqpstorm.compatibility import quote
 from amqpstorm.management.base import ManagementHandler
 
 API_EXCHANGE = 'exchanges/%s/%s'
+API_EXCHANGE_BIND = 'bindings/%s/e/%s/e/%s'
+API_EXCHANGE_BINDINGS = 'exchanges/%s/%s/bindings/source'
+API_EXCHANGE_UNBIND = 'bindings/%s/e/%s/e/%s/%s'
 API_EXCHANGES = 'exchanges'
 API_EXCHANGES_VIRTUAL_HOST = 'exchanges/%s'
-API_EXCHANGE_BINDINGS = 'exchanges/%s/%s/bindings/source'
-API_EXCHANGE_BIND = 'bindings/%s/e/%s/e/%s'
-API_EXCHANGE_UNBIND = 'bindings/%s/e/%s/e/%s/%s'
 
 
 class Exchange(ManagementHandler):

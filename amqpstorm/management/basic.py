@@ -3,8 +3,8 @@ from amqpstorm.compatibility import quote
 from amqpstorm.management.base import ManagementHandler
 from amqpstorm.message import Message
 
-API_BASIC_PUBLISH = 'exchanges/%s/%s/publish'
 API_BASIC_GET_MESSAGE = 'queues/%s/%s/get'
+API_BASIC_PUBLISH = 'exchanges/%s/%s/publish'
 
 
 class Basic(ManagementHandler):
