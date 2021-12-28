@@ -1,6 +1,7 @@
 """AMQPStorm Connection.Channel."""
 
 import logging
+import threading
 import time
 
 from pamqp import commands
@@ -42,6 +43,7 @@ class Channel(BaseChannel):
 
     def __init__(self, channel_id, connection, rpc_timeout):
         super(Channel, self).__init__(channel_id)
+        self.lock = threading.Lock()
         self.rpc = Rpc(self, timeout=rpc_timeout)
         self._consumer_callbacks = {}
         self._confirming_deliveries = False

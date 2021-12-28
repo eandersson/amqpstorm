@@ -72,7 +72,8 @@ class Connection(Stateful):
     ]
 
     def __init__(self, hostname, username, password, port=5672, **kwargs):
-        super(Connection, self).__init__(lock_type=threading.RLock)
+        super(Connection, self).__init__()
+        self.lock = threading.RLock()
         self.parameters = {
             'hostname': hostname,
             'username': username,
