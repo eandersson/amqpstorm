@@ -1,7 +1,6 @@
 """AMQPStorm Base."""
 
 import locale
-import threading
 
 from amqpstorm.compatibility import is_string
 from amqpstorm.exception import AMQPChannelError
@@ -20,18 +19,9 @@ class Stateful(object):
     OPENING = 2
     OPEN = 3
 
-    def __init__(self, lock_type=threading.Lock):
-        self._lock = lock_type()
+    def __init__(self):
         self._state = self.CLOSED
         self._exceptions = []
-
-    @property
-    def lock(self):
-        """Threading lock.
-
-        :return:
-        """
-        return self._lock
 
     def set_state(self, state):
         """Set State.
