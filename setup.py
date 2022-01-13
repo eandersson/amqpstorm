@@ -22,7 +22,7 @@ def get_version(rel_path):
 
 setup(
     name='AMQPStorm',
-    python_requires='>=3.6',
+    python_requires='>=3.8',
     version=get_version('amqpstorm/__init__.py'),
     description='Thread-safe Python RabbitMQ Client & Management library.',
     long_description=open('README.rst').read(),
@@ -44,10 +44,9 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
         'Operating System :: OS Independent',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10.0',
         'Programming Language :: Python :: Implementation :: CPython',
         'Topic :: Communications',
         'Topic :: Internet',
