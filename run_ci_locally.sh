@@ -11,6 +11,9 @@ docker cp amqpstormdev:/etc/rabbitmq/ssl/ ./amqpstorm/tests/resources/
 # Wait for RabbitMQ to startup properly.
 docker exec amqpstormdev wait-for-rabbitmq
 
+# Print RabbitMQ version
+echo "RabbitMQ Version: $(docker exec amqpstormdev rabbitmqctl --version)"
+
 # Add user.
 docker exec amqpstormdev rabbitmqctl add_user 'amqpstorm' '2a55f70a841f18b'
 docker exec amqpstormdev rabbitmqctl -p / set_permissions 'amqpstorm' '.*' '.*' '.*'
