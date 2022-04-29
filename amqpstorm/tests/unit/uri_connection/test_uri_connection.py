@@ -25,6 +25,19 @@ class UriConnectionTests(TestFramework):
                          DEFAULT_SOCKET_TIMEOUT)
         self.assertFalse(connection.parameters['ssl'])
 
+    def test_uri_default_port(self):
+        connection = UriConnection(
+            'amqp://guest:guest@localhost/%2F', lazy=True
+        )
+
+        self.assertEqual(connection.parameters['port'], 5672)
+
+        connection = UriConnection(
+            'amqps://guest:guest@localhost/%2F', lazy=True
+        )
+
+        self.assertEqual(connection.parameters['port'], 5671)
+
     def test_uri_ssl(self):
         connection = UriConnection(
             'amqps://guest:guest@localhost:5672/%2F', lazy=True
