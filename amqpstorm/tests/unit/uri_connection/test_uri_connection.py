@@ -83,11 +83,11 @@ class UriConnectionTests(TestFramework):
 
     def test_uri_set_port(self):
         connection = UriConnection(
-            'amqps://guest:guest@localhost:5672/%2F', lazy=True
+            'amqps://guest:guest@localhost:9999/%2F', lazy=True
         )
 
         self.assertIsInstance(connection.parameters['port'], int)
-        self.assertEqual(connection.parameters['port'], 5672)
+        self.assertEqual(connection.parameters['port'], 9999)
 
     def test_uri_set_heartbeat(self):
         connection = UriConnection(
