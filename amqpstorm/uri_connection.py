@@ -58,7 +58,7 @@ class UriConnection(Connection):
         parsed_uri = urlparse.urlparse(uri)
         use_ssl = parsed_uri.scheme == 'amqps' or parsed_uri.scheme == 'https'
         hostname = parsed_uri.hostname or 'localhost'
-        port = parsed_uri.port or 5672
+        port = parsed_uri.port or (5671 if use_ssl else 5672)
         username = urlparse.unquote(parsed_uri.username or 'guest')
         password = urlparse.unquote(parsed_uri.password or 'guest')
         kwargs = self._parse_uri_options(parsed_uri, use_ssl, ssl_options)
