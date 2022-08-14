@@ -20,6 +20,12 @@ Additional documentation is available on `amqpstorm.io <https://www.amqpstorm.io
 Changelog
 =========
 
+Version 2.10.5
+--------------
+- Added support for bulk removing users using the Management Api.
+- Added support to get the Cluster name using the Management Api.
+- Fixed ConnectionUri to default to port 5761 when using ssl [#119] - Thanks s-at-ik.
+
 Version 2.10.4
 --------------
 - Fixed issue with a forcefully closed channel not sending the appropriate response [#114] - Thanks Bernd Höhl.
