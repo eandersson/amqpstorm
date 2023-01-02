@@ -20,6 +20,10 @@ Additional documentation is available on `amqpstorm.io <https://www.amqpstorm.io
 Changelog
 =========
 
+Version 2.10.6
+--------------
+- Fixed deprecated warning when using Python 3.11.
+
 Version 2.10.5
 --------------
 - Added support for bulk removing users using the Management Api.
