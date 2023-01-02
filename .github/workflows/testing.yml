@@ -9,14 +9,14 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
-        python-version: [2.7, 3.6, 3.8, 3.9, 3.10.0, 3.11.0]
+        python-version: [2.7.18, 3.6.15, 3.8.15, 3.9.16, 3.10.9, 3.11.1]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
