@@ -1,4 +1,4 @@
-import imp
+import importlib
 import sys
 import threading
 import time
@@ -182,7 +182,7 @@ class ReliabilityFunctionalTests(TestFunctionalFramework):
         restore_func = sys.modules['ssl']
         try:
             sys.modules['ssl'] = None
-            imp.reload(compatibility)
+            importlib.reload(compatibility)
             self.assertIsNone(compatibility.ssl)
             self.assertRaisesRegex(
                 AMQPConnectionError,
@@ -191,7 +191,7 @@ class ReliabilityFunctionalTests(TestFunctionalFramework):
             )
         finally:
             sys.modules['ssl'] = restore_func
-            imp.reload(compatibility)
+            importlib.reload(compatibility)
 
     @setup(new_connection=False, queue=True)
     def test_functional_verify_passive_declare(self):
