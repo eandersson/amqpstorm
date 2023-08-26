@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import imp
+import importlib
 import ssl
 import sys
 
@@ -126,7 +126,7 @@ class CompatibilitySslTests(unittest.TestCase):
         restore_func = sys.modules['ssl']
         try:
             sys.modules['ssl'] = None
-            imp.reload(compatibility)
+            importlib.reload(compatibility)
             self.assertIsNone(compatibility.ssl)
             self.assertIsNone(compatibility.DEFAULT_SSL_VERSION)
             self.assertFalse(compatibility.SSL_SUPPORTED)
@@ -134,7 +134,7 @@ class CompatibilitySslTests(unittest.TestCase):
             self.assertFalse(compatibility.SSL_VERSIONS)
         finally:
             sys.modules['ssl'] = restore_func
-            imp.reload(compatibility)
+            importlib.reload(compatibility)
 
     def test_compatibility_no_supported_ssl_version(self):
         """This tests mimics the behavior of a Python build without
@@ -147,7 +147,7 @@ class CompatibilitySslTests(unittest.TestCase):
             del sys.modules['ssl'].PROTOCOL_TLSv1_2
             del sys.modules['ssl'].PROTOCOL_TLSv1_1
             del sys.modules['ssl'].PROTOCOL_TLSv1
-            imp.reload(compatibility)
+            importlib.reload(compatibility)
             self.assertIsNone(compatibility.DEFAULT_SSL_VERSION)
             self.assertFalse(compatibility.SSL_SUPPORTED)
             self.assertFalse(compatibility.SSL_CERT_MAP)
@@ -156,7 +156,7 @@ class CompatibilitySslTests(unittest.TestCase):
             sys.modules['ssl'].PROTOCOL_TLSv1_2 = restore_tls_v1_2
             sys.modules['ssl'].PROTOCOL_TLSv1_1 = restore_tls_v1_1
             sys.modules['ssl'].PROTOCOL_TLSv1 = restore_tls_v1
-            imp.reload(compatibility)
+            importlib.reload(compatibility)
 
     def test_compatibility_only_tls_v1_supported(self):
         """This test mimics the behavior of earlier versions of Python that
@@ -167,10 +167,10 @@ class CompatibilitySslTests(unittest.TestCase):
         try:
             del sys.modules['ssl'].PROTOCOL_TLSv1_2
             del sys.modules['ssl'].PROTOCOL_TLSv1_1
-            imp.reload(compatibility)
+            importlib.reload(compatibility)
             self.assertEqual(compatibility.get_default_ssl_version(),
                              ssl.PROTOCOL_TLSv1)
         finally:
             sys.modules['ssl'].PROTOCOL_TLSv1_2 = restore_tls_v1_2
             sys.modules['ssl'].PROTOCOL_TLSv1_1 = restore_tls_v1
-            imp.reload(compatibility)
+            importlib.reload(compatibility)

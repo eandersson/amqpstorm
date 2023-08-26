@@ -1,4 +1,4 @@
-import imp
+import importlib
 import ssl
 import sys
 
@@ -57,7 +57,7 @@ class UriConnectionExceptionTests(TestFramework):
         restore_func = sys.modules['ssl']
         try:
             sys.modules['ssl'] = None
-            imp.reload(compatibility)
+            importlib.reload(compatibility)
             self.assertIsNone(compatibility.ssl)
             self.assertRaisesRegex(
                 AMQPConnectionError,
@@ -66,4 +66,4 @@ class UriConnectionExceptionTests(TestFramework):
             )
         finally:
             sys.modules['ssl'] = restore_func
-            imp.reload(compatibility)
+            importlib.reload(compatibility)
