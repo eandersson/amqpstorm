@@ -43,15 +43,15 @@ class HeartbeatTests(TestFramework):
         self.assertFalse(heartbeat._running.is_set())
         self.assertIsNone(heartbeat._timer)
 
-    def test_heartbeat_interval(self):
+    def test_heartbeat_timeout(self):
         heartbeat = Heartbeat(60, fake_function)
 
-        self.assertEqual(heartbeat._interval, 60)
+        self.assertEqual(heartbeat._interval, 30)
         self.assertEqual(heartbeat._threshold, 0)
 
         heartbeat = Heartbeat(360, fake_function)
 
-        self.assertEqual(heartbeat._interval, 360)
+        self.assertEqual(heartbeat._interval, 180)
         self.assertEqual(heartbeat._threshold, 0)
 
     def test_heartbeat_no_interval(self):
@@ -229,7 +229,7 @@ class HeartbeatTests(TestFramework):
 
         self.assertRaisesRegex(
             AMQPConnectionError,
-            'Connection dead, no heartbeat or data received in >= 120s',
+            'Connection dead, no heartbeat or data received in >= 60s',
             heartbeat._raise_or_append_exception
         )
 
@@ -237,7 +237,7 @@ class HeartbeatTests(TestFramework):
 
         self.assertRaisesRegex(
             AMQPConnectionError,
-            'Connection dead, no heartbeat or data received in >= 240',
+            'Connection dead, no heartbeat or data received in >= 120s',
             heartbeat._raise_or_append_exception
         )
 
@@ -252,14 +252,14 @@ class HeartbeatTests(TestFramework):
 
         self.assertRaisesRegex(
             AMQPConnectionError,
-            'Connection dead, no heartbeat or data received in >= 120s',
+            'Connection dead, no heartbeat or data received in >= 60s',
             check, heartbeat._exceptions
         )
 
-        heartbeat._interval = 120
+        heartbeat._interval = 120 // 2
 
         self.assertRaisesRegex(
             AMQPConnectionError,
-            'Connection dead, no heartbeat or data received in >= 240',
+            'Connection dead, no heartbeat or data received in >= 120s',
             check, heartbeat._exceptions
         )

@@ -6,7 +6,7 @@ from amqpstorm import compatibility
 from amqpstorm.compatibility import ssl
 from amqpstorm.compatibility import urlparse
 from amqpstorm.connection import Connection
-from amqpstorm.connection import DEFAULT_HEARTBEAT_INTERVAL
+from amqpstorm.connection import DEFAULT_HEARTBEAT_TIMEOUT
 from amqpstorm.connection import DEFAULT_SOCKET_TIMEOUT
 from amqpstorm.connection import DEFAULT_VIRTUAL_HOST
 from amqpstorm.exception import AMQPConnectionError
@@ -83,7 +83,7 @@ class UriConnection(Connection):
             'ssl': use_ssl,
             'virtual_host': vhost,
             'heartbeat': int(kwargs.pop('heartbeat',
-                                        [DEFAULT_HEARTBEAT_INTERVAL])[0]),
+                                        [DEFAULT_HEARTBEAT_TIMEOUT])[0]),
             'timeout': int(kwargs.pop('timeout',
                                       [DEFAULT_SOCKET_TIMEOUT])[0])
         }
