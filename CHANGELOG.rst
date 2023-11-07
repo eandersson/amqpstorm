@@ -1,6 +1,11 @@
 Changelog
 =========
 
+Version 2.10.7
+--------------
+- Fixed bug with heartbeat interval on the client not sent frequently enough [#127] - Thanks Ivan Héda.
+- Added support for Python 3.12.
+
 Version 2.10.6
 --------------
 - Fixed deprecated warning when using Python 3.11.
