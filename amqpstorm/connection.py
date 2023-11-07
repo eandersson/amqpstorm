@@ -22,7 +22,7 @@ from amqpstorm.io import IO
 
 LOGGER = logging.getLogger(__name__)
 
-DEFAULT_HEARTBEAT_INTERVAL = 60
+DEFAULT_HEARTBEAT_TIMEOUT = 60
 DEFAULT_SOCKET_TIMEOUT = 10
 DEFAULT_VIRTUAL_HOST = '/'
 
@@ -57,7 +57,7 @@ class Connection(Stateful):
     :param str password: Password
     :param int port: Server port
     :param str virtual_host: Virtual host
-    :param int heartbeat: RabbitMQ Heartbeat interval
+    :param int heartbeat: RabbitMQ Heartbeat timeout
     :param int,float timeout: Socket timeout
     :param bool ssl: Enable SSL
     :param dict ssl_options: SSL kwargs
@@ -80,7 +80,7 @@ class Connection(Stateful):
             'password': password,
             'port': port,
             'virtual_host': kwargs.get('virtual_host', DEFAULT_VIRTUAL_HOST),
-            'heartbeat': kwargs.get('heartbeat', DEFAULT_HEARTBEAT_INTERVAL),
+            'heartbeat': kwargs.get('heartbeat', DEFAULT_HEARTBEAT_TIMEOUT),
             'timeout': kwargs.get('timeout', DEFAULT_SOCKET_TIMEOUT),
             'ssl': kwargs.get('ssl', False),
             'ssl_options': kwargs.get('ssl_options', {}),
