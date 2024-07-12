@@ -321,6 +321,8 @@ class Channel(BaseChannel):
         for message in self.build_inbound_messages(break_on_empty=True,
                                                    auto_decode=auto_decode):
             consumer_tag = message._method.get('consumer_tag')
+            if consumer_tag not in self._consumer_callbacks:
+                continue
             if to_tuple:
                 # noinspection PyCallingNonCallable
                 self._consumer_callbacks[consumer_tag](*message.to_tuple())

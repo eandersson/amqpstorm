@@ -390,6 +390,31 @@ class ChannelProcessDataEventTests(TestFramework):
         self.assertIsInstance(properties, dict)
         self.assertEqual(body, message)
 
+    def test_channel_process_data_events_no_callback_yet(self):
+        self.msg = None
+
+        channel = Channel(0, FakeConnection(), 360)
+        channel.set_state(channel.OPEN)
+
+        message = self.message.encode('utf-8')
+        message_len = len(message)
+
+        deliver = specification.Basic.Deliver(consumer_tag='travis-ci')
+        header = ContentHeader(body_size=message_len)
+        body = ContentBody(value=message)
+
+        channel._inbound = [deliver, header, body]
+
+        def callback(msg):
+            self.msg = msg
+
+        channel._consumer_callbacks['fake'] = callback
+
+        # We should not raise when the callback isn't set yet.
+        channel.process_data_events()
+
+        self.assertIsNone(self.msg)
+
 
 class ChannelStartConsumingTests(TestFramework):
     def test_channel_start_consuming(self):
