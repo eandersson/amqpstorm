@@ -1,5 +1,4 @@
-FROM rabbitmq:management-alpine
-RUN apk --update add openssl
+FROM rabbitmq:management
 
 env RABBITMQ_USE_LONGNAME=true
 RUN mkdir -p /etc/rabbitmq/ssl/
