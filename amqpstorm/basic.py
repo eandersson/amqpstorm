@@ -90,7 +90,7 @@ class Basic(Handler):
         get_frame = commands.Basic.Get(queue=queue,
                                        no_ack=no_ack)
 
-        with self._channel.lock and self._channel.rpc.lock:
+        with self._channel.lock:
             message = self._get_message(get_frame, auto_decode=auto_decode,
                                         message_impl=message_impl)
             if message and to_dict:
@@ -169,8 +169,9 @@ class Basic(Handler):
         if not compatibility.is_string(consumer_tag):
             raise AMQPInvalidArgument('consumer_tag should be a string')
         cancel_frame = commands.Basic.Cancel(consumer_tag=consumer_tag)
-        result = self._channel.rpc_request(cancel_frame)
-        self._channel.remove_consumer_tag(consumer_tag)
+        with self._channel.lock:
+            result = self._channel.rpc_request(cancel_frame)
+            self._channel.remove_consumer_tag(consumer_tag)
         return result
 
     def publish(self, body, routing_key, exchange='', properties=None,
@@ -365,23 +366,25 @@ class Basic(Handler):
 
         :rtype: Message
         """
-        message_uuid = self._channel.rpc.register_request(
-            get_frame.valid_responses + ['ContentHeader', 'ContentBody']
-        )
-        try:
-            self._channel.write_frame(get_frame)
-            get_ok_frame = self._channel.rpc.get_request(message_uuid,
-                                                         raw=True,
-                                                         multiple=True)
-            if isinstance(get_ok_frame, commands.Basic.GetEmpty):
-                return None
-            content_header = self._channel.rpc.get_request(message_uuid,
-                                                           raw=True,
-                                                           multiple=True)
-            body = self._get_content_body(message_uuid,
-                                          content_header.body_size)
-        finally:
-            self._channel.rpc.remove(message_uuid)
+        with self._channel.rpc.lock:
+            message_uuid = self._channel.rpc.register_request(
+                get_frame.valid_responses + ['ContentHeader', 'ContentBody']
+            )
+            try:
+                self._channel.write_frame(get_frame)
+                get_ok_frame = self._channel.rpc.get_request(message_uuid,
+                                                             raw=True,
+                                                             multiple=True)
+                if isinstance(get_ok_frame, commands.Basic.GetEmpty):
+                    return None
+                content_header = self._channel.rpc.get_request(message_uuid,
+                                                               raw=True,
+                                                               multiple=True)
+                body = self._get_content_body(message_uuid,
+                                              content_header.body_size)
+            finally:
+                self._channel.rpc.remove(message_uuid)
+
         return message_impl(channel=self._channel,
                             body=body,
                             method=dict(get_ok_frame),
