@@ -20,6 +20,10 @@ Additional documentation is available on `amqpstorm.io <https://www.amqpstorm.io
 Changelog
 =========
 
+Version 2.10.8
+--------------
+- Fixed bug with multi-threaded basic.consume not always being threadsafe [#132] - Thanks mic1on.
+
 Version 2.10.7
 --------------
 - Fixed bug with heartbeat interval on the client not sent frequently enough [#127] - Thanks Ivan Héda.
