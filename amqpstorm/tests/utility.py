@@ -43,7 +43,8 @@ class FakeConnection(Connection):
             'heartbeat': 60,
             'timeout': 30,
             'ssl': False,
-            'ssl_options': {}
+            'ssl_options': {},
+            'poller': 'select',
         }
         self.set_state(state)
         self.on_write = on_write

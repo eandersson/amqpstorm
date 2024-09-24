@@ -1,5 +1,7 @@
 """Python 2/3 Compatibility layer."""
 
+import socket
+
 try:
     import ssl
 except ImportError:
@@ -26,6 +28,14 @@ class DummyException(Exception):
     exception cannot be imported.
     """
 
+
+def get_default_poller():
+    if hasattr(socket, 'poll'):
+        return 'poll'
+    return 'select'
+
+
+DEFAULT_POLLER = get_default_poller()
 
 SSL_CERT_MAP = {}
 SSL_VERSIONS = {}
