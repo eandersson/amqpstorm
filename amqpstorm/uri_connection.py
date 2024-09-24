@@ -84,6 +84,8 @@ class UriConnection(Connection):
             'virtual_host': vhost,
             'heartbeat': int(kwargs.pop('heartbeat',
                                         [DEFAULT_HEARTBEAT_TIMEOUT])[0]),
+            'poller': kwargs.pop('poller',
+                                 [compatibility.DEFAULT_POLLER])[0],
             'timeout': int(kwargs.pop('timeout',
                                       [DEFAULT_SOCKET_TIMEOUT])[0])
         }

@@ -18,14 +18,10 @@ LOGGER = logging.getLogger(__name__)
 POLL_TIMEOUT = 1.0
 
 
-class Poller(object):
-    """Socket Read Poller."""
-
-    def __init__(self, fileno, exceptions, timeout=5):
-        self.select = select
+class BasePoller(object):
+    def __init__(self, fileno, exceptions):
         self._fileno = fileno
         self._exceptions = exceptions
-        self.timeout = timeout
 
     @property
     def fileno(self):
@@ -35,6 +31,13 @@ class Poller(object):
         """
         return self._fileno
 
+    def close(self):
+        pass
+
+
+class SelectPoller(BasePoller):
+    """"Socket Read Poller using select.select."""
+
     @property
     def is_ready(self):
         """Is Socket Ready.
@@ -42,13 +45,44 @@ class Poller(object):
         :rtype: tuple
         """
         try:
-            ready, _, _ = self.select.select([self.fileno], [], [],
-                                             POLL_TIMEOUT)
+            ready, _, _ = select.select([self.fileno], [], [], POLL_TIMEOUT)
             return bool(ready)
-        except self.select.error as why:
+        except select.error as why:
             if why.args[0] != EINTR:
                 self._exceptions.append(AMQPConnectionError(why))
         return False
+
+
+class Poller(BasePoller):
+    """Socket Read Poller using select.poll."""
+
+    def __init__(self, fileno, exceptions):
+        super().__init__(fileno, exceptions)
+        self.poller = select.poll()
+        self.poller.register(self._fileno, select.POLLIN | select.POLLPRI)
+
+    @property
+    def is_ready(self):
+        """Check if the socket is ready for reading.
+
+        :rtype: bool
+        """
+        try:
+            events = self.poller.poll(POLL_TIMEOUT)
+            for fd, event in events:
+                if fd == self.fileno:
+                    return True
+        except select.error as why:
+            if why.args[0] != EINTR:
+                self._exceptions.append(AMQPConnectionError(why))
+        return False
+
+    def close(self):
+        """Unregister the file descriptor."""
+        try:
+            self.poller.unregister(self.fileno)
+        except OSError:
+            pass
 
 
 class IO(object):
@@ -66,6 +100,7 @@ class IO(object):
         self.poller = None
         self.socket = None
         self.use_ssl = self._parameters['ssl']
+        self.poller_type = self._parameters['poller']
 
     def close(self):
         """Close Socket.
@@ -102,8 +137,10 @@ class IO(object):
             self._running.set()
             sock_addresses = self._get_socket_addresses()
             self.socket = self._find_address_and_connect(sock_addresses)
-            self.poller = Poller(self.socket.fileno(), self._exceptions,
-                                 timeout=self._parameters['timeout'])
+            if self.poller_type == 'poll':
+                self.poller = Poller(self.socket.fileno(), self._exceptions)
+            else:
+                self.poller = SelectPoller(self.socket.fileno(), self._exceptions)
             self._inbound_thread = self._create_inbound_thread()
         finally:
             self._wr_lock.release()
@@ -147,6 +184,8 @@ class IO(object):
         if not self.socket:
             return
         try:
+            if self.poller:
+                self.poller.close()
             if self.use_ssl:
                 self.socket.unwrap()
             self.socket.shutdown(socket.SHUT_RDWR)
