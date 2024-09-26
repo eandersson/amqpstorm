@@ -1,6 +1,6 @@
 """Python 2/3 Compatibility layer."""
 
-import socket
+import select
 
 try:
     import ssl
@@ -30,7 +30,7 @@ class DummyException(Exception):
 
 
 def get_default_poller():
-    if hasattr(socket, 'poll'):
+    if hasattr(select, 'poll'):
         return 'poll'
     return 'select'
 
