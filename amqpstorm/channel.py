@@ -444,14 +444,13 @@ class Channel(BaseChannel):
 
         :rtype: Message
         """
-        with self.lock:
-            if len(self._inbound) < 2:
-                return None
-            headers = self._build_message_headers()
-            if not headers:
-                return None
-            basic_deliver, content_header = headers
-            body = self._build_message_body(content_header.body_size)
+        if len(self._inbound) < 2:
+            return None
+        headers = self._build_message_headers()
+        if not headers:
+            return None
+        basic_deliver, content_header = headers
+        body = self._build_message_body(content_header.body_size)
 
         message = message_impl(channel=self,
                                body=body,
