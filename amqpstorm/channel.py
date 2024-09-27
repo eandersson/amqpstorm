@@ -1,5 +1,6 @@
 """AMQPStorm Connection.Channel."""
 
+import collections
 import logging
 import threading
 import time
@@ -48,7 +49,7 @@ class Channel(BaseChannel):
         self._consumer_callbacks = {}
         self._confirming_deliveries = False
         self._connection = connection
-        self._inbound = []
+        self._inbound = collections.deque()
         self._basic = Basic(self, connection.max_frame_size)
         self._exchange = Exchange(self)
         self._tx = Tx(self)
@@ -204,7 +205,7 @@ class Channel(BaseChannel):
             )
         finally:
             if self._inbound:
-                del self._inbound[:]
+                self._inbound.clear()
             self.set_state(self.CLOSED)
         LOGGER.debug('Channel #%d Closed', self.channel_id)
 
@@ -296,7 +297,7 @@ class Channel(BaseChannel):
 
         :return:
         """
-        self._inbound = []
+        self._inbound = collections.deque()
         self._exceptions = []
         self._confirming_deliveries = False
         self.set_state(self.OPENING)
@@ -462,7 +463,7 @@ class Channel(BaseChannel):
 
         :rtype: tuple,None
         """
-        basic_deliver = self._inbound.pop(0)
+        basic_deliver = self._inbound.popleft()
         if not isinstance(basic_deliver, specification.Basic.Deliver):
             LOGGER.warning(
                 'Received an out-of-order frame: %s was '
@@ -470,7 +471,7 @@ class Channel(BaseChannel):
                 type(basic_deliver)
             )
             return None
-        content_header = self._inbound.pop(0)
+        content_header = self._inbound.popleft()
         if not isinstance(content_header, ContentHeader):
             LOGGER.warning(
                 'Received an out-of-order frame: %s was '
@@ -492,7 +493,7 @@ class Channel(BaseChannel):
                 self.check_for_errors()
                 time.sleep(IDLE_WAIT)
                 continue
-            body_piece = self._inbound.pop(0)
+            body_piece = self._inbound.popleft()
             if not body_piece.value:
                 break
             body += body_piece.value
@@ -512,7 +513,8 @@ class Channel(BaseChannel):
                 pass
         self.remove_consumer_tag()
         if self._inbound:
-            del self._inbound[:]
+            self._inbound.clear()
+            self._inbound = None
         self.exceptions.append(AMQPChannelError(
             'Channel %d was closed by remote server: %s' %
             (
