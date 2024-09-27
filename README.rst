@@ -20,6 +20,12 @@ Additional documentation is available on `amqpstorm.io <https://www.amqpstorm.io
 Changelog
 =========
 
+Version 2.11.0
+--------------
+- Replace select.select with select.poll on Linux by default.
+- Replace list with collections.deque - Thanks Bernhard Thiel.
+- Removed unnecessary lock when building messages.
+
 Version 2.10.8
 --------------
 - Fixed bug with multi-threaded basic.consume not always being threadsafe [#132] - Thanks mic1on.
