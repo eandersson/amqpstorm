@@ -1,3 +1,4 @@
+import collections
 import threading
 
 from unittest import mock
@@ -24,7 +25,7 @@ class ChannelBuildMessageTests(TestFramework):
         header = ContentHeader(body_size=message_len)
         body = ContentBody(value=message)
 
-        channel._inbound = [deliver, header, body]
+        channel._inbound = collections.deque([deliver, header, body])
         result = channel._build_message(auto_decode=False,
                                         message_impl=Message)
 
@@ -41,7 +42,7 @@ class ChannelBuildMessageTests(TestFramework):
         header = ContentHeader(body_size=message_len)
         body = ContentBody(value=message)
 
-        channel._inbound = [deliver, header, body]
+        channel._inbound = collections.deque([deliver, header, body])
         result = channel._build_message(auto_decode=True, message_impl=Message)
 
         self.assertIsInstance(result.body, str)
@@ -56,7 +57,7 @@ class ChannelBuildMessageTests(TestFramework):
         deliver = commands.Basic.Deliver()
         header = ContentHeader(body_size=message_len)
 
-        channel._inbound = [deliver, deliver, header]
+        channel._inbound = collections.deque([deliver, deliver, header])
         result = channel._build_message(auto_decode=True, message_impl=Message)
 
         self.assertEqual(result, None)
@@ -73,7 +74,7 @@ class ChannelBuildMessageTests(TestFramework):
         header = ContentHeader(body_size=message_len)
         body = ContentBody(value=message)
 
-        channel._inbound = [header, deliver, header, body]
+        channel._inbound = collections.deque([header, deliver, header, body])
         result = channel._build_message(auto_decode=True, message_impl=Message)
 
         self.assertEqual(result, None)
@@ -86,7 +87,7 @@ class ChannelBuildMessageTests(TestFramework):
         deliver = commands.Basic.Deliver()
         header = ContentHeader(body_size=10)
 
-        channel._inbound = [deliver, header]
+        channel._inbound = collections.deque([deliver, header])
         result = channel._build_message_headers()
 
         self.assertIsInstance(result[0], commands.Basic.Deliver)
@@ -99,14 +100,14 @@ class ChannelBuildMessageTests(TestFramework):
         deliver = commands.Basic.Deliver()
         header = ContentHeader(body_size=10)
 
-        channel._inbound = [header, deliver]
+        channel._inbound = collections.deque([header, deliver])
         result = channel._build_message_headers()
 
         self.assertEqual(result, None)
         self.assertIn("Received an out-of-order frame:",
                       self.get_last_log())
 
-        channel._inbound = [deliver, deliver]
+        channel._inbound = collections.deque([deliver, deliver])
         result = channel._build_message_headers()
 
         self.assertEqual(result, None)
@@ -115,7 +116,7 @@ class ChannelBuildMessageTests(TestFramework):
 
     def test_channel_build_message_headers_empty(self):
         channel = Channel(0, mock.Mock(name='Connection'), 360)
-        channel._inbound = []
+        channel._inbound = collections.deque()
         self.assertRaises(IndexError, channel._build_message_headers)
 
     def test_channel_build_message_empty_and_then_break(self):
@@ -126,7 +127,7 @@ class ChannelBuildMessageTests(TestFramework):
         """
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(Channel.OPEN)
-        channel._inbound = []
+        channel._inbound = collections.deque()
 
         def add_inbound():
             channel._inbound.append(ContentBody(None))
@@ -160,7 +161,7 @@ class ChannelBuildMessageTests(TestFramework):
         message_len = len(message)
 
         body = ContentBody(value=message)
-        channel._inbound = [body]
+        channel._inbound = collections.deque([body])
         result = channel._build_message_body(message_len)
 
         self.assertEqual(message, result)
@@ -172,7 +173,7 @@ class ChannelBuildMessageTests(TestFramework):
         message_len = len(message)
 
         body = ContentBody(value=None)
-        channel._inbound = [body]
+        channel._inbound = collections.deque([body])
         result = channel._build_message_body(message_len)
 
         self.assertEqual(result, b'')
@@ -184,7 +185,7 @@ class ChannelBuildMessageTests(TestFramework):
         message_len = len(message)
 
         body = ContentBody(value=b'')
-        channel._inbound = [body]
+        channel._inbound = collections.deque([body])
         result = channel._build_message_body(message_len)
 
         self.assertEqual(result, b'')
@@ -211,7 +212,7 @@ class ChannelBuildMessageTests(TestFramework):
             channel._inbound.append(ContentBody(value=message))
 
         deliver = commands.Basic.Deliver()
-        channel._inbound = [deliver]
+        channel._inbound = collections.deque([deliver])
 
         self.assertTrue(channel._inbound)
 
@@ -233,7 +234,7 @@ class ChannelBuildMessageTests(TestFramework):
         header = ContentHeader(body_size=message_len)
         body = ContentBody(value=message)
 
-        channel._inbound = [deliver, header, body]
+        channel._inbound = collections.deque([deliver, header, body])
 
         messages_consumed = 0
         for msg in channel.build_inbound_messages(break_on_empty=True):
@@ -253,8 +254,12 @@ class ChannelBuildMessageTests(TestFramework):
         header = ContentHeader(body_size=message_len)
         body = ContentBody(value=message)
 
-        channel._inbound = [deliver, header, body, deliver, header, body,
-                            deliver, header, body, deliver, header, body]
+        channel._inbound = collections.deque(
+            [
+                deliver, header, body, deliver, header, body,
+                deliver, header, body, deliver, header, body
+            ]
+        )
 
         messages_consumed = 0
         for msg in channel.build_inbound_messages(break_on_empty=True):
@@ -322,7 +327,7 @@ class ChannelBuildMessageTests(TestFramework):
         header = ContentHeader(body_size=message_len)
         body = ContentBody(value=message)
 
-        channel._inbound = [deliver, header, body]
+        channel._inbound = collections.deque([deliver, header, body])
 
         messages_consumed = 0
         for msg in channel.build_inbound_messages(break_on_empty=True,
@@ -348,7 +353,7 @@ class ChannelProcessDataEventTests(TestFramework):
         header = ContentHeader(body_size=message_len)
         body = ContentBody(value=message)
 
-        channel._inbound = [deliver, header, body]
+        channel._inbound = collections.deque([deliver, header, body])
 
         def callback(msg):
             self.msg = msg
@@ -373,7 +378,7 @@ class ChannelProcessDataEventTests(TestFramework):
         header = ContentHeader(body_size=message_len)
         body = ContentBody(value=message)
 
-        channel._inbound = [deliver, header, body]
+        channel._inbound = collections.deque([deliver, header, body])
 
         def callback(body, channel, method, properties):
             self.msg = (body, channel, method, properties)
@@ -407,7 +412,7 @@ class ChannelStartConsumingTests(TestFramework):
         header = ContentHeader(body_size=message_len)
         body = ContentBody(value=message)
 
-        channel._inbound = [deliver, header, body]
+        channel._inbound = collections.deque([deliver, header, body])
 
         def callback(msg):
             self.msg = msg
@@ -436,7 +441,7 @@ class ChannelStartConsumingTests(TestFramework):
             header = ContentHeader(body_size=message_len)
             body = ContentBody(value=message)
 
-            channel._inbound = [deliver, header, body]
+            channel._inbound = collections.deque([deliver, header, body])
 
         def callback(msg):
             self.msg = msg
@@ -476,11 +481,11 @@ class ChannelStartConsumingTests(TestFramework):
         header = ContentHeader(body_size=message_len)
         body = ContentBody(value=message)
 
-        channel._inbound = [
+        channel._inbound = collections.deque([
             deliver_one, header, body,
             deliver_two, header, body,
             deliver_three, header, body
-        ]
+        ])
 
         def callback_one(msg):
             self.assertEqual(msg.method.get('consumer_tag'), 'travis-ci-1')

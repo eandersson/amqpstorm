@@ -1,3 +1,4 @@
+import collections
 from unittest import mock
 from pamqp import commands
 
@@ -140,7 +141,7 @@ class ChannelTests(TestFramework):
         channel = Channel(0, FakeConnection(), 360)
 
         # Set up Fake Channel.
-        channel._inbound = [1, 2, 3]
+        channel._inbound = collections.deque([1, 2, 3])
         channel.set_state(channel.OPEN)
         channel._consumer_tags = [4, 5, 6]
 
@@ -149,7 +150,7 @@ class ChannelTests(TestFramework):
         # Close Channel.
         channel._close_channel(close_frame)
 
-        self.assertEqual(channel._inbound, [])
+        self.assertIsNone(channel._inbound)
         self.assertEqual(channel._consumer_tags, [])
         self.assertEqual(channel._state, channel.CLOSED)
 

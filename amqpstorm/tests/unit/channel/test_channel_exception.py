@@ -218,7 +218,7 @@ class ChannelExceptionTests(TestFramework):
         )
         channel._close_channel(close_frame)
 
-        self.assertEqual(channel._inbound, [])
+        self.assertIsNone(channel._inbound)
         self.assertEqual(channel._consumer_tags, [])
         self.assertEqual(channel._state, channel.CLOSED)
 
