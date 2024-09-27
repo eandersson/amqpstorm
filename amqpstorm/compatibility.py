@@ -1,5 +1,6 @@
 """Python 2/3 Compatibility layer."""
 
+import select
 import sys
 
 try:
@@ -38,6 +39,14 @@ class DummyException(Exception):
     exception cannot be imported.
     """
 
+
+def get_default_poller():
+    if hasattr(select, 'poll'):
+        return 'poll'
+    return 'select'
+
+
+DEFAULT_POLLER = get_default_poller()
 
 SSL_CERT_MAP = {}
 SSL_VERSIONS = {}

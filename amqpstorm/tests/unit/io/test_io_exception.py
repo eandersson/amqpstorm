@@ -9,6 +9,7 @@ from amqpstorm import AMQPConnectionError
 from amqpstorm import compatibility
 from amqpstorm.io import IO
 from amqpstorm.io import Poller
+from amqpstorm.io import SelectPoller
 from amqpstorm.tests.utility import FakeConnection
 from amqpstorm.tests.utility import TestFramework
 
@@ -163,20 +164,37 @@ class IOExceptionTests(TestFramework):
             io._get_socket_addresses
         )
 
-    @mock.patch('amqpstorm.io.select.select',
-                side_effect=select.error('travis-ci'))
-    def test_io_poller_raises(self, _):
+    @mock.patch('select.select')
+    def test_io_poller_raises(self, mock_select):
+        mock_select.side_effect = select.error('travis-ci')
         exceptions = []
-        poller = Poller(0, exceptions, 30)
+        poller = SelectPoller(0, exceptions)
         self.assertFalse(poller.is_ready)
         self.assertTrue(exceptions)
 
-    @mock.patch('amqpstorm.io.select.select', side_effect=select.error(EINTR))
-    def test_io_poller_eintr(self, _):
+    @mock.patch('select.select')
+    def test_io_select_poller_eintr(self, mock_select):
+        mock_select.side_effect = select.error(EINTR)
         exceptions = []
-        poller = Poller(0, exceptions, 30)
+        poller = SelectPoller(0, exceptions)
         self.assertFalse(poller.is_ready)
         self.assertFalse(exceptions)
+
+    @mock.patch('select.poll')
+    def test_io_poll_poller_eintr(self, mock_poll):
+        mock_poll().poll.side_effect = select.error(EINTR)
+        exceptions = []
+        poller = Poller(0, exceptions)
+        self.assertFalse(poller.is_ready)
+        self.assertFalse(exceptions)
+
+    @mock.patch('select.poll')
+    def test_io_poll_poller_raises(self, mock_poll):
+        mock_poll().poll.side_effect = select.error('travis-ci')
+        exceptions = []
+        poller = Poller(0, exceptions)
+        self.assertFalse(poller.is_ready)
+        self.assertTrue(exceptions)
 
     def test_io_simple_receive_when_socket_not_set(self):
         connection = FakeConnection()

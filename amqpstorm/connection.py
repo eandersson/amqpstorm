@@ -63,6 +63,7 @@ class Connection(Stateful):
     :param bool ssl: Enable SSL
     :param dict ssl_options: SSL kwargs
     :param dict client_properties: None or dict of client properties
+    :param str poller: select or poll
     :param bool lazy: Lazy initialize the connection
 
     :raises AMQPConnectionError: Raises if the connection
@@ -85,7 +86,8 @@ class Connection(Stateful):
             'timeout': kwargs.get('timeout', DEFAULT_SOCKET_TIMEOUT),
             'ssl': kwargs.get('ssl', False),
             'ssl_options': kwargs.get('ssl_options', {}),
-            'client_properties': kwargs.get('client_properties', {})
+            'client_properties': kwargs.get('client_properties', {}),
+            'poller': kwargs.get('poller', compatibility.DEFAULT_POLLER),
         }
         self._validate_parameters()
         self._io = IO(self.parameters, exceptions=self._exceptions,
