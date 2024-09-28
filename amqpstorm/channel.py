@@ -297,7 +297,7 @@ class Channel(BaseChannel):
 
         :return:
         """
-        self._inbound = collections.deque()
+        self._inbound.clear()
         self._exceptions = []
         self._confirming_deliveries = False
         self.set_state(self.OPENING)
@@ -445,11 +445,14 @@ class Channel(BaseChannel):
         """
         if len(self._inbound) < 2:
             return None
-        headers = self._build_message_headers()
-        if not headers:
+        try:
+            headers = self._build_message_headers()
+            if not headers:
+                return None
+            basic_deliver, content_header = headers
+            body = self._build_message_body(content_header.body_size)
+        except IndexError:
             return None
-        basic_deliver, content_header = headers
-        body = self._build_message_body(content_header.body_size)
 
         message = message_impl(channel=self,
                                body=body,
@@ -464,6 +467,7 @@ class Channel(BaseChannel):
         :rtype: tuple,None
         """
         basic_deliver = self._inbound.popleft()
+        content_header = self._inbound.popleft()
         if not isinstance(basic_deliver, specification.Basic.Deliver):
             LOGGER.warning(
                 'Received an out-of-order frame: %s was '
@@ -471,8 +475,7 @@ class Channel(BaseChannel):
                 type(basic_deliver)
             )
             return None
-        content_header = self._inbound.popleft()
-        if not isinstance(content_header, ContentHeader):
+        elif not isinstance(content_header, ContentHeader):
             LOGGER.warning(
                 'Received an out-of-order frame: %s was '
                 'expecting a ContentHeader frame',
@@ -514,7 +517,6 @@ class Channel(BaseChannel):
         self.remove_consumer_tag()
         if self._inbound:
             self._inbound.clear()
-            self._inbound = None
         self.exceptions.append(AMQPChannelError(
             'Channel %d was closed by remote server: %s' %
             (
