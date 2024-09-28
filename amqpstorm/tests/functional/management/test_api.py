@@ -67,7 +67,7 @@ class ApiFunctionalTests(TestFunctionalFramework):
 
         self.assertIsInstance(result, dict)
         self.assertIn('name', result)
-        self.assertEqual('rabbit@rmq.amqpstorm.io', result['name'])
+        self.assertEqual('rabbit@rmq.eandersson.net', result['name'])
 
     def test_api_nodes(self):
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
@@ -75,15 +75,15 @@ class ApiFunctionalTests(TestFunctionalFramework):
 
         self.assertIsInstance(result, list)
         self.assertTrue(result)
-        self.assertEqual('rabbit@rmq.amqpstorm.io', result[0]['name'])
+        self.assertEqual('rabbit@rmq.eandersson.net', result[0]['name'])
 
     def test_api_node(self):
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
-        result = api.node('rabbit@rmq.amqpstorm.io')
+        result = api.node('rabbit@rmq.eandersson.net')
 
         self.assertIsInstance(result, dict)
         self.assertTrue(result)
-        self.assertEqual('rabbit@rmq.amqpstorm.io', result['name'])
+        self.assertEqual('rabbit@rmq.eandersson.net', result['name'])
 
     def test_api_whoami(self):
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)

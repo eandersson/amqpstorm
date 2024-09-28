@@ -35,7 +35,7 @@ class ManagementApi(object):
             read_regex='.*'
         )
 
-    :param str api_url: RabbitMQ Management url (e.g. https://rmq.amqpstorm.io:15671)
+    :param str api_url: RabbitMQ Management url (e.g. https://rmq.eandersson.net:15671)
     :param str username: Username (e.g. guest)
     :param str password: Password (e.g. guest)
     :param int,float timeout: TCP Timeout

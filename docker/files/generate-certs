@@ -8,19 +8,19 @@ echo 01 > /etc/rabbitmq/ssl/serial
 touch  /etc/rabbitmq/ssl/index.txt
 
 cd /etc/rabbitmq/ssl/
-openssl req -x509 -config openssl.cnf -newkey rsa:4096 -days 365 -out ca_certificate.pem -outform PEM -subj /CN=rmq.amqpstorm.io/ -nodes
+openssl req -x509 -config openssl.cnf -newkey rsa:4096 -days 365 -out ca_certificate.pem -outform PEM -subj /CN=rmq.eandersson.net/ -nodes
 openssl x509 -in ca_certificate.pem -out ca_certificate.cer -outform DER
 
 cd /etc/rabbitmq/ssl/server
 openssl genrsa -out private_key.pem 4096
-openssl req -new -key private_key.pem -out req.pem -outform PEM -subj /CN=rmq.amqpstorm.io/O=server/ -nodes
+openssl req -new -key private_key.pem -out req.pem -outform PEM -subj /CN=rmq.eandersson.net/O=server/ -nodes
 
 cd /etc/rabbitmq/ssl/
 openssl ca -config openssl.cnf -in server/req.pem -out server/server_certificate.pem -notext -batch -extensions server_ca_extensions
 
 cd /etc/rabbitmq/ssl/client
 openssl genrsa -out private_key.pem 4096
-openssl req -new -key private_key.pem -out req.pem -outform PEM -subj /CN=rmq.amqpstorm.io/O=client/ -nodes
+openssl req -new -key private_key.pem -out req.pem -outform PEM -subj /CN=rmq.eandersson.net/O=client/ -nodes
 
 cd /etc/rabbitmq/ssl/
 openssl ca -config openssl.cnf -in client/req.pem -out client/client_certificate.pem -notext -batch -extensions client_ca_extensions

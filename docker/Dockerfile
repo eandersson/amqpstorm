@@ -9,4 +9,4 @@ COPY ./files/generate-certs /etc/rabbitmq/ssl/generate-certs
 COPY ./files/openssl.cnf /etc/rabbitmq/ssl/openssl.cnf
 
 RUN /etc/rabbitmq/ssl/generate-certs && \
-    chown -R rabbitmq.rabbitmq /etc/rabbitmq/ssl/*
+    chown -R rabbitmq:rabbitmq /etc/rabbitmq/ssl/*

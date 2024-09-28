@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.11.8, 3.12.3]
+        python-version: [3.11.9, 3.12.6]
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python ${{ matrix.python-version }}
@@ -27,17 +27,17 @@ jobs:
       - name: Start RabbitMQ
         run: |
           docker build -t amqpstormdev ./docker/
-          docker run -d --hostname rmq.amqpstorm.io --name amqpstormdev -p 5671:5671 -p 5672:5672 -p 15671:15671 -p 15672:15672 amqpstormdev
+          docker run -d --hostname rmq.eandersson.net --name amqpstormdev -p 5671:5671 -p 5672:5672 -p 15671:15671 -p 15672:15672 amqpstormdev
           docker cp amqpstormdev:/etc/rabbitmq/ssl/ ./amqpstorm/tests/resources/
           docker exec amqpstormdev wait-for-rabbitmq
           echo "RabbitMQ Version: $(docker exec amqpstormdev rabbitmqctl --version)"
           docker exec amqpstormdev rabbitmqctl add_user 'amqpstorm' '2a55f70a841f18b'
           docker exec amqpstormdev rabbitmqctl -p / set_permissions 'amqpstorm' '.*' '.*' '.*'
           docker exec amqpstormdev rabbitmqctl set_user_tags amqpstorm administrator
-          nc -zv rmq.amqpstorm.io 5671  || exit 1
-          nc -zv rmq.amqpstorm.io 5672  || exit 1
-          nc -zv rmq.amqpstorm.io 15671 || exit 1
-          nc -zv rmq.amqpstorm.io 15672 || exit 1
+          nc -zv rmq.eandersson.net 5671  || exit 1
+          nc -zv rmq.eandersson.net 5672  || exit 1
+          nc -zv rmq.eandersson.net 15671 || exit 1
+          nc -zv rmq.eandersson.net 15672 || exit 1
       - name: Lint with flake8
         run: |
           flake8 .

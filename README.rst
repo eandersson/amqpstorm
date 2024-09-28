@@ -12,11 +12,6 @@ AMQPStorm is a library designed to be consistent, stable and thread-safe.
 - Supports Python 2.7 and Python 3.6+.
 - Fully tested against Python Implementations; CPython and PyPy.
 
-Documentation
-=============
-
-Additional documentation is available on `amqpstorm.io <https://www.amqpstorm.io>`_.
-
 Changelog
 =========
 
@@ -25,6 +20,7 @@ Version 2.11.0
 - Replace select.select with select.poll on Linux by default.
 - Replace list with collections.deque - Thanks Bernhard Thiel.
 - Removed unnecessary lock when building messages.
+- Fixed various Python 2.7 tests.
 
 Version 2.10.8
 --------------
