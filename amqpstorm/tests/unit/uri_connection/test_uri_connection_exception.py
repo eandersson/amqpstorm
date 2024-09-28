@@ -59,6 +59,7 @@ class UriConnectionExceptionTests(TestFramework):
                       "falling back to CERT_NONE.",
                       self.get_last_log())
 
+    @unittest.skipIf(sys.version_info < (3, 3), 'Python 3.x test')
     def test_uri_ssl_not_supported(self):
         restore_func = sys.modules['ssl']
         try:

@@ -1,3 +1,5 @@
+import collections
+
 import mock
 from pamqp import specification
 
@@ -207,7 +209,7 @@ class ChannelExceptionTests(TestFramework):
         channel = Channel(0, connection, 360)
 
         # Set up Fake Channel.
-        channel._inbound = [1, 2, 3]
+        channel._inbound = collections.deque([1, 2, 3])
         channel.set_state(channel.OPEN)
         channel._consumer_tags = [4, 5, 6]
 

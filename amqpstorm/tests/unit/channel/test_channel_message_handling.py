@@ -143,7 +143,7 @@ class ChannelBuildMessageTests(TestFramework):
         """
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(Channel.OPEN)
-        channel._inbound = []
+        channel._inbound = collections.deque([])
 
         def close_channel():
             channel.set_state(Channel.CLOSED)

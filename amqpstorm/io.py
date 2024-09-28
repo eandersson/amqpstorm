@@ -57,7 +57,7 @@ class Poller(BasePoller):
     """Socket Read Poller using select.poll."""
 
     def __init__(self, fileno, exceptions):
-        super().__init__(fileno, exceptions)
+        super(Poller, self).__init__(fileno, exceptions)
         self.poller = select.poll()
         self.poller.register(self._fileno, select.POLLIN | select.POLLPRI)
 

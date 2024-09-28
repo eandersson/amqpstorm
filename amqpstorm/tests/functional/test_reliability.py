@@ -2,6 +2,7 @@ import importlib
 import sys
 import threading
 import time
+import unittest
 
 from amqpstorm import AMQPChannelError
 from amqpstorm import AMQPConnectionError
@@ -178,6 +179,7 @@ class ReliabilityFunctionalTests(TestFunctionalFramework):
         self.channel = self.connection.channel()
         self.assertTrue(self.connection.is_open)
 
+    @unittest.skipIf(sys.version_info < (3, 3), 'Python 3.x test')
     def test_functional_ssl_connection_without_ssl(self):
         restore_func = sys.modules['ssl']
         try:

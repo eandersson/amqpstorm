@@ -67,14 +67,14 @@ class ChannelTests(TestFramework):
         channel = Channel(0, FakeConnection(on_write=on_close_ok), 360)
 
         # Set up Fake Channel.
-        channel._inbound = [1, 2, 3]
+        channel._inbound = collections.deque([1, 2, 3])
         channel.set_state(channel.OPEN)
         channel._consumer_tags = ['4', '5', '6']
 
         # Close Channel.
         channel.close()
 
-        self.assertEqual(channel._inbound, [])
+        self.assertFalse(channel._inbound)
         self.assertEqual(channel._consumer_tags, [])
         self.assertEqual(channel._state, channel.CLOSED)
         self.assertFalse(channel.exceptions)
@@ -88,7 +88,7 @@ class ChannelTests(TestFramework):
         channel = Channel(0, FakeConnection(on_write=on_close_ok), 360)
 
         # Set up Fake Channel.
-        channel._inbound = [1, 2, 3]
+        channel._inbound = collections.deque([1, 2, 3])
         channel.set_state(channel.OPEN)
         channel._consumer_tags = ['4', '5', '6']
         channel.exceptions.append(AMQPChannelError('travis-ci'))
@@ -96,7 +96,7 @@ class ChannelTests(TestFramework):
         # Close Channel.
         channel.close()
 
-        self.assertEqual(channel._inbound, [])
+        self.assertFalse(channel._inbound)
         self.assertEqual(channel._consumer_tags, [])
         self.assertEqual(channel._state, channel.CLOSED)
         self.assertTrue(channel.exceptions)
@@ -106,7 +106,7 @@ class ChannelTests(TestFramework):
         channel = Channel(0, fake_connection, 360)
 
         # Set up Fake Channel.
-        channel._inbound = [1, 2, 3]
+        channel._inbound = collections.deque([1, 2, 3])
         channel.set_state(channel.CLOSED)
         channel._consumer_tags = ['4', '5', '6']
 
@@ -120,7 +120,7 @@ class ChannelTests(TestFramework):
 
         self.assertFalse(fake_connection.frames_out)
 
-        self.assertEqual(channel._inbound, [])
+        self.assertFalse(channel._inbound)
         self.assertEqual(channel._consumer_tags, [])
         self.assertEqual(channel._state, channel.CLOSED)
         self.assertFalse(channel.exceptions)

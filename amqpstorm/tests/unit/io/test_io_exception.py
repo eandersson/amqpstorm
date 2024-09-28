@@ -1,7 +1,9 @@
-import select
-import socket
 from errno import EINTR
 from errno import EWOULDBLOCK
+import select
+import socket
+import sys
+import unittest
 
 import mock
 
@@ -136,6 +138,7 @@ class IOExceptionTests(TestFramework):
         finally:
             compatibility.SSL_SUPPORTED = True
 
+    @unittest.skipIf(sys.version_info < (3, 3), 'Python 3.x test')
     @mock.patch('amqpstorm.compatibility.SSL_SUPPORTED',
                 return_value=False)
     def test_io_normal_connection_without_ssl_library(self, _):

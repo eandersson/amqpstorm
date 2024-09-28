@@ -161,6 +161,7 @@ class CompatibilitySslTests(unittest.TestCase):
         finally:
             compatibility.ssl = restore_func
 
+    @unittest.skipIf(sys.version_info < (3, 3), 'Python 3.x test')
     def test_compatibility_ssl_not_defined(self):
         """This tests mimics the behavior of Python built locally without
         SSL support.
@@ -178,6 +179,7 @@ class CompatibilitySslTests(unittest.TestCase):
             sys.modules['ssl'] = restore_func
             importlib.reload(compatibility)
 
+    @unittest.skipIf(sys.version_info < (3, 3), 'Python 3.x test')
     def test_compatibility_no_supported_ssl_version(self):
         """This tests mimics the behavior of a Python build without
         support for TLS v1, v1_1 or v1_2.
@@ -200,6 +202,7 @@ class CompatibilitySslTests(unittest.TestCase):
             sys.modules['ssl'].PROTOCOL_TLSv1 = restore_tls_v1
             importlib.reload(compatibility)
 
+    @unittest.skipIf(sys.version_info < (3, 3), 'Python 3.x test')
     def test_compatibility_only_tls_v1_supported(self):
         """This tests mimics the behavior of Python 2.7.8 or earlier that
         only supported TLS v1 and SSLv23.
