@@ -3,8 +3,8 @@ Changelog
 
 Version 2.11.0
 --------------
-- Replace select.select with select.poll on Linux by default.
-- Replace list with collections.deque - Thanks Bernhard Thiel.
+- Replaced select.select with select.poll on Linux by default.
+- Replaced list with collections.deque - Thanks Bernhard Thiel.
 - Removed unnecessary lock when building messages.
 - Fixed various Python 2.7 tests.
 
