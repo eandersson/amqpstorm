@@ -17,6 +17,7 @@ Changelog
 
 Version 2.11.0
 --------------
+- Added Python 3.13 support.
 - Replaced select.select with select.poll on Linux by default.
 - Replaced list with collections.deque - Thanks Bernhard Thiel.
 - Removed unnecessary lock when building messages.
