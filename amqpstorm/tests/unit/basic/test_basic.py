@@ -17,6 +17,7 @@ from amqpstorm.tests.utility import FakeConnection
 from amqpstorm.tests.utility import TestFramework
 from amqpstorm.tests.utility import unittest
 
+random.seed(42)
 
 class BasicTests(TestFramework):
     def test_basic_qos(self):
