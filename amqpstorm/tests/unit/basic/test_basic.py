@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import random
 import string
 import sys
 
@@ -238,7 +237,7 @@ class BasicTests(TestFramework):
 
     def test_basic_create_content_body_growing(self):
         basic = Basic(None)
-        long_string = ''.join(random.choice(string.ascii_letters)
+        long_string = ''.join(self.random.choice(string.ascii_letters)
                               for _ in RANGE(32768))
 
         for index in RANGE(32768):
