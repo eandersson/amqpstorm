@@ -1,6 +1,5 @@
 """Python 2/3 Compatibility layer."""
 
-import select
 import sys
 
 try:
