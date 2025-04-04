@@ -87,7 +87,7 @@ class Connection(Stateful):
             'ssl': kwargs.get('ssl', False),
             'ssl_options': kwargs.get('ssl_options', {}),
             'client_properties': kwargs.get('client_properties', {}),
-            'poller': 'select'
+            'poller': kwargs.get('poller', 'select'),
         }
         self._validate_parameters()
         self._io = IO(self.parameters, exceptions=self._exceptions,
