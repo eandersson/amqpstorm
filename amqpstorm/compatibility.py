@@ -40,14 +40,6 @@ class DummyException(Exception):
     """
 
 
-def get_default_poller():
-    if hasattr(select, 'poll'):
-        return 'poll'
-    return 'select'
-
-
-DEFAULT_POLLER = get_default_poller()
-
 SSL_CERT_MAP = {}
 SSL_VERSIONS = {}
 SSL_OPTIONS = [
