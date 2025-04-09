@@ -15,6 +15,10 @@ AMQPStorm is a library designed to be consistent, stable and thread-safe.
 Changelog
 =========
 
+Version 2.11.1
+--------------
+- Switch back to using select.select by default [#140].
+
 Version 2.11.0
 --------------
 - Added Python 3.13 support.

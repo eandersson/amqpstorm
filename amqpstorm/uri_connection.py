@@ -85,7 +85,7 @@ class UriConnection(Connection):
             'heartbeat': int(kwargs.pop('heartbeat',
                                         [DEFAULT_HEARTBEAT_TIMEOUT])[0]),
             'poller': kwargs.pop('poller',
-                                 [compatibility.DEFAULT_POLLER])[0],
+                                 ['select'])[0],
             'timeout': int(kwargs.pop('timeout',
                                       [DEFAULT_SOCKET_TIMEOUT])[0])
         }
