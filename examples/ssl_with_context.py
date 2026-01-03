@@ -34,10 +34,10 @@ CONTEXT.load_cert_chain(
 )
 SSL_OPTIONS = {
     'context': CONTEXT,
-    'server_hostname': 'rmq.amqpstorm.io'
+    'server_hostname': 'rmq.eandersson.net'
 }
 
-with Connection('rmq.amqpstorm.io', 'guest', 'guest', port=5671,
+with Connection('rmq.eandersson.net', 'guest', 'guest', port=5671,
                 ssl=True, ssl_options=SSL_OPTIONS) as connection:
     with connection.channel() as channel:
         # Declare the Queue, 'simple_queue'.

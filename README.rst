@@ -11,11 +11,6 @@ AMQPStorm is a library designed to be consistent, stable and thread-safe.
 - 100% Test Coverage!
 - Supports Python 3.6+.
 
-Documentation
-=============
-
-Additional documentation is available on `amqpstorm.io <https://www.amqpstorm.io>`_.
-
 Changelog
 =========
 

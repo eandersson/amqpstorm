@@ -11,10 +11,10 @@ context.load_cert_chain(
 )
 ssl_options = {
     'context': context,
-    'server_hostname': 'rmq.amqpstorm.io'
+    'server_hostname': 'rmq.eandersson.net'
 }
 
-uri = 'amqps://guest:guest@rmq.amqpstorm.io:5671/%2F?heartbeat=60'
+uri = 'amqps://guest:guest@rmq.eandersson.net:5671/%2F?heartbeat=60'
 pool = amqpstorm_pool.QueuedPool(
     create=lambda: amqpstorm.UriConnection(uri, ssl_options=ssl_options),
     max_size=10,

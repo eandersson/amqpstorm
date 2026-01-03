@@ -31,7 +31,7 @@ Basic Example
 
 ::
 
-   with amqpstorm.Connection('rmq.amqpstorm.io', 'guest', 'guest') as connection:
+   with amqpstorm.Connection('rmq.eandersson.net', 'guest', 'guest') as connection:
        with connection.channel() as channel:
            channel.queue.declare('fruits')
            message = amqpstorm.Message.create(

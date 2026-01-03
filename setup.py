@@ -22,7 +22,7 @@ def get_version(rel_path):
 
 setup(
     name='AMQPStorm',
-    python_requires='>=3.8',
+    python_requires='>=3.11',
     version=get_version('amqpstorm/__init__.py'),
     description='Thread-safe Python RabbitMQ Client & Management library.',
     long_description=open('README.rst').read(),
@@ -35,7 +35,6 @@ setup(
     install_requires=['pamqp>=3.0.0,<4.0'],
     extras_require={
         'management': ['requests>2'],
-        'pool': ['amqpstorm-pool']
     },
     package_data={'': ['README.rst', 'LICENSE', 'CHANGELOG.rst']},
     classifiers=[
@@ -44,9 +43,10 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
         'Operating System :: OS Independent',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
-        'Programming Language :: Python :: 3.10.0',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
+        'Programming Language :: Python :: 3.13',
         'Programming Language :: Python :: Implementation :: CPython',
         'Topic :: Communications',
         'Topic :: Internet',

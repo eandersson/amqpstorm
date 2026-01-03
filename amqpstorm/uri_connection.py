@@ -32,10 +32,10 @@ class UriConnection(Connection):
         import amqpstorm
         ssl_options = {
             'context': ssl.create_default_context(cafile='ca_certificate.pem'),
-            'server_hostname': 'rmq.amqpstorm.io'
+            'server_hostname': 'rmq.eandersson.net'
         }
         connection = amqpstorm.UriConnection(
-            'amqps://guest:guest@rmq.amqpstorm.io:5671/%2F?heartbeat=60',
+            'amqps://guest:guest@rmq.eandersson.net:5671/%2F?heartbeat=60',
             ssl_options=ssl_options
         )
 

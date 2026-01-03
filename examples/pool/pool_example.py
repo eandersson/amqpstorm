@@ -3,7 +3,7 @@ import json
 import amqpstorm
 import amqpstorm_pool
 
-uri = 'amqp://guest:guest@rmq.amqpstorm.io:5672/%2F?heartbeat=60'
+uri = 'amqp://guest:guest@rmq.eandersson.net:5672/%2F?heartbeat=60'
 pool = amqpstorm_pool.QueuedPool(
     create=lambda: amqpstorm.UriConnection(uri),
     max_size=10,

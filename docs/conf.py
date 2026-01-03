@@ -125,7 +125,7 @@ html_theme = 'sphinx_rtd_theme'
 # documentation.
 
 html_theme_options = {
-    'canonical_url': 'https://www.amqpstorm.io/',
+    'canonical_url': 'https://amqpstorm.readthedocs.io/',
 }
 
 github_url = 'https://github.com/eandersson/amqpstorm'

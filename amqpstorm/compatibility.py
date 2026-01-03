@@ -1,7 +1,5 @@
 """Python 2/3 Compatibility layer."""
 
-import select
-
 try:
     import ssl
 except ImportError:
