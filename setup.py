@@ -21,9 +21,9 @@ def get_version(rel_path):
 
 
 setup(
-    name='AMQPStorm',
+    name='AMQPStorm3',
     python_requires='>=3.11',
-    version=get_version('amqpstorm/__init__.py'),
+    version=get_version('amqpstorm3/__init__.py'),
     description='Thread-safe Python RabbitMQ Client & Management library.',
     long_description=open('README.rst').read(),
     author='Erik Olof Gunnar Andersson',

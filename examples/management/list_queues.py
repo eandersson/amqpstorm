@@ -1,4 +1,4 @@
-from amqpstorm import management
+from amqpstorm3 import management
 
 if __name__ == '__main__':
     # If using a self-signed certificate, change verify=True to point at your CA bundle.
@@ -11,11 +11,11 @@ if __name__ == '__main__':
         print('%s: %s' % (queue.get('name'), queue.get('messages')))
     print('')
 
-    print('List all queues containing the keyword: amqpstorm.')
-    for queue in API.queue.list(name='amqpstorm'):
+    print('List all queues containing the keyword: amqpstorm3.')
+    for queue in API.queue.list(name='amqpstorm3'):
         print('%s: %s' % (queue.get('name'), queue.get('messages')))
     print('')
 
-    print('List all queues using regex that starts with: amqpstorm.')
-    for queue in API.queue.list(name='^amqpstorm', use_regex=True):
+    print('List all queues using regex that starts with: amqpstorm3.')
+    for queue in API.queue.list(name='^amqpstorm3', use_regex=True):
         print('%s: %s' % (queue.get('name'), queue.get('messages')))

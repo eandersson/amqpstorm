@@ -4,8 +4,8 @@ Example of a Flask web application using RabbitMQ for RPC calls.
 import threading
 from time import sleep
 
-import amqpstorm
-from amqpstorm import Message
+import amqpstorm3
+from amqpstorm3 import Message
 from flask import Flask
 
 APP = Flask(__name__)
@@ -27,8 +27,8 @@ class RpcClient(object):
 
     def open(self):
         """Open Connection."""
-        self.connection = amqpstorm.Connection(self.host, self.username,
-                                               self.password)
+        self.connection = amqpstorm3.Connection(self.host, self.username,
+                                                self.password)
         self.channel = self.connection.channel()
         self.channel.queue.declare(self.rpc_queue)
         result = self.channel.queue.declare(exclusive=True)

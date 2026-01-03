@@ -3,7 +3,7 @@ A simple example consuming messages from RabbitMQ.
 """
 import logging
 
-from amqpstorm import Connection
+from amqpstorm3 import Connection
 
 logging.basicConfig(level=logging.INFO)
 

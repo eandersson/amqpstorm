@@ -1,9 +1,9 @@
 """
 A simple RPC Server.
 """
-import amqpstorm
+import amqpstorm3
 
-from amqpstorm import Message
+from amqpstorm3 import Message
 
 
 def fib(number):
@@ -33,7 +33,7 @@ def on_request(message):
 
 
 if __name__ == '__main__':
-    CONNECTION = amqpstorm.Connection('localhost', 'guest', 'guest')
+    CONNECTION = amqpstorm3.Connection('localhost', 'guest', 'guest')
     CHANNEL = CONNECTION.channel()
 
     CHANNEL.queue.declare(queue='rpc_queue')

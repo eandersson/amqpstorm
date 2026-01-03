@@ -5,8 +5,8 @@ import logging
 import threading
 import time
 
-import amqpstorm
-from amqpstorm import Connection
+import amqpstorm3
+from amqpstorm3 import Connection
 
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger()
@@ -40,9 +40,9 @@ class ScalableConsumer(object):
                 # Check our connection for errors.
                 self._connection.check_for_errors()
                 if not self._connection.is_open:
-                    raise amqpstorm.AMQPConnectionError('connection closed')
+                    raise amqpstorm3.AMQPConnectionError('connection closed')
                 self._update_consumers()
-            except amqpstorm.AMQPError as why:
+            except amqpstorm3.AMQPError as why:
                 # If an error occurs, re-connect and let update_consumers
                 # re-open the channels.
                 LOGGER.warning(why)
@@ -92,7 +92,7 @@ class ScalableConsumer(object):
                                               self.username,
                                               self.password)
                 break
-            except amqpstorm.AMQPError as why:
+            except amqpstorm3.AMQPError as why:
                 LOGGER.warning(why)
                 if self.max_retries and attempts > self.max_retries:
                     raise Exception('max number of retries reached')
@@ -170,7 +170,7 @@ class Consumer(object):
                 # This is to allow messages that are still being processed
                 # in __call__ to finish processing.
                 self.channel.close()
-        except amqpstorm.AMQPError:
+        except amqpstorm3.AMQPError:
             pass
         finally:
             self.active = False

@@ -1,0 +1,171 @@
+from unittest import mock
+from pamqp.header import ContentHeader
+from pamqp import commands
+from pamqp.body import ContentBody
+
+import amqpstorm3
+from amqpstorm3 import Channel
+from amqpstorm3.exception import AMQPChannelError
+from amqpstorm3.exception import AMQPConnectionError
+from amqpstorm3.exception import AMQPMessageError
+from amqpstorm3.tests.utility import FakeConnection
+from amqpstorm3.tests.utility import FakeFrame
+from amqpstorm3.tests.utility import TestFramework
+
+
+class ChannelFrameTests(TestFramework):
+    def test_channel_content_frames(self):
+        channel = Channel(0, FakeConnection(), rpc_timeout=1)
+        channel.set_state(channel.OPEN)
+
+        message = self.message.encode('utf-8')
+        message_len = len(message)
+
+        deliver = commands.Basic.Deliver()
+        header = ContentHeader(body_size=message_len)
+        body = ContentBody(value=message)
+
+        channel.on_frame(deliver)
+        channel.on_frame(header)
+        channel.on_frame(body)
+
+        for msg in channel.build_inbound_messages(break_on_empty=True):
+            self.assertIsInstance(msg.body, str)
+            self.assertEqual(msg.body.encode('utf-8'), message)
+
+    def test_channel_basic_cancel_frame(self):
+        connection = amqpstorm3.Connection('localhost', 'guest', 'guest',
+                                           lazy=True)
+        channel = Channel(0, connection, rpc_timeout=1)
+
+        channel.on_frame(commands.Basic.Cancel('travis-ci'))
+
+        self.assertEqual(
+            self.get_last_log(),
+            'Received Basic.Cancel on consumer_tag: travis-ci'
+        )
+
+    def test_channel_cancel_ok_frame(self):
+        tag = 'travis-ci'
+        channel = Channel(0, mock.Mock(name='Connection'), rpc_timeout=1)
+        channel.add_consumer_tag(tag)
+
+        channel.on_frame(commands.Basic.CancelOk(tag))
+
+        self.assertFalse(channel.consumer_tags)
+
+    def test_channel_consume_ok_frame(self):
+        tag = 'travis-ci'
+        channel = Channel(0, mock.Mock(name='Connection'), rpc_timeout=1)
+
+        channel.on_frame(commands.Basic.ConsumeOk(tag))
+
+        self.assertEqual(channel.consumer_tags[0], tag)
+
+    def test_channel_basic_return_frame(self):
+        connection = amqpstorm3.Connection('localhost', 'guest', 'guest',
+                                           lazy=True)
+        connection.set_state(connection.OPEN)
+        channel = Channel(0, connection, rpc_timeout=1)
+        channel.set_state(channel.OPEN)
+
+        channel.on_frame(
+            commands.Basic.Return(
+                reply_code=500,
+                reply_text='travis-ci',
+                exchange='exchange',
+                routing_key='routing_key'
+            )
+        )
+
+        self.assertRaisesRegex(
+            AMQPMessageError,
+            r"Message not delivered: travis-ci \(500\) to queue "
+            r"'routing_key' from exchange 'exchange'",
+            channel.check_for_errors
+        )
+
+    def test_channel_close_frame(self):
+        connection = FakeConnection(state=FakeConnection.OPEN)
+        channel = Channel(0, connection, rpc_timeout=1)
+        channel.set_state(channel.OPEN)
+
+        channel.on_frame(
+            commands.Channel.Close(
+                reply_code=500,
+                reply_text='travis-ci'
+            )
+        )
+
+        self.assertRaisesRegex(
+            AMQPChannelError,
+            'Channel 0 was closed by remote server: travis-ci',
+            channel.check_for_errors
+        )
+
+    def test_channel_close_frame_when_connection_closed(self):
+        connection = FakeConnection(state=FakeConnection.CLOSED)
+        channel = Channel(0, connection, rpc_timeout=1)
+        channel.set_state(channel.OPEN)
+
+        channel.on_frame(
+            commands.Channel.Close(
+                reply_code=500,
+                reply_text='travis-ci'
+            )
+        )
+
+        self.assertIsNone(connection.get_last_frame())
+        self.assertEqual(
+            str(channel.exceptions[0]),
+            'Channel 0 was closed by remote server: travis-ci'
+        )
+
+    def test_channel_close_frame_socket_write_fail_silently(self):
+        connection = FakeConnection(state=FakeConnection.OPEN)
+        channel = Channel(0, connection, rpc_timeout=1)
+        channel.set_state(channel.OPEN)
+
+        def raise_on_write(*_):
+            raise AMQPConnectionError('travis-ci')
+
+        connection.write_frame = raise_on_write
+
+        channel.on_frame(
+            commands.Channel.Close(
+                reply_code=500,
+                reply_text='travis-ci'
+            )
+        )
+
+        self.assertIsNone(connection.get_last_frame())
+        self.assertEqual(
+            str(channel.exceptions[0]),
+            'Channel 0 was closed by remote server: travis-ci'
+        )
+
+    def test_channel_flow_frame(self):
+        connection = FakeConnection()
+        connection.set_state(connection.OPEN)
+        channel = Channel(0, connection, rpc_timeout=1)
+        channel.set_state(channel.OPEN)
+
+        channel.on_frame(commands.Channel.Flow())
+
+        self.assertIsInstance(
+            connection.get_last_frame(),
+            commands.Channel.FlowOk
+        )
+
+    def test_channel_unhandled_frame(self):
+        connection = amqpstorm3.Connection('localhost', 'guest', 'guest',
+                                           lazy=True)
+        channel = Channel(0, connection, rpc_timeout=1)
+
+        channel.on_frame(FakeFrame())
+
+        self.assertEqual(
+            self.get_last_log(),
+            "[Channel0] Unhandled Frame: FakeFrame -- "
+            "{'data_1': 'hello world'}"
+        )

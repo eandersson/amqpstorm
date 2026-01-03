@@ -1,9 +1,9 @@
 """
 A simple RPC Client.
 """
-import amqpstorm
+import amqpstorm3
 
-from amqpstorm import Message
+from amqpstorm3 import Message
 
 
 class FibonacciRpcClient(object):
@@ -25,9 +25,9 @@ class FibonacciRpcClient(object):
         self.open()
 
     def open(self):
-        self.connection = amqpstorm.Connection(self.host,
-                                               self.username,
-                                               self.password)
+        self.connection = amqpstorm3.Connection(self.host,
+                                                self.username,
+                                                self.password)
 
         self.channel = self.connection.channel()
 

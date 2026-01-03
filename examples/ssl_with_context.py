@@ -4,7 +4,7 @@ Example of connecting to RabbitMQ using a SSL Certificate.
 import logging
 import ssl
 
-from amqpstorm import Connection
+from amqpstorm3 import Connection
 
 logging.basicConfig(level=logging.INFO)
 

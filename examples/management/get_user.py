@@ -1,4 +1,4 @@
-from amqpstorm import management
+from amqpstorm3 import management
 
 if __name__ == '__main__':
     # If using a self-signed certificate, change verify=True to point at your CA bundle.

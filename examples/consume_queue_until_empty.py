@@ -1,6 +1,6 @@
 import logging
 
-from amqpstorm import Connection
+from amqpstorm3 import Connection
 
 logging.basicConfig(level=logging.INFO)
 

@@ -4,8 +4,8 @@ Robust Consumer that will automatically re-connect on failure.
 import logging
 import time
 
-import amqpstorm
-from amqpstorm import Connection
+import amqpstorm3
+from amqpstorm3 import Connection
 
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger()
@@ -27,7 +27,7 @@ class Consumer(object):
             try:
                 self.connection = Connection('localhost', 'guest', 'guest')
                 break
-            except amqpstorm.AMQPError as why:
+            except amqpstorm3.AMQPError as why:
                 LOGGER.exception(why)
                 if self.max_retries and attempts > self.max_retries:
                     break
@@ -50,7 +50,7 @@ class Consumer(object):
                 channel.start_consuming()
                 if not channel.consumer_tags:
                     channel.close()
-            except amqpstorm.AMQPError as why:
+            except amqpstorm3.AMQPError as why:
                 LOGGER.exception(why)
                 self.create_connection()
             except KeyboardInterrupt:
