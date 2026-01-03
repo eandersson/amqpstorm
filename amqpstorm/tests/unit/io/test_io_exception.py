@@ -3,6 +3,7 @@ import socket
 from errno import EINTR
 from errno import EWOULDBLOCK
 
+import unittest
 from unittest import mock
 
 from amqpstorm import AMQPConnectionError
@@ -180,6 +181,7 @@ class IOExceptionTests(TestFramework):
         self.assertFalse(poller.is_ready)
         self.assertFalse(exceptions)
 
+    @unittest.skipIf(not hasattr(select, 'poll'), 'poll not available')
     @mock.patch('select.poll')
     def test_io_poll_poller_eintr(self, mock_poll):
         mock_poll().poll.side_effect = select.error(EINTR)
@@ -188,6 +190,7 @@ class IOExceptionTests(TestFramework):
         self.assertFalse(poller.is_ready)
         self.assertFalse(exceptions)
 
+    @unittest.skipIf(not hasattr(select, 'poll'), 'poll not available')
     @mock.patch('select.poll')
     def test_io_poll_poller_raises(self, mock_poll):
         mock_poll().poll.side_effect = select.error('travis-ci')
