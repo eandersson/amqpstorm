@@ -3,7 +3,7 @@ name: Publish
 on:
   push:
     tags:
-    - '2.*'
+    - '0.*'
 
 jobs:
   build:
@@ -11,11 +11,11 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.6
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v5
+    - name: Set up Python 3.13
+      uses: actions/setup-python@v6
       with:
-        python-version: 3.6.15
+        python-version: 3.11.13
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
