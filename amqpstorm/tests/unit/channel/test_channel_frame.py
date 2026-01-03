@@ -1,4 +1,4 @@
-import mock
+from unittest import mock
 from pamqp.header import ContentHeader
 from pamqp import commands
 from pamqp.body import ContentBody

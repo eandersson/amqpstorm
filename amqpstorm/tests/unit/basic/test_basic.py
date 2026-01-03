@@ -2,7 +2,7 @@
 import random
 import string
 
-import mock
+from unittest import mock
 from pamqp import commands
 from pamqp.body import ContentBody
 from pamqp.header import ContentHeader

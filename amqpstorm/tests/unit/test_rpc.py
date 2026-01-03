@@ -1,7 +1,7 @@
 import threading
 import time
 
-import mock
+from unittest import mock
 
 from amqpstorm.exception import AMQPChannelError
 from amqpstorm.rpc import Rpc

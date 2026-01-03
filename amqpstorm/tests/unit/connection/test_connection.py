@@ -1,7 +1,7 @@
 import socket
 import threading
 
-import mock
+from unittest import mock
 from pamqp import exceptions as pamqp_exception
 from pamqp import frame as pamqp_frame
 from pamqp import commands

@@ -1,7 +1,7 @@
 import socket
 import ssl
 
-import mock
+from unittest import mock
 
 import amqpstorm.io
 from amqpstorm.exception import AMQPConnectionError
