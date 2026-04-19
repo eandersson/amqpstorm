@@ -1,4 +1,7 @@
-from pamqp.specification import Exchange as pamqp_exchange
+try:
+    from pamqp.commands import Exchange as pamqp_exchange
+except ImportError:
+    from pamqp.specification import Exchange as pamqp_exchange
 
 from amqpstorm.channel import Channel
 from amqpstorm.channel import Exchange

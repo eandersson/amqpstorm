@@ -3,7 +3,10 @@
 import logging
 import platform
 
-from pamqp import specification
+try:
+    from pamqp import commands as specification
+except ImportError:
+    from pamqp import specification
 from pamqp.heartbeat import Heartbeat
 
 from amqpstorm import __version__

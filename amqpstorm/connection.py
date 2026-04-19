@@ -5,10 +5,20 @@ import threading
 import time
 from time import sleep
 
-from pamqp import exceptions as pamqp_exception
+try:
+    from pamqp import commands as specification
+except ImportError:
+    from pamqp import specification
+try:
+    from pamqp import exceptions as pamqp_exception
+except ImportError:
+    import pamqp.specification as pamqp_exception
+
+if not hasattr(specification, 'AMQPFrameError'):
+    specification.AMQPFrameError = pamqp_exception.AMQPFrameError
+
 from pamqp import frame as pamqp_frame
 from pamqp import header as pamqp_header
-from pamqp import specification
 
 from amqpstorm import compatibility
 from amqpstorm.base import IDLE_WAIT

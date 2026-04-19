@@ -1,6 +1,9 @@
 import collections
 import mock
-from pamqp import specification
+try:
+    from pamqp import commands as specification
+except ImportError:
+    from pamqp import specification
 
 from amqpstorm import Channel
 from amqpstorm.basic import Basic

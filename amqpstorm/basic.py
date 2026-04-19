@@ -5,7 +5,10 @@ import math
 
 from pamqp import body as pamqp_body
 from pamqp import header as pamqp_header
-from pamqp import specification
+try:
+    from pamqp import commands as specification
+except ImportError:
+    from pamqp import specification
 
 from amqpstorm import compatibility
 from amqpstorm.base import BaseMessage

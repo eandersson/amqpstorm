@@ -2,8 +2,14 @@ import collections
 import threading
 
 import mock
-from pamqp import ContentHeader
-from pamqp import specification
+try:
+    from pamqp.header import ContentHeader
+except ImportError:
+    from pamqp import ContentHeader
+try:
+    from pamqp import commands as specification
+except ImportError:
+    from pamqp import specification
 from pamqp.body import ContentBody
 
 from amqpstorm import AMQPChannelError
@@ -129,7 +135,7 @@ class ChannelBuildMessageTests(TestFramework):
         channel._inbound = collections.deque()
 
         def add_inbound():
-            channel._inbound.append(ContentBody())
+            channel._inbound.append(ContentBody(value=b''))
 
         threading.Timer(function=add_inbound, interval=0.1).start()
 

@@ -1,6 +1,12 @@
 import mock
-from pamqp import ContentHeader
-from pamqp import specification
+try:
+    from pamqp.header import ContentHeader
+except ImportError:
+    from pamqp import ContentHeader
+try:
+    from pamqp import commands as specification
+except ImportError:
+    from pamqp import specification
 from pamqp.body import ContentBody
 
 import amqpstorm

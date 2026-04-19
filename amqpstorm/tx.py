@@ -2,7 +2,10 @@
 
 import logging
 
-from pamqp import specification
+try:
+    from pamqp import commands as specification
+except ImportError:
+    from pamqp import specification
 
 from amqpstorm.base import Handler
 

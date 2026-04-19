@@ -5,7 +5,10 @@ import logging
 import threading
 import time
 
-from pamqp import specification
+try:
+    from pamqp import commands as specification
+except ImportError:
+    from pamqp import specification
 from pamqp.header import ContentHeader
 
 from amqpstorm import compatibility

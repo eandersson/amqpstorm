@@ -1,7 +1,10 @@
 import collections
 
 import mock
-from pamqp import specification
+try:
+    from pamqp import commands as specification
+except ImportError:
+    from pamqp import specification
 
 import amqpstorm
 from amqpstorm import AMQPChannelError
@@ -200,7 +203,7 @@ class ChannelExceptionTests(TestFramework):
         self.assertRaisesRegex(
             AMQPMessageError,
             r"Message not delivered: Error \(500\) to queue "
-            r"'' from exchange ''",
+            r"'(None|)' from exchange '(None|)'",
             channel.check_for_errors
         )
 

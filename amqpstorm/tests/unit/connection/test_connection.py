@@ -3,8 +3,22 @@ import threading
 
 import mock
 from pamqp import frame as pamqp_frame
-from pamqp import specification
-from pamqp.specification import Basic as spec_basic
+try:
+    from pamqp import commands as specification
+except ImportError:
+    from pamqp import specification
+try:
+    from pamqp.commands import Basic as spec_basic
+except ImportError:
+    from pamqp.specification import Basic as spec_basic
+
+try:
+    from pamqp import exceptions as pamqp_exception
+except ImportError:
+    import pamqp.specification as pamqp_exception
+
+if not hasattr(specification, 'AMQPFrameError'):
+    specification.AMQPFrameError = pamqp_exception.AMQPFrameError
 
 from amqpstorm import Channel
 from amqpstorm import Connection
@@ -81,7 +95,7 @@ class ConnectionTests(TestFramework):
 
     def test_connection_basic_read_buffer(self):
         connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
-        cancel_ok_frame = spec_basic.CancelOk().marshal()
+        cancel_ok_frame = spec_basic.CancelOk(consumer_tag='').marshal()
 
         self.assertEqual(connection._read_buffer(cancel_ok_frame), b'\x00')
 

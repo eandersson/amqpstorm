@@ -32,7 +32,7 @@ setup(
     packages=find_packages(),
     license='MIT License',
     url='https://amqpstorm.readthedocs.io/',
-    install_requires=['pamqp>=2.0.0,<3.0'],
+    install_requires=['pamqp>=2.0.0,<5.0'],
     extras_require={
         'management': ['requests>2'],
         'pool': ['amqpstorm-pool']

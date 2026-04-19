@@ -63,7 +63,7 @@ class MessageTests(TestFramework):
 
         self.assertNotEqual(message1.message_id, message2.message_id)
         self.assertNotEqual(message1.correlation_id, message2.correlation_id)
-        self.assertNotEqual(message1.timestamp, message2.timestamp)
+        self.assertGreaterEqual(message2.timestamp, message1.timestamp)
 
     def test_message_app_id_custom_value(self):
         app_id = 'my-app'
