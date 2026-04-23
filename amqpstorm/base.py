@@ -1,13 +1,10 @@
 """AMQPStorm Base."""
 
-import locale
-
 from amqpstorm.compatibility import is_string
 from amqpstorm.exception import AMQPChannelError
 
 AUTH_MECHANISM = 'PLAIN'
 IDLE_WAIT = 0.01
-LOCALE = locale.getdefaultlocale()[0] or 'en_US'
 MAX_FRAME_SIZE = 131072
 MAX_CHANNELS = 65535
 

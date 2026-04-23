@@ -1,8 +1,8 @@
 """AMQPStorm Message."""
 
+import datetime
 import json
 import uuid
-from datetime import datetime
 
 from amqpstorm.base import BaseMessage
 from amqpstorm.compatibility import try_utf8_decode
@@ -60,7 +60,7 @@ class Message(BaseMessage):
         if 'message_id' not in properties:
             properties['message_id'] = str(uuid.uuid4())
         if 'timestamp' not in properties:
-            properties['timestamp'] = datetime.utcnow()
+            properties['timestamp'] = datetime.datetime.now(datetime.UTC)
 
         return Message(channel, auto_decode=False,
                        body=body, properties=properties)

@@ -3,7 +3,7 @@ name: Testing
 on:
   push:
   pull_request:
-    branches: [ 2.x ]
+    branches: [ main ]
   schedule:
     - cron: '0 13 * * 1'
 
@@ -12,9 +12,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.11.13, 3.12.10, 3.13.7]
+        python-version: [3.11.15, 3.12.13, 3.13.12, 3.14.3, 3.14t]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v6
         with:

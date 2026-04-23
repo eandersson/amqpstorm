@@ -134,14 +134,35 @@ class IOTests(TestFramework):
         sock = io._ssl_wrap_socket(socket.socket())
         self.assertEqual(sock.context.verify_mode, ssl.CERT_REQUIRED)
 
-    def test_io_set_ssl_context_no_hostname_provided(self):
+    def test_io_set_ssl_verify_req_enum(self):
         connection = FakeConnection()
         connection.parameters['ssl_options'] = {
-            'context': ssl.create_default_context(),
+            'verify_mode': ssl.CERT_REQUIRED
         }
 
         io = IO(connection.parameters)
-        self.assertRaises(ValueError, io._ssl_wrap_socket, socket.socket())
+        sock = io._ssl_wrap_socket(socket.socket())
+        self.assertEqual(sock.context.verify_mode, ssl.CERT_REQUIRED)
+
+    def test_io_set_ssl_verify_optional(self):
+        connection = FakeConnection()
+        connection.parameters['ssl_options'] = {
+            'verify_mode': 'optional'
+        }
+
+        io = IO(connection.parameters)
+        sock = io._ssl_wrap_socket(socket.socket())
+        self.assertEqual(sock.context.verify_mode, ssl.CERT_OPTIONAL)
+
+    def test_io_set_ssl_verify_optional_enum(self):
+        connection = FakeConnection()
+        connection.parameters['ssl_options'] = {
+            'verify_mode': ssl.CERT_OPTIONAL
+        }
+
+        io = IO(connection.parameters)
+        sock = io._ssl_wrap_socket(socket.socket())
+        self.assertEqual(sock.context.verify_mode, ssl.CERT_OPTIONAL)
 
     def test_io_has_ipv6(self):
         restore_func = socket.getaddrinfo

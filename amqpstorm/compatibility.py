@@ -33,9 +33,9 @@ SSL_OPTIONS = [
     'keyfile',
     'certfile',
     'cert_reqs',
-    'ssl_version',
     'ca_certs',
     'server_hostname',
+    'check_hostname',
 ]
 
 
@@ -56,12 +56,6 @@ def get_default_ssl_version():
 DEFAULT_SSL_VERSION = get_default_ssl_version()
 SSL_SUPPORTED = DEFAULT_SSL_VERSION is not None
 if SSL_SUPPORTED:
-    if hasattr(ssl, 'PROTOCOL_TLSv1_2'):
-        SSL_VERSIONS['protocol_tlsv1_2'] = ssl.PROTOCOL_TLSv1_2
-    if hasattr(ssl, 'PROTOCOL_TLSv1_1'):
-        SSL_VERSIONS['protocol_tlsv1_1'] = ssl.PROTOCOL_TLSv1_1
-    SSL_VERSIONS['protocol_tlsv1'] = ssl.PROTOCOL_TLSv1
-
     SSL_CERT_MAP = {
         'cert_none': ssl.CERT_NONE,
         'cert_optional': ssl.CERT_OPTIONAL,

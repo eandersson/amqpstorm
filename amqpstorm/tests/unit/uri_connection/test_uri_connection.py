@@ -1,4 +1,6 @@
+import socket
 import ssl
+from unittest import mock
 
 from amqpstorm import UriConnection
 from amqpstorm.connection import DEFAULT_HEARTBEAT_TIMEOUT
@@ -118,14 +120,12 @@ class UriConnectionTests(TestFramework):
     def test_uri_set_ssl(self):
         connection = UriConnection(
             'amqps://guest:guest@localhost:5671/%2F?'
-            'ssl_version=protocol_tlsv1&cert_reqs=cert_required&'
+            'cert_reqs=cert_required&'
             'keyfile=file.key&certfile=file.crt&'
-            'ca_certs=travis-ci', lazy=True
+            'ca_certs=test', lazy=True
         )
 
         self.assertTrue(connection.parameters['ssl'])
-        self.assertEqual(connection.parameters['ssl_options']['ssl_version'],
-                         ssl.PROTOCOL_TLSv1)
         self.assertEqual(connection.parameters['ssl_options']['cert_reqs'],
                          ssl.CERT_REQUIRED)
         self.assertEqual(connection.parameters['ssl_options']['keyfile'],
@@ -133,15 +133,28 @@ class UriConnectionTests(TestFramework):
         self.assertEqual(connection.parameters['ssl_options']['certfile'],
                          'file.crt')
         self.assertEqual(connection.parameters['ssl_options']['ca_certs'],
-                         'travis-ci')
+                         'test')
 
-    def test_uri_get_ssl_version(self):
+    @mock.patch('ssl.SSLContext.load_verify_locations')
+    @mock.patch('ssl.SSLContext.load_cert_chain')
+    def test_uri_ssl_wrap_socket(self, mock_load_cert_chain, mock_load_verify_locations):
         connection = UriConnection(
-            'amqp://guest:guest@localhost:5672/%2F', lazy=True
+            'amqps://guest:guest@localhost:5671/%2F?'
+            'cert_reqs=cert_optional&'
+            'keyfile=file.key&certfile=file.crt&'
+            'ca_certs=test&check_hostname=False', lazy=True
         )
 
-        self.assertEqual(ssl.PROTOCOL_TLSv1,
-                         connection._get_ssl_version('protocol_tlsv1'))
+        self.assertTrue(connection.parameters['ssl'])
+        self.assertEqual(connection.parameters['ssl_options']['cert_reqs'],
+                         ssl.CERT_OPTIONAL)
+
+        wrapped_socket = connection._io._ssl_wrap_socket(socket.socket())
+        self.assertEqual(wrapped_socket.context.verify_mode, ssl.CERT_OPTIONAL)
+        self.assertFalse(wrapped_socket.context.check_hostname)
+
+        mock_load_cert_chain.assert_called_with(certfile='file.crt', keyfile='file.key')
+        mock_load_verify_locations.assert_called_with(cafile='test')
 
     def test_uri_get_ssl_validation(self):
         connection = UriConnection(
@@ -157,21 +170,18 @@ class UriConnectionTests(TestFramework):
         )
         ssl_kwargs = {
             'cert_reqs': ['cert_required'],
-            'ssl_version': ['protocol_tlsv1'],
             'keyfile': ['file.key'],
             'certfile': ['file.crt']
         }
         ssl_options = connection._parse_ssl_options(ssl_kwargs)
 
         self.assertEqual(ssl_options['cert_reqs'], ssl.CERT_REQUIRED)
-        self.assertEqual(ssl_options['ssl_version'], ssl.PROTOCOL_TLSv1)
         self.assertEqual(ssl_options['keyfile'], 'file.key')
         self.assertEqual(ssl_options['certfile'], 'file.crt')
 
     def test_uri_get_ssl_options_new_method(self):
         ssl_kwargs = {
             'cert_reqs': ssl.CERT_REQUIRED,
-            'ssl_version': ssl.PROTOCOL_TLSv1,
             'keyfile': 'file.key',
             'certfile': 'file.crt'
         }
@@ -186,7 +196,6 @@ class UriConnectionTests(TestFramework):
 
         self.assertEqual(ssl_options['server_hostname'], 'rmq.eandersson.net')
         self.assertEqual(ssl_options['cert_reqs'], ssl.CERT_REQUIRED)
-        self.assertEqual(ssl_options['ssl_version'], ssl.PROTOCOL_TLSv1)
         self.assertEqual(ssl_options['keyfile'], 'file.key')
         self.assertEqual(ssl_options['certfile'], 'file.crt')
 

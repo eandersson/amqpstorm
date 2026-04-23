@@ -45,6 +45,7 @@ class FakeConnection(Connection):
             'ssl': False,
             'ssl_options': {},
             'poller': 'select',
+            'locale': 'en_US',
         }
         self.set_state(state)
         self.on_write = on_write

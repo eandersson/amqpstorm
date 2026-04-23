@@ -20,6 +20,25 @@ from amqpstorm.tests.functional.utility import setup
 @unittest.skipIf(not os.path.exists(CAFILE), 'SSL tests not configured')
 class SSLReliabilityFunctionalTests(TestFunctionalFramework):
     @setup(new_connection=False, queue=True)
+    def test_functional_ssl_basic(self):
+        ssl_options = {
+            'server_hostname': SSL_HOST,
+            'certfile': CERTFILE,
+            'keyfile': KEYFILE,
+            'cafile': CAFILE
+        }
+
+        self.connection = self.connection = Connection(
+            SSL_HOST, USERNAME, PASSWORD, port=5671, ssl=True,
+            ssl_options=ssl_options, timeout=1)
+        self.channel = self.connection.channel()
+
+        self.assertTrue(self.connection.is_open)
+
+        self.channel.close()
+        self.connection.close()
+
+    @setup(new_connection=False, queue=True)
     def test_functional_ssl_open_new_connection_loop(self):
         context = ssl.create_default_context(cafile=CAFILE)
         context.load_cert_chain(

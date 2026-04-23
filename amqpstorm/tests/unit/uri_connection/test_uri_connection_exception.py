@@ -31,17 +31,6 @@ class UriConnectionExceptionTests(TestFramework):
         self.assertIn("invalid option: unit_test",
                       self.get_last_log())
 
-    def test_uri_get_invalid_ssl_version(self):
-        connection = UriConnection(
-            'amqps://guest:guest@localhost:5672/%2F', lazy=True
-        )
-
-        self.assertEqual(connection._get_ssl_version('protocol_test'),
-                         ssl.PROTOCOL_TLSv1)
-        self.assertIn("ssl_options: ssl_version 'protocol_test' not found "
-                      "falling back to PROTOCOL_TLSv1.",
-                      self.get_last_log())
-
     def test_uri_get_invalid_ssl_validation(self):
         connection = UriConnection(
             'amqps://guest:guest@localhost:5672/%2F', lazy=True

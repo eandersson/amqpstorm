@@ -29,7 +29,7 @@ class ConnectionExceptionTests(TestFramework):
             timeout=180,
             ssl=True,
             ssl_options={
-                'ssl_version': ssl.PROTOCOL_TLSv1
+                'verify_mode': ssl.CERT_OPTIONAL
             },
             lazy=True
         )
@@ -38,8 +38,8 @@ class ConnectionExceptionTests(TestFramework):
         self.assertEqual(connection.parameters['heartbeat'], 120)
         self.assertEqual(connection.parameters['timeout'], 180)
         self.assertEqual(connection.parameters['ssl'], True)
-        self.assertEqual(connection.parameters['ssl_options']['ssl_version'],
-                         ssl.PROTOCOL_TLSv1)
+        self.assertEqual(connection.parameters['ssl_options']['verify_mode'],
+                         ssl.CERT_OPTIONAL)
 
     def test_connection_invalid_hostname(self):
         self.assertRaisesRegex(
