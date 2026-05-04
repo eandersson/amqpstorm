@@ -12,7 +12,7 @@ class ApiBasicFunctionalTests(TestFunctionalFramework):
     def test_api_basic_publish(self):
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
 
-        api.queue.declare(self.queue_name)
+        api.queue.declare(self.queue_name, durable=True)
         try:
             self.assertEqual(api.basic.publish(self.message, self.queue_name),
                              {'routed': True})
@@ -23,7 +23,7 @@ class ApiBasicFunctionalTests(TestFunctionalFramework):
     def test_api_basic_get_message(self):
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
 
-        api.queue.declare(self.queue_name)
+        api.queue.declare(self.queue_name, durable=True)
         self.assertEqual(api.basic.publish(self.message, self.queue_name),
                          {'routed': True})
 
@@ -39,7 +39,7 @@ class ApiBasicFunctionalTests(TestFunctionalFramework):
     def test_api_basic_get_message_requeue(self):
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
 
-        api.queue.declare(self.queue_name)
+        api.queue.declare(self.queue_name, durable=True)
         self.assertEqual(api.basic.publish(self.message, self.queue_name),
                          {'routed': True})
 
@@ -55,7 +55,7 @@ class ApiBasicFunctionalTests(TestFunctionalFramework):
     def test_api_basic_get_message_to_dict(self):
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
 
-        api.queue.declare(self.queue_name)
+        api.queue.declare(self.queue_name, durable=True)
         self.assertEqual(api.basic.publish(self.message, self.queue_name),
                          {'routed': True})
 

@@ -17,7 +17,7 @@ class WebFunctionalTests(TestFunctionalFramework):
 
     @setup(queue=True)
     def test_functional_consume_web_message(self):
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
         self.api.basic.publish(body=self.message,
                                routing_key=self.queue_name)
 
@@ -30,7 +30,7 @@ class WebFunctionalTests(TestFunctionalFramework):
 
     @setup(queue=True)
     def test_functional_remove_queue_while_consuming(self):
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
         for _ in range(10):
             self.api.basic.publish(body=self.message,
                                    routing_key=self.queue_name)
@@ -57,7 +57,7 @@ class WebFunctionalTests(TestFunctionalFramework):
                                      virtual_host=self.virtual_host_name,
                                      timeout=1)
         self.channel = self.connection.channel()
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
         self.channel.queue.delete(self.queue_name)
         self.api.user.delete_permission(USERNAME, self.virtual_host_name)
         self.api.virtual_host.delete(self.virtual_host_name)

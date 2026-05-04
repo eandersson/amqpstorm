@@ -10,7 +10,7 @@ class BasicFunctionalTests(TestFunctionalFramework):
 
     @setup(queue=True)
     def test_functional_basic_get(self):
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
         self.channel.basic.publish(self.message, self.queue_name)
 
         message = self.channel.basic.get(self.queue_name)
@@ -19,14 +19,14 @@ class BasicFunctionalTests(TestFunctionalFramework):
 
     @setup(queue=True)
     def test_functional_basic_get_empty(self):
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
 
         message = self.channel.basic.get(self.queue_name)
         self.assertIsNone(message)
 
     @setup(queue=True)
     def test_functional_basic_cancel(self):
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
         consumer_tag = self.channel.basic.consume(None, self.queue_name)
 
         result = self.channel.basic.cancel(consumer_tag)
@@ -34,14 +34,14 @@ class BasicFunctionalTests(TestFunctionalFramework):
 
     @setup(queue=True)
     def test_functional_basic_recover(self):
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
         self.channel.basic.publish(self.message, self.queue_name)
 
         self.assertFalse(self.channel.basic.recover(requeue=True))
 
     @setup(queue=True)
     def test_functional_basic_ack(self):
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
         self.channel.basic.publish(self.message, self.queue_name)
 
         message = self.channel.basic.get(self.queue_name)
@@ -55,7 +55,7 @@ class BasicFunctionalTests(TestFunctionalFramework):
     @setup(queue=True)
     def test_functional_basic_ack_multiple(self):
         message = None
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
 
         for _ in range(5):
             self.channel.basic.publish(self.message, self.queue_name)
@@ -75,7 +75,7 @@ class BasicFunctionalTests(TestFunctionalFramework):
 
     @setup(queue=True)
     def test_functional_basic_nack(self):
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
         self.channel.basic.publish(self.message, self.queue_name)
 
         message = self.channel.basic.get(self.queue_name)
@@ -92,7 +92,7 @@ class BasicFunctionalTests(TestFunctionalFramework):
     @setup(queue=True)
     def test_functional_basic_nack_multiple(self):
         message = None
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
 
         for _ in range(5):
             self.channel.basic.publish(self.message, self.queue_name)
@@ -112,7 +112,7 @@ class BasicFunctionalTests(TestFunctionalFramework):
 
     @setup(queue=True)
     def test_functional_basic_nack_requeue(self):
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
         self.channel.basic.publish(self.message, self.queue_name)
 
         message = self.channel.basic.get(self.queue_name)
@@ -128,7 +128,7 @@ class BasicFunctionalTests(TestFunctionalFramework):
 
     @setup(queue=True)
     def test_functional_basic_reject(self):
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
         self.channel.basic.publish(self.message, self.queue_name)
 
         message = self.channel.basic.get(self.queue_name)
@@ -144,7 +144,7 @@ class BasicFunctionalTests(TestFunctionalFramework):
 
     @setup(queue=True)
     def test_functional_basic_reject_requeue(self):
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
         self.channel.basic.publish(self.message, self.queue_name)
 
         message = self.channel.basic.get(self.queue_name)

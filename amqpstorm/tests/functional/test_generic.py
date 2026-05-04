@@ -15,7 +15,7 @@ class GenericTest(TestFunctionalFramework):
 
     @setup(queue=True)
     def test_functional_publish_and_get_five_messages(self):
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
 
         # Publish 5 Messages.
         for _ in range(5):
@@ -33,7 +33,7 @@ class GenericTest(TestFunctionalFramework):
 
     @setup(queue=True)
     def test_functional_publish_and_get_five_empty_messages(self):
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
 
         # Publish 5 Messages.
         for _ in range(5):
@@ -56,7 +56,7 @@ class GenericTest(TestFunctionalFramework):
     @setup(queue=True)
     def test_functional_publish_and_get_a_large_message(self):
         self.channel.confirm_deliveries()
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
 
         body = self.message * 65536
 
@@ -70,7 +70,7 @@ class GenericTest(TestFunctionalFramework):
     @setup(queue=True)
     def test_functional_publish_5_large_messages_and_consume(self):
         self.channel.confirm_deliveries()
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
 
         body = self.message * 8192
         messages_to_publish = 5
@@ -92,7 +92,7 @@ class GenericTest(TestFunctionalFramework):
     @setup(queue=True)
     def test_functional_publish_5_empty_messages(self):
         self.channel.confirm_deliveries()
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
 
         body = b''
         messages_to_publish = 5
@@ -114,7 +114,7 @@ class GenericTest(TestFunctionalFramework):
     @setup(queue=True)
     def test_functional_publish_5_large_messages_and_get(self):
         self.channel.confirm_deliveries()
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
 
         body = self.message * 8192
         messages_to_publish = 5
@@ -135,7 +135,7 @@ class GenericTest(TestFunctionalFramework):
     @setup(queue=True)
     def test_functional_publish_with_properties_and_get(self):
         self.channel.confirm_deliveries()
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
 
         app_id = 'travis-ci'
         properties = {
@@ -185,7 +185,7 @@ class GenericTest(TestFunctionalFramework):
     @setup(queue=True)
     def test_functional_publish_and_change_app_id(self):
         self.channel.confirm_deliveries()
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
         message = Message.create(self.channel,
                                  body=self.message)
         message.app_id = 'travis-ci'
@@ -221,7 +221,7 @@ class GenericTest(TestFunctionalFramework):
     @setup(queue=True)
     def test_functional_publish_and_consume_five_messages(self):
         self.channel.confirm_deliveries()
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
 
         for _ in range(5):
             self.channel.basic.publish(body=self.message,
@@ -251,7 +251,7 @@ class GenericTest(TestFunctionalFramework):
 
     @setup(queue=True)
     def test_functional_generator_consume(self):
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
         self.channel.confirm_deliveries()
         for _ in range(5):
             self.channel.basic.publish(body=self.message,
@@ -274,7 +274,7 @@ class GenericTest(TestFunctionalFramework):
 
     @setup(queue=True)
     def test_functional_consume_with_custom_message_impl(self):
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
         self.channel.confirm_deliveries()
         for _ in range(5):
             self.channel.basic.publish(body=self.message,
@@ -302,7 +302,7 @@ class GenericTest(TestFunctionalFramework):
 
     @setup(queue=True)
     def test_functional_consume_and_redeliver(self):
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
         self.channel.confirm_deliveries()
         self.channel.basic.publish(body=self.message,
                                    routing_key=self.queue_name)
@@ -349,7 +349,7 @@ class GenericTest(TestFunctionalFramework):
 
     @setup(queue=True)
     def test_functional_redelivered(self):
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
 
         self.channel.confirm_deliveries()
         self.channel.basic.publish(body=self.message,
@@ -384,7 +384,7 @@ class GenericTest(TestFunctionalFramework):
 
     @setup(queue=True)
     def test_functional_get_and_redeliver(self):
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
 
         self.channel.confirm_deliveries()
         self.channel.basic.publish(body=self.message,
@@ -404,7 +404,7 @@ class GenericTest(TestFunctionalFramework):
 
     @setup(queue=True)
     def test_functional_publish_and_get(self):
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
         self.channel.confirm_deliveries()
         self.channel.basic.publish(body=self.message,
                                    routing_key=self.queue_name)
@@ -416,7 +416,7 @@ class GenericTest(TestFunctionalFramework):
 
     @setup(queue=True)
     def test_functional_publish_and_get_with_custom_message_impl(self):
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
         self.channel.confirm_deliveries()
         self.channel.basic.publish(body=self.message,
                                    routing_key=self.queue_name)
@@ -432,7 +432,7 @@ class GenericTest(TestFunctionalFramework):
 
     @setup(queue=True)
     def test_functional_publish_and_get_auto_decode(self):
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
         self.channel.confirm_deliveries()
         self.channel.basic.publish(body=self.message,
                                    routing_key=self.queue_name)
@@ -444,7 +444,7 @@ class GenericTest(TestFunctionalFramework):
 
     @setup(queue=True)
     def test_functional_publish_and_consume_auto_decode(self):
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
         self.channel.confirm_deliveries()
         self.channel.basic.publish(body=self.message,
                                    routing_key=self.queue_name)
@@ -465,7 +465,7 @@ class GenericTest(TestFunctionalFramework):
 
     @setup(queue=True)
     def test_functional_publish_and_consume(self):
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
         self.channel.confirm_deliveries()
         self.channel.basic.publish(body=self.message,
                                    routing_key=self.queue_name)
@@ -486,7 +486,7 @@ class GenericTest(TestFunctionalFramework):
 
     @setup(queue=True)
     def test_functional_publish_and_confirm(self):
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
         self.channel.confirm_deliveries()
 
         self.channel.basic.publish(body=self.message,
@@ -520,7 +520,7 @@ class GenericTest(TestFunctionalFramework):
             self.assertTrue(self.channel.is_open)
             self.assertEqual(why.error_code, 312)
             if why.error_code == 312:
-                self.channel.queue.declare(self.queue_name)
+                self.channel.queue.declare(self.queue_name, durable=True)
 
         result = self.channel.basic.publish(
             body=self.message,
@@ -535,7 +535,7 @@ class GenericTest(TestFunctionalFramework):
 
     @setup(queue=True)
     def test_functional_publish_fail_recover(self):
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
         self.channel.confirm_deliveries()
 
         message = Message.create(self.channel, self.message)
@@ -545,7 +545,7 @@ class GenericTest(TestFunctionalFramework):
 
     @setup(queue=True)
     def test_functional_start_stop_consumer(self):
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
         self.channel.confirm_deliveries()
 
         for _ in range(5):
