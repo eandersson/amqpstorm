@@ -11,7 +11,7 @@ class ApiQueueFunctionalTests(TestFunctionalFramework):
     @setup(queue=False)
     def test_api_queue_get(self):
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
-        api.queue.declare(self.queue_name)
+        api.queue.declare(self.queue_name, durable=True)
 
         queue = api.queue.get(self.queue_name)
 
@@ -23,7 +23,7 @@ class ApiQueueFunctionalTests(TestFunctionalFramework):
     def test_api_queue_list(self):
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
 
-        api.queue.declare(self.queue_name)
+        api.queue.declare(self.queue_name, durable=True)
 
         queues = api.queue.list()
 
@@ -45,9 +45,9 @@ class ApiQueueFunctionalTests(TestFunctionalFramework):
         api.virtual_host.create(self.queue_name)
 
         try:
-            api.queue.declare('abc', virtual_host=self.queue_name)
-            api.queue.declare('def', virtual_host=self.queue_name)
-            api.queue.declare('ghi', virtual_host=self.queue_name)
+            api.queue.declare('abc', durable=True, virtual_host=self.queue_name)
+            api.queue.declare('def', durable=True, virtual_host=self.queue_name)
+            api.queue.declare('ghi', durable=True, virtual_host=self.queue_name)
 
             queues = api.queue.list(page_size=1, virtual_host=self.queue_name)
         finally:
@@ -65,9 +65,9 @@ class ApiQueueFunctionalTests(TestFunctionalFramework):
         api.virtual_host.create(self.queue_name)
 
         try:
-            api.queue.declare('abc', virtual_host=self.queue_name)
-            api.queue.declare('def', virtual_host=self.queue_name)
-            api.queue.declare('ghi', virtual_host=self.queue_name)
+            api.queue.declare('abc', durable=True, virtual_host=self.queue_name)
+            api.queue.declare('def', durable=True, virtual_host=self.queue_name)
+            api.queue.declare('ghi', durable=True, virtual_host=self.queue_name)
 
             queues = api.queue.list(
                 page_size=None, virtual_host=self.queue_name
@@ -87,9 +87,9 @@ class ApiQueueFunctionalTests(TestFunctionalFramework):
         api.virtual_host.create(self.queue_name)
 
         try:
-            api.queue.declare('abc', virtual_host=self.queue_name)
-            api.queue.declare('def', virtual_host=self.queue_name)
-            api.queue.declare('ghi', virtual_host=self.queue_name)
+            api.queue.declare('abc', durable=True, virtual_host=self.queue_name)
+            api.queue.declare('def', durable=True, virtual_host=self.queue_name)
+            api.queue.declare('ghi', durable=True, virtual_host=self.queue_name)
 
             queues = api.queue.list(name='^ab', use_regex='true',
                                     virtual_host=self.queue_name)
@@ -108,9 +108,9 @@ class ApiQueueFunctionalTests(TestFunctionalFramework):
         api.virtual_host.create(self.queue_name)
 
         try:
-            api.queue.declare('abc', virtual_host=self.queue_name)
-            api.queue.declare('def', virtual_host=self.queue_name)
-            api.queue.declare('ghi', virtual_host=self.queue_name)
+            api.queue.declare('abc', durable=True, virtual_host=self.queue_name)
+            api.queue.declare('def', durable=True, virtual_host=self.queue_name)
+            api.queue.declare('ghi', durable=True, virtual_host=self.queue_name)
 
             queues = api.queue.list(name='^ab', use_regex=True,
                                     virtual_host=self.queue_name)
@@ -129,9 +129,9 @@ class ApiQueueFunctionalTests(TestFunctionalFramework):
         api.virtual_host.create(self.queue_name)
 
         try:
-            api.queue.declare('abc', virtual_host=self.queue_name)
-            api.queue.declare('def', virtual_host=self.queue_name)
-            api.queue.declare('ghi', virtual_host=self.queue_name)
+            api.queue.declare('abc', durable=True, virtual_host=self.queue_name)
+            api.queue.declare('def', durable=True, virtual_host=self.queue_name)
+            api.queue.declare('ghi', durable=True, virtual_host=self.queue_name)
 
             queues = api.queue.list(name='ab', use_regex=False,
                                     virtual_host=self.queue_name)
@@ -148,7 +148,7 @@ class ApiQueueFunctionalTests(TestFunctionalFramework):
     def test_api_queue_list_all(self):
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
 
-        api.queue.declare(self.queue_name)
+        api.queue.declare(self.queue_name, durable=True)
 
         queues = api.queue.list(show_all=True)
 
@@ -194,7 +194,7 @@ class ApiQueueFunctionalTests(TestFunctionalFramework):
     @setup(new_connection=False)
     def test_api_queue_declare_passive_exists(self):
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
-        api.queue.declare(self.queue_name)
+        api.queue.declare(self.queue_name, durable=True)
 
         self.assertIsNotNone(api.queue.declare(self.queue_name, passive=True))
 
@@ -216,7 +216,7 @@ class ApiQueueFunctionalTests(TestFunctionalFramework):
     def test_api_queue_purge(self):
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
 
-        api.queue.declare(self.queue_name)
+        api.queue.declare(self.queue_name, durable=True)
         self.assertIsNone(api.queue.purge(self.queue_name))
 
     @setup(queue=True)
@@ -224,7 +224,7 @@ class ApiQueueFunctionalTests(TestFunctionalFramework):
         exchange_name = 'amq.direct'
 
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
-        api.queue.declare(self.queue_name)
+        api.queue.declare(self.queue_name, durable=True)
 
         bindings = len(api.queue.bindings(self.queue_name))
 
@@ -242,7 +242,7 @@ class ApiQueueFunctionalTests(TestFunctionalFramework):
 
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
 
-        api.queue.declare(self.queue_name)
+        api.queue.declare(self.queue_name, durable=True)
 
         bindings = len(api.queue.bindings(self.queue_name))
 

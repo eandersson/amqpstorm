@@ -24,7 +24,7 @@ class QueueFunctionalTests(TestFunctionalFramework):
 
     @setup(queue=True)
     def test_functional_queue_delete(self):
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
         self.channel.queue.delete(self.queue_name,
                                   if_unused=True)
         self.assertRaises(amqpstorm.AMQPChannelError,
@@ -34,7 +34,7 @@ class QueueFunctionalTests(TestFunctionalFramework):
     @setup(queue=True)
     def test_functional_queue_purge(self):
         messages_to_send = 10
-        self.channel.queue.declare(self.queue_name, auto_delete=True)
+        self.channel.queue.declare(self.queue_name, durable=True, auto_delete=True)
         for _ in range(messages_to_send):
             self.channel.basic.publish(self.message, self.queue_name)
         result = self.channel.queue.purge(self.queue_name)

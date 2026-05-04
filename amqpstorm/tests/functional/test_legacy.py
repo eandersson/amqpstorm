@@ -11,7 +11,7 @@ class LegacyFunctionalTests(TestFunctionalFramework):
 
     @setup(queue=True)
     def test_functional_start_stop_consumer_tuple(self):
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
         self.channel.confirm_deliveries()
 
         for _ in range(5):
@@ -44,7 +44,7 @@ class LegacyFunctionalTests(TestFunctionalFramework):
 
     @setup(queue=True)
     def test_functional_publish_and_consume_five_messages_tuple(self):
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
         self.channel.confirm_deliveries()
 
         for _ in range(5):
@@ -76,7 +76,7 @@ class LegacyFunctionalTests(TestFunctionalFramework):
 
     @setup(queue=True)
     def test_functional_generator_consume(self):
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
         self.channel.confirm_deliveries()
         for _ in range(5):
             self.channel.basic.publish(body=self.message,
@@ -103,7 +103,7 @@ class LegacyFunctionalTests(TestFunctionalFramework):
 
     @setup(queue=True)
     def test_functional_publish_and_get_five_messages(self):
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
 
         # Publish 5 Messages.
         for _ in range(5):

@@ -28,7 +28,7 @@ class ReliabilityFunctionalTests(TestFunctionalFramework):
             # Make sure that it's a new channel.
             self.assertEqual(int(self.channel), 1)
 
-            self.channel.queue.declare(self.queue_name)
+            self.channel.queue.declare(self.queue_name, durable=True)
 
             # Verify that the Connection/Channel has been opened properly.
             self.assertIsNotNone(self.connection._io.socket)
@@ -55,7 +55,7 @@ class ReliabilityFunctionalTests(TestFunctionalFramework):
             # Make sure that it's a new channel.
             self.assertEqual(int(channel), 1)
 
-            channel.queue.declare(self.queue_name)
+            channel.queue.declare(self.queue_name, durable=True)
 
             channel.close()
 
@@ -217,7 +217,7 @@ class ReliabilityFunctionalTests(TestFunctionalFramework):
         self.channel = self.connection.channel()
         self.assertEqual(int(self.channel), 1)
 
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
 
         self.channel.close()
         self.connection.close()
@@ -253,7 +253,7 @@ class PublishAndConsume1kTest(TestFunctionalFramework):
 
     @setup(queue=True)
     def test_functional_publish_and_consume_1k_messages(self):
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
 
         publish_thread = threading.Thread(target=self.publish_messages, )
         publish_thread.daemon = True
@@ -291,7 +291,7 @@ class Consume1kUntilEmpty(TestFunctionalFramework):
 
     @setup(queue=True)
     def test_functional_publish_and_consume_until_empty(self):
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
         self.channel.confirm_deliveries()
         self.publish_messages()
 

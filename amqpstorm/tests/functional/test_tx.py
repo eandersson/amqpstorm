@@ -19,7 +19,7 @@ class TxFunctionalTests(TestFunctionalFramework):
     def test_functional_tx_commit(self):
         self.channel.tx.select()
 
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
         self.channel.basic.publish(self.message, self.queue_name)
 
         # Sleep for 0.1s to make sure RabbitMQ has time to catch up.
@@ -39,7 +39,7 @@ class TxFunctionalTests(TestFunctionalFramework):
     def test_functional_tx_commit_multiple(self):
         self.channel.tx.select()
 
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
         for _ in range(10):
             self.channel.basic.publish(self.message, self.queue_name)
 
@@ -69,7 +69,7 @@ class TxFunctionalTests(TestFunctionalFramework):
     def test_functional_tx_rollback(self):
         self.channel.tx.select()
 
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
         self.channel.basic.publish(self.message, self.queue_name)
 
         self.channel.tx.rollback()
@@ -82,7 +82,7 @@ class TxFunctionalTests(TestFunctionalFramework):
     def test_functional_tx_rollback_multiple(self):
         self.channel.tx.select()
 
-        self.channel.queue.declare(self.queue_name)
+        self.channel.queue.declare(self.queue_name, durable=True)
         for _ in range(10):
             self.channel.basic.publish(self.message, self.queue_name)
 
