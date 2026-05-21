@@ -69,6 +69,7 @@ class Channel(BaseChannel):
         self._exchange = Exchange(self)
         self._tx = Tx(self)
         self._queue = Queue(self)
+        self._user_closed: bool = False
 
     def __enter__(self) -> Channel:
         return self
@@ -173,7 +174,12 @@ class Channel(BaseChannel):
 
         :rtype: :py:class:`generator`
         """
-        self.check_for_errors()
+        try:
+            self.check_for_errors()
+        except (AMQPConnectionError, AMQPChannelError):
+            if self._user_initiated_close():
+                return
+            raise
         if message_impl:
             if not issubclass(message_impl, BaseMessage):
                 raise AMQPInvalidArgument(
@@ -182,10 +188,20 @@ class Channel(BaseChannel):
         else:
             message_impl = Message
         while not self.is_closed:
-            message = self._build_message(auto_decode=auto_decode,
-                                          message_impl=message_impl)
+            try:
+                message = self._build_message(auto_decode=auto_decode,
+                                              message_impl=message_impl)
+            except (AMQPConnectionError, AMQPChannelError):
+                if self._user_initiated_close():
+                    return
+                raise
             if not message:
-                self.check_for_errors()
+                try:
+                    self.check_for_errors()
+                except (AMQPConnectionError, AMQPChannelError):
+                    if self._user_initiated_close():
+                        return
+                    raise
                 time.sleep(IDLE_WAIT)
                 if break_on_empty and not self._inbound:
                     break
@@ -194,6 +210,9 @@ class Channel(BaseChannel):
                 yield message.to_tuple()
                 continue
             yield message
+
+    def _user_initiated_close(self) -> bool:
+        return self._user_closed or self._connection._user_closed
 
     def close(self, reply_code: int = 200, reply_text: str = '') -> None:
         """Close Channel.
@@ -212,6 +231,7 @@ class Channel(BaseChannel):
             raise AMQPInvalidArgument('reply_code should be an integer')
         elif not compatibility.is_string(reply_text):
             raise AMQPInvalidArgument('reply_text should be a string')
+        self._user_closed = True
         try:
             if self._connection.is_closed or not self.is_open:
                 self.stop_consuming()

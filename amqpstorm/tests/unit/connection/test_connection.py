@@ -75,6 +75,14 @@ class ConnectionTests(TestFramework):
 
         self.assertTrue(connection.is_closed)
 
+    def test_connection_close_sets_user_closed_flag(self):
+        connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
+        connection.set_state(Connection.OPEN)
+
+        self.assertFalse(connection._user_closed)
+        connection.close()
+        self.assertTrue(connection._user_closed)
+
     def test_connection_open_channel_on_closed_connection(self):
         connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
 
