@@ -110,6 +110,7 @@ class Connection(Stateful):
         self._channel0 = Channel0(self, self.parameters['client_properties'])
         self._channels: dict[int, Channel] = {}
         self._last_channel_id: int | None = None
+        self._user_closed: bool = False
         self.heartbeat = Heartbeat(self.parameters['heartbeat'],
                                    self._channel0.send_heartbeat)
         if not kwargs.get('lazy', False):
@@ -240,6 +241,7 @@ class Connection(Stateful):
         :return:
         """
         LOGGER.debug('Connection Closing')
+        self._user_closed = True
         if not self.is_closed:
             self.set_state(self.CLOSING)
         self.heartbeat.stop()

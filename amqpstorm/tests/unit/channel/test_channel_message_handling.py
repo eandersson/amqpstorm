@@ -8,6 +8,7 @@ from pamqp import commands
 from pamqp.body import ContentBody
 
 from amqpstorm import AMQPChannelError
+from amqpstorm import AMQPConnectionError
 from amqpstorm import Channel
 from amqpstorm import Message
 from amqpstorm.tests.utility import FakeConnection
@@ -337,6 +338,105 @@ class ChannelBuildMessageTests(TestFramework):
             messages_consumed += 1
 
         self.assertEqual(messages_consumed, 1)
+
+    def test_channel_build_inbound_messages_returns_on_user_close(self):
+        channel = Channel(0, FakeConnection(), 360)
+        channel.set_state(channel.OPEN)
+
+        message = self.message.encode('utf-8')
+        deliver = commands.Basic.Deliver()
+        header = ContentHeader(body_size=len(message))
+        body = ContentBody(value=message)
+        channel._inbound = collections.deque([deliver, header, body])
+
+        consumed = 0
+        for _ in channel.build_inbound_messages(break_on_empty=False):
+            consumed += 1
+            channel._user_closed = True
+            channel.set_state(channel.CLOSED)
+        self.assertEqual(consumed, 1)
+        self.assertFalse(channel.exceptions)
+
+    def test_channel_build_inbound_messages_returns_on_connection_user_close(self):
+        connection = FakeConnection()
+        channel = Channel(0, connection, 360)
+        channel.set_state(channel.OPEN)
+
+        message = self.message.encode('utf-8')
+        deliver = commands.Basic.Deliver()
+        header = ContentHeader(body_size=len(message))
+        body = ContentBody(value=message)
+        channel._inbound = collections.deque([deliver, header, body])
+
+        consumed = 0
+        for _ in channel.build_inbound_messages(break_on_empty=False):
+            consumed += 1
+            connection._user_closed = True
+            connection.set_state(connection.CLOSED)
+        self.assertEqual(consumed, 1)
+
+    def test_channel_build_inbound_messages_raises_on_server_close(self):
+        channel = Channel(0, FakeConnection(), 360)
+        channel.set_state(channel.OPEN)
+
+        message = self.message.encode('utf-8')
+        deliver = commands.Basic.Deliver()
+        header = ContentHeader(body_size=len(message))
+        body = ContentBody(value=message)
+        channel._inbound = collections.deque([deliver, header, body])
+
+        def drive():
+            for _ in channel.build_inbound_messages(break_on_empty=False):
+                channel.exceptions.append(
+                    AMQPChannelError('closed by server', reply_code=406)
+                )
+
+        self.assertRaises(AMQPChannelError, drive)
+
+    def test_channel_build_inbound_messages_returns_when_already_user_closed(
+        self,
+    ):
+        channel = Channel(0, FakeConnection(), 360)
+        channel._user_closed = True
+        channel.set_state(channel.CLOSED)
+
+        messages = list(
+            channel.build_inbound_messages(break_on_empty=False),
+        )
+        self.assertEqual(messages, [])
+
+    def test_channel_build_inbound_messages_raises_when_closed_without_flag(
+        self,
+    ):
+        channel = Channel(0, FakeConnection(), 360)
+        channel.set_state(channel.CLOSED)
+
+        self.assertRaises(
+            AMQPChannelError,
+            lambda: list(
+                channel.build_inbound_messages(break_on_empty=False)
+            ),
+        )
+
+    def test_channel_user_initiated_close_helper(self):
+        connection = FakeConnection()
+        channel = Channel(0, connection, 360)
+
+        self.assertFalse(channel._user_initiated_close())
+
+        channel._user_closed = True
+        self.assertTrue(channel._user_initiated_close())
+
+        channel._user_closed = False
+        connection._user_closed = True
+        self.assertTrue(channel._user_initiated_close())
+
+    def test_channel_check_for_errors_still_raises_after_user_close(self):
+        connection = FakeConnection(state=FakeConnection.CLOSED)
+        connection._user_closed = True
+        channel = Channel(0, connection, 360)
+
+        self.assertRaises(AMQPConnectionError, channel.check_for_errors)
 
 
 class ChannelProcessDataEventTests(TestFramework):
