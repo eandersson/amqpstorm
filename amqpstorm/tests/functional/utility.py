@@ -14,12 +14,19 @@ from amqpstorm.tests.utility import TestFramework
 class TestFunctionalFramework(TestFramework):
     """Extended Test Base for functional unit-tests."""
 
+    poller: str = 'select'
+
     def __init__(self, *args, **kwargs):
         self.api = ManagementApi(HTTP_URL, USERNAME, PASSWORD, timeout=1)
         self.queue_name = None
         self.exchange_name = None
         self.virtual_host_name = None
         super(TestFunctionalFramework, self).__init__(*args, **kwargs)
+
+    def _make_connection(self, **kwargs):
+        kwargs.setdefault('timeout', 1)
+        kwargs.setdefault('poller', self.poller)
+        return Connection(HOST, USERNAME, PASSWORD, **kwargs)
 
 
 def retry_function_wrapper(callable_function, retry_limit=10,
@@ -63,8 +70,7 @@ def setup(new_connection=True, new_channel=True, queue=False, exchange=False,
             self.exchange_name = name
             self.virtual_host_name = name
             if new_connection:
-                self.connection = Connection(HOST, USERNAME, PASSWORD,
-                                             timeout=1)
+                self.connection = self._make_connection()
                 if new_channel:
                     self.channel = self.connection.channel()
             try:
