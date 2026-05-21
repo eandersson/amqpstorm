@@ -2,7 +2,7 @@ Management Api
 --------------
 
 .. autoclass:: amqpstorm.management.ManagementApi
-    :members: basic, channel, connection, exchange, queue, user, aliveness_test, overview, nodes, top, whoami
+    :members: basic, channel, connection, exchange, healthchecks, queue, user, virtual_host, aliveness_test, cluster_name, node, nodes, overview, top, whoami
 
 .. autoclass:: amqpstorm.management.basic.Basic
     :members:
@@ -14,6 +14,9 @@ Management Api
     :members:
 
 .. autoclass:: amqpstorm.management.exchange.Exchange
+    :members:
+
+.. autoclass:: amqpstorm.management.healthchecks.HealthChecks
     :members:
 
 .. autoclass:: amqpstorm.management.queue.Queue

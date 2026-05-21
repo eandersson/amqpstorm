@@ -1,9 +1,12 @@
 """AMQPStorm Connection."""
+from __future__ import annotations
 
 import logging
 import threading
 import time
-from time import sleep
+from types import TracebackType
+from typing import TYPE_CHECKING
+from typing import Any
 
 from pamqp import exceptions as pamqp_exception
 from pamqp import frame as pamqp_frame
@@ -17,8 +20,12 @@ from amqpstorm.channel0 import Channel0
 from amqpstorm.exception import AMQPConnectionError
 from amqpstorm.exception import AMQPInvalidArgument
 from amqpstorm.heartbeat import Heartbeat
-from amqpstorm.io import EMPTY_BUFFER
 from amqpstorm.io import IO
+
+if TYPE_CHECKING:
+    import socket as _socket
+
+    from pamqp.base import Frame
 
 LOGGER = logging.getLogger(__name__)
 
@@ -73,8 +80,15 @@ class Connection(Stateful):
         'heartbeat', 'parameters', '_channel0', '_channels', '_io'
     ]
 
-    def __init__(self, hostname, username, password, port=5672, **kwargs):
-        super(Connection, self).__init__()
+    def __init__(
+        self,
+        hostname: str,
+        username: str,
+        password: str,
+        port: int = 5672,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__()
         self.lock = threading.RLock()
         self.parameters = {
             'hostname': hostname,
@@ -94,24 +108,29 @@ class Connection(Stateful):
         self._io = IO(self.parameters, exceptions=self._exceptions,
                       on_read_impl=self._read_buffer)
         self._channel0 = Channel0(self, self.parameters['client_properties'])
-        self._channels = {}
-        self._last_channel_id = None
+        self._channels: dict[int, Channel] = {}
+        self._last_channel_id: int | None = None
         self.heartbeat = Heartbeat(self.parameters['heartbeat'],
                                    self._channel0.send_heartbeat)
         if not kwargs.get('lazy', False):
             self.open()
 
-    def __enter__(self):
+    def __enter__(self) -> Connection:
         return self
 
-    def __exit__(self, exception_type, exception_value, _):
+    def __exit__(
+        self,
+        exception_type: type[BaseException] | None,
+        exception_value: BaseException | None,
+        _: TracebackType | None,
+    ) -> None:
         if exception_type:
             message = 'Closing connection due to an unhandled exception: %s'
             LOGGER.warning(message, exception_value)
         self.close()
 
     @property
-    def channels(self):
+    def channels(self) -> dict[int, Channel]:
         """Returns a dictionary of the Channels currently available.
 
         :rtype: dict
@@ -119,7 +138,7 @@ class Connection(Stateful):
         return self._channels
 
     @property
-    def fileno(self):
+    def fileno(self) -> int | None:
         """Returns the Socket File number.
 
         :rtype: integer,None
@@ -129,7 +148,7 @@ class Connection(Stateful):
         return self._io.socket.fileno()
 
     @property
-    def is_blocked(self):
+    def is_blocked(self) -> bool:
         """Is the connection currently being blocked from publishing by
         the remote server.
 
@@ -138,7 +157,7 @@ class Connection(Stateful):
         return self._channel0.is_blocked
 
     @property
-    def max_allowed_channels(self):
+    def max_allowed_channels(self) -> int:
         """Returns the maximum allowed channels for the connection.
 
         :rtype: int
@@ -146,7 +165,7 @@ class Connection(Stateful):
         return self._channel0.max_allowed_channels
 
     @property
-    def max_frame_size(self):
+    def max_frame_size(self) -> int:
         """Returns the maximum allowed frame size for the connection.
 
         :rtype: int
@@ -154,7 +173,7 @@ class Connection(Stateful):
         return self._channel0.max_frame_size
 
     @property
-    def server_properties(self):
+    def server_properties(self) -> dict[str, Any]:
         """Returns the RabbitMQ Server Properties.
 
         :rtype: dict
@@ -162,14 +181,14 @@ class Connection(Stateful):
         return self._channel0.server_properties
 
     @property
-    def socket(self):
+    def socket(self) -> _socket.socket | None:
         """Returns an instance of the Socket used by the Connection.
 
         :rtype: socket.socket
         """
         return self._io.socket
 
-    def channel(self, rpc_timeout=60, lazy=False):
+    def channel(self, rpc_timeout: float = 60, lazy: bool = False) -> Channel:
         """Open a Channel.
 
         :param int rpc_timeout: Timeout before we give up waiting for an RPC
@@ -197,7 +216,7 @@ class Connection(Stateful):
         LOGGER.debug('Channel #%d Opened', channel_id)
         return self._channels[channel_id]
 
-    def check_for_errors(self):
+    def check_for_errors(self) -> None:
         """Check Connection for errors.
 
         :raises AMQPConnectionError: Raises if the connection
@@ -213,7 +232,7 @@ class Connection(Stateful):
         self.close()
         raise self.exceptions[0]
 
-    def close(self):
+    def close(self) -> None:
         """Close the Connection.
 
         :raises AMQPConnectionError: Raises if the connection
@@ -236,7 +255,7 @@ class Connection(Stateful):
             self.set_state(self.CLOSED)
         LOGGER.debug('Connection Closed')
 
-    def open(self):
+    def open(self) -> None:
         """Open Connection.
 
         :raises AMQPConnectionError: Raises if the connection
@@ -253,7 +272,7 @@ class Connection(Stateful):
         self.heartbeat.start(self._exceptions)
         LOGGER.debug('Connection Opened')
 
-    def write_frame(self, channel_id, frame_out):
+    def write_frame(self, channel_id: int, frame_out: Frame) -> None:
         """Marshal and write an outgoing pamqp frame to the Socket.
 
         :param int channel_id: Channel ID.
@@ -265,21 +284,22 @@ class Connection(Stateful):
         self.heartbeat.register_write()
         self._io.write_to_socket(frame_data)
 
-    def write_frames(self, channel_id, frames_out):
+    def write_frames(self, channel_id: int, frames_out: list[Frame]) -> None:
         """Marshal and write multiple outgoing pamqp frames to the Socket.
 
-        :param int channel_id: Channel ID/
+        :param int channel_id: Channel ID.
         :param list frames_out: Amqp frames.
 
         :return:
         """
-        data_out = EMPTY_BUFFER
-        for single_frame in frames_out:
-            data_out += pamqp_frame.marshal(single_frame, channel_id)
+        data_out = b''.join(
+            pamqp_frame.marshal(single_frame, channel_id)
+            for single_frame in frames_out
+        )
         self.heartbeat.register_write()
         self._io.write_to_socket(data_out)
 
-    def _close_remaining_channels(self):
+    def _close_remaining_channels(self) -> None:
         """Forcefully close all open channels.
 
         :return:
@@ -289,14 +309,14 @@ class Connection(Stateful):
             self._channels[channel_id].close()
             self._cleanup_channel(channel_id)
 
-    def _get_next_available_channel_id(self):
-        """Returns the next available available channel id.
+    def _get_next_available_channel_id(self) -> int:
+        """Returns the next available channel id.
 
         :raises AMQPConnectionError: Raises if there is no available channel.
         :rtype: int
         """
-        for channel_id in compatibility.RANGE(self._last_channel_id or 1,
-                                              self.max_allowed_channels + 1):
+        for channel_id in range(self._last_channel_id or 1,
+                                self.max_allowed_channels + 1):
             if channel_id in self._channels:
                 channel = self._channels[channel_id]
                 if channel.current_state != Channel.CLOSED:
@@ -310,10 +330,12 @@ class Connection(Stateful):
             return self._get_next_available_channel_id()
 
         raise AMQPConnectionError(
-            'reached the maximum number of channels %d' %
-            self.max_allowed_channels)
+            f'reached the maximum number of channels {self.max_allowed_channels}'
+        )
 
-    def _handle_amqp_frame(self, data_in):
+    def _handle_amqp_frame(
+        self, data_in: bytes,
+    ) -> tuple[bytes, int | None, Any]:
         """Unmarshal a single AMQP frame and return the result.
 
         :param data_in: socket data
@@ -334,7 +356,7 @@ class Connection(Stateful):
             self.exceptions.append(AMQPConnectionError(why))
         return data_in, None, None
 
-    def _read_buffer(self, data_in):
+    def _read_buffer(self, data_in: bytes) -> bytes:
         """Process the socket buffer, and direct the data to the appropriate
         channel.
 
@@ -354,8 +376,8 @@ class Connection(Stateful):
 
         return data_in
 
-    def _cleanup_channel(self, channel_id):
-        """Remove the the channel from the list of available channels.
+    def _cleanup_channel(self, channel_id: int) -> None:
+        """Remove the channel from the list of available channels.
 
         :param int channel_id: Channel id
 
@@ -366,14 +388,14 @@ class Connection(Stateful):
                 return
             del self._channels[channel_id]
 
-    def _send_handshake(self):
+    def _send_handshake(self) -> None:
         """Send a RabbitMQ Handshake.
 
         :return:
         """
         self._io.write_to_socket(pamqp_header.ProtocolHeader().marshal())
 
-    def _validate_parameters(self):
+    def _validate_parameters(self) -> None:
         """Validate Connection Parameters.
 
         :return:
@@ -393,7 +415,9 @@ class Connection(Stateful):
         elif not compatibility.is_integer(self.parameters['heartbeat']):
             raise AMQPInvalidArgument('heartbeat should be an integer')
 
-    def _wait_for_connection_state(self, state=Stateful.OPEN, rpc_timeout=30):
+    def _wait_for_connection_state(
+        self, state: int = Stateful.OPEN, rpc_timeout: float = 30,
+    ) -> None:
         """Wait for a Connection state.
 
         :param int state: State that we expect
@@ -408,4 +432,4 @@ class Connection(Stateful):
             self.check_for_errors()
             if time.time() - start_time > rpc_timeout:
                 raise AMQPConnectionError('connection timed out')
-            sleep(IDLE_WAIT)
+            time.sleep(IDLE_WAIT)

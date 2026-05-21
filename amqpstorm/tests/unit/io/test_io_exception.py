@@ -71,7 +71,7 @@ class IOExceptionTests(TestFramework):
         io._exceptions = []
         io.socket = mock.Mock(name='socket', spec=socket.socket)
         io.socket.send.side_effect = socket.error('error')
-        io.write_to_socket(self.message)
+        io.write_to_socket(self.message.encode('utf-8'))
 
         self.assertIsInstance(io._exceptions[0], AMQPConnectionError)
 
@@ -89,7 +89,7 @@ class IOExceptionTests(TestFramework):
         io._exceptions = []
         io.socket = mock.Mock(name='socket', spec=socket.socket)
         io.socket.send.side_effect = custom_raise
-        io.write_to_socket(self.message)
+        io.write_to_socket(self.message.encode('utf-8'))
 
         self.assertTrue(self.raised)
         self.assertFalse(io._exceptions)
@@ -108,7 +108,7 @@ class IOExceptionTests(TestFramework):
         io._exceptions = []
         io.socket = mock.Mock(name='socket', spec=socket.socket)
         io.socket.send.side_effect = custom_raise
-        io.write_to_socket(self.message)
+        io.write_to_socket(self.message.encode('utf-8'))
 
         self.assertTrue(self.raised)
         self.assertFalse(io._exceptions)
@@ -119,7 +119,7 @@ class IOExceptionTests(TestFramework):
         io = IO(connection.parameters)
         io._exceptions = []
         io.socket = None
-        io.write_to_socket(self.message)
+        io.write_to_socket(self.message.encode('utf-8'))
 
         self.assertTrue(io._exceptions)
 

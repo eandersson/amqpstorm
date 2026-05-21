@@ -1,12 +1,18 @@
 """AMQPStorm Message."""
+from __future__ import annotations
 
 import datetime
 import json
 import uuid
+from typing import TYPE_CHECKING
+from typing import Any
 
 from amqpstorm.base import BaseMessage
 from amqpstorm.compatibility import try_utf8_decode
 from amqpstorm.exception import AMQPMessageError
+
+if TYPE_CHECKING:
+    from amqpstorm.channel import Channel
 
 
 class Message(BaseMessage):
@@ -37,15 +43,25 @@ class Message(BaseMessage):
         '_decode_cache'
     ]
 
-    def __init__(self, channel, body=None, method=None, properties=None,
-                 auto_decode=True):
-        super(Message, self).__init__(
+    def __init__(
+        self,
+        channel: Channel | None,
+        body: bytes | str | None = None,
+        method: dict[str, Any] | None = None,
+        properties: dict[str, Any] | None = None,
+        auto_decode: bool = True,
+    ) -> None:
+        super().__init__(
             channel, body, method, properties, auto_decode
         )
-        self._decode_cache = dict()
+        self._decode_cache: dict[str, Any] = {}
 
     @staticmethod
-    def create(channel, body, properties=None):
+    def create(
+        channel: Channel,
+        body: bytes | str,
+        properties: dict[str, Any] | None = None,
+    ) -> Message:
         """Create a new Message.
 
         :param Channel channel: AMQPStorm Channel
@@ -66,7 +82,7 @@ class Message(BaseMessage):
                        body=body, properties=properties)
 
     @property
-    def body(self):
+    def body(self) -> bytes | str | None:
         """Return the Message Body.
 
             If auto_decode is enabled, the body will automatically be
@@ -83,7 +99,7 @@ class Message(BaseMessage):
         return body
 
     @property
-    def channel(self):
+    def channel(self) -> Channel | None:
         """Return the Channel used by this message.
 
         :rtype: Channel
@@ -91,7 +107,7 @@ class Message(BaseMessage):
         return self._channel
 
     @property
-    def method(self):
+    def method(self) -> dict[str, Any] | None:
         """Return the Message Method.
 
             If auto_decode is enabled, all strings will automatically be
@@ -102,7 +118,7 @@ class Message(BaseMessage):
         return self._try_decode_utf8_content(self._method, 'method')
 
     @property
-    def properties(self):
+    def properties(self) -> dict[str, Any]:
         """Returns the Message Properties.
 
             If auto_decode is enabled, all strings will automatically be
@@ -112,7 +128,7 @@ class Message(BaseMessage):
         """
         return self._try_decode_utf8_content(self._properties, 'properties')
 
-    def ack(self):
+    def ack(self) -> None:
         """Acknowledge Message.
 
         :raises AMQPInvalidArgument: Invalid Parameters
@@ -128,7 +144,7 @@ class Message(BaseMessage):
             )
         self._channel.basic.ack(delivery_tag=self.delivery_tag)
 
-    def nack(self, requeue=True):
+    def nack(self, requeue: bool = True) -> None:
         """Negative Acknowledgement.
 
         :raises AMQPInvalidArgument: Invalid Parameters
@@ -145,7 +161,7 @@ class Message(BaseMessage):
         self._channel.basic.nack(delivery_tag=self.delivery_tag,
                                  requeue=requeue)
 
-    def reject(self, requeue=True):
+    def reject(self, requeue: bool = True) -> None:
         """Reject Message.
 
         :raises AMQPInvalidArgument: Invalid Parameters
@@ -162,8 +178,13 @@ class Message(BaseMessage):
         self._channel.basic.reject(delivery_tag=self.delivery_tag,
                                    requeue=requeue)
 
-    def publish(self, routing_key, exchange='', mandatory=False,
-                immediate=False):
+    def publish(
+        self,
+        routing_key: str,
+        exchange: str = '',
+        mandatory: bool = False,
+        immediate: bool = False,
+    ) -> bool | None:
         """Publish Message.
 
         :param str routing_key: Message routing key
@@ -186,7 +207,7 @@ class Message(BaseMessage):
                                            immediate=immediate)
 
     @property
-    def app_id(self):
+    def app_id(self) -> Any | None:
         """Get AMQP Message attribute: app_id.
 
         :return:
@@ -194,7 +215,7 @@ class Message(BaseMessage):
         return self.properties.get('app_id')
 
     @app_id.setter
-    def app_id(self, value):
+    def app_id(self, value: Any) -> None:
         """Set AMQP Message attribute: app_id.
 
         :return:
@@ -202,7 +223,7 @@ class Message(BaseMessage):
         self._update_properties('app_id', value)
 
     @property
-    def message_id(self):
+    def message_id(self) -> Any | None:
         """Get AMQP Message attribute: message_id.
 
         :return:
@@ -210,7 +231,7 @@ class Message(BaseMessage):
         return self.properties.get('message_id')
 
     @message_id.setter
-    def message_id(self, value):
+    def message_id(self, value: Any) -> None:
         """Set AMQP Message attribute: message_id.
 
         :return:
@@ -218,7 +239,7 @@ class Message(BaseMessage):
         self._update_properties('message_id', value)
 
     @property
-    def content_encoding(self):
+    def content_encoding(self) -> Any | None:
         """Get AMQP Message attribute: content_encoding.
 
         :return:
@@ -226,7 +247,7 @@ class Message(BaseMessage):
         return self.properties.get('content_encoding')
 
     @content_encoding.setter
-    def content_encoding(self, value):
+    def content_encoding(self, value: Any) -> None:
         """Set AMQP Message attribute: content_encoding.
 
         :return:
@@ -234,7 +255,7 @@ class Message(BaseMessage):
         self._update_properties('content_encoding', value)
 
     @property
-    def content_type(self):
+    def content_type(self) -> Any | None:
         """Get AMQP Message attribute: content_type.
 
         :return:
@@ -242,7 +263,7 @@ class Message(BaseMessage):
         return self.properties.get('content_type')
 
     @content_type.setter
-    def content_type(self, value):
+    def content_type(self, value: Any) -> None:
         """Set AMQP Message attribute: content_type.
 
         :return:
@@ -250,7 +271,7 @@ class Message(BaseMessage):
         self._update_properties('content_type', value)
 
     @property
-    def correlation_id(self):
+    def correlation_id(self) -> Any | None:
         """Get AMQP Message attribute: correlation_id.
 
         :return:
@@ -258,7 +279,7 @@ class Message(BaseMessage):
         return self.properties.get('correlation_id')
 
     @correlation_id.setter
-    def correlation_id(self, value):
+    def correlation_id(self, value: Any) -> None:
         """Set AMQP Message attribute: correlation_id.
 
         :return:
@@ -266,7 +287,7 @@ class Message(BaseMessage):
         self._update_properties('correlation_id', value)
 
     @property
-    def delivery_mode(self):
+    def delivery_mode(self) -> Any | None:
         """Get AMQP Message attribute: delivery_mode.
 
         :return:
@@ -274,7 +295,7 @@ class Message(BaseMessage):
         return self.properties.get('delivery_mode')
 
     @delivery_mode.setter
-    def delivery_mode(self, value):
+    def delivery_mode(self, value: Any) -> None:
         """Set AMQP Message attribute: delivery_mode.
 
         :return:
@@ -282,7 +303,7 @@ class Message(BaseMessage):
         self._update_properties('delivery_mode', value)
 
     @property
-    def timestamp(self):
+    def timestamp(self) -> Any | None:
         """Get AMQP Message attribute: timestamp.
 
         :return:
@@ -290,7 +311,7 @@ class Message(BaseMessage):
         return self.properties.get('timestamp')
 
     @timestamp.setter
-    def timestamp(self, value):
+    def timestamp(self, value: Any) -> None:
         """Set AMQP Message attribute: timestamp.
 
         :return:
@@ -298,7 +319,7 @@ class Message(BaseMessage):
         self._update_properties('timestamp', value)
 
     @property
-    def priority(self):
+    def priority(self) -> Any | None:
         """Get AMQP Message attribute: priority.
 
         :return:
@@ -306,7 +327,7 @@ class Message(BaseMessage):
         return self.properties.get('priority')
 
     @priority.setter
-    def priority(self, value):
+    def priority(self, value: Any) -> None:
         """Set AMQP Message attribute: priority.
 
         :return:
@@ -314,7 +335,7 @@ class Message(BaseMessage):
         self._update_properties('priority', value)
 
     @property
-    def reply_to(self):
+    def reply_to(self) -> Any | None:
         """Get AMQP Message attribute: reply_to.
 
         :return:
@@ -322,7 +343,7 @@ class Message(BaseMessage):
         return self.properties.get('reply_to')
 
     @reply_to.setter
-    def reply_to(self, value):
+    def reply_to(self, value: Any) -> None:
         """Set AMQP Message attribute: reply_to.
 
         :return:
@@ -330,7 +351,7 @@ class Message(BaseMessage):
         self._update_properties('reply_to', value)
 
     @property
-    def message_type(self):
+    def message_type(self) -> Any | None:
         """Get AMQP Message attribute: message_type.
 
         :return:
@@ -338,7 +359,7 @@ class Message(BaseMessage):
         return self.properties.get('message_type')
 
     @message_type.setter
-    def message_type(self, value):
+    def message_type(self, value: Any) -> None:
         """Set AMQP Message attribute: message_type.
 
         :return:
@@ -346,7 +367,7 @@ class Message(BaseMessage):
         self._update_properties('message_type', value)
 
     @property
-    def expiration(self):
+    def expiration(self) -> Any | None:
         """Get AMQP Message attribute: expiration.
 
         :return:
@@ -354,7 +375,7 @@ class Message(BaseMessage):
         return self.properties.get('expiration')
 
     @expiration.setter
-    def expiration(self, value):
+    def expiration(self, value: Any) -> None:
         """Set AMQP Message attribute: expiration.
 
         :return:
@@ -362,7 +383,7 @@ class Message(BaseMessage):
         self._update_properties('expiration', value)
 
     @property
-    def user_id(self):
+    def user_id(self) -> Any | None:
         """Get AMQP Message attribute: user_id.
 
         :return:
@@ -370,7 +391,7 @@ class Message(BaseMessage):
         return self.properties.get('user_id')
 
     @user_id.setter
-    def user_id(self, value):
+    def user_id(self, value: Any) -> None:
         """Set AMQP Message attribute: user_id.
 
         :return:
@@ -378,7 +399,7 @@ class Message(BaseMessage):
         self._update_properties('user_id', value)
 
     @property
-    def redelivered(self):
+    def redelivered(self) -> bool | None:
         """Indicates if this message may have been delivered before (but not
         acknowledged).
 
@@ -389,7 +410,7 @@ class Message(BaseMessage):
         return self._method.get('redelivered')
 
     @property
-    def delivery_tag(self):
+    def delivery_tag(self) -> int | None:
         """Server-assigned delivery tag.
 
         :rtype: int,None
@@ -398,14 +419,14 @@ class Message(BaseMessage):
             return None
         return self._method.get('delivery_tag')
 
-    def json(self):
+    def json(self) -> Any:
         """Deserialize the message body, if it is JSON.
 
         :return:
         """
         return json.loads(self.body)
 
-    def _update_properties(self, name, value):
+    def _update_properties(self, name: str, value: Any) -> None:
         """Update properties, and keep cache up-to-date if auto decode is
         enabled.
 
@@ -417,7 +438,7 @@ class Message(BaseMessage):
             self._decode_cache['properties'][name] = value
         self._properties[name] = value
 
-    def _try_decode_utf8_content(self, content, content_type):
+    def _try_decode_utf8_content(self, content: Any, content_type: str) -> Any:
         """Generic function to decode content.
 
         :param object content:
@@ -434,13 +455,13 @@ class Message(BaseMessage):
         self._decode_cache[content_type] = content
         return content
 
-    def _try_decode_dict(self, content):
+    def _try_decode_dict(self, content: dict[Any, Any]) -> dict[Any, Any]:
         """Decode content of a dictionary.
 
         :param dict content:
         :return:
         """
-        result = dict()
+        result: dict[Any, Any] = {}
         for key, value in content.items():
             key = try_utf8_decode(key)
             if isinstance(value, dict):
@@ -454,7 +475,7 @@ class Message(BaseMessage):
         return result
 
     @staticmethod
-    def _try_decode_list(content):
+    def _try_decode_list(content: list[Any] | tuple[Any, ...]) -> list[Any]:
         """Decode content of a list.
 
         :param list,tuple content:
@@ -466,7 +487,7 @@ class Message(BaseMessage):
         return result
 
     @staticmethod
-    def _try_decode_tuple(content):
+    def _try_decode_tuple(content: tuple[Any, ...]) -> tuple[Any, ...]:
         """Decode content of a tuple.
 
         :param tuple content:

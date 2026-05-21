@@ -1,7 +1,11 @@
 """AMQPStorm Channel.Basic."""
+from __future__ import annotations
 
 import logging
-import math
+from typing import TYPE_CHECKING
+from typing import Any
+from typing import Callable
+from typing import Iterable
 
 from pamqp import body as pamqp_body
 from pamqp import header as pamqp_header
@@ -15,6 +19,9 @@ from amqpstorm.exception import AMQPChannelError
 from amqpstorm.exception import AMQPInvalidArgument
 from amqpstorm.message import Message
 
+if TYPE_CHECKING:
+    from amqpstorm.channel import Channel
+
 LOGGER = logging.getLogger(__name__)
 
 
@@ -22,11 +29,16 @@ class Basic(Handler):
     """RabbitMQ Basic Operations."""
     __slots__ = ['_max_frame_size']
 
-    def __init__(self, channel, max_frame_size=None):
-        super(Basic, self).__init__(channel)
+    def __init__(self, channel: Channel, max_frame_size: int | None = None) -> None:
+        super().__init__(channel)
         self._max_frame_size = max_frame_size or MAX_FRAME_SIZE
 
-    def qos(self, prefetch_count=0, prefetch_size=0, global_=False):
+    def qos(
+        self,
+        prefetch_count: int = 0,
+        prefetch_size: int = 0,
+        global_: bool = False,
+    ) -> dict[str, Any]:
         """Specify quality of service.
 
         :param int prefetch_count: Prefetch window in messages
@@ -51,8 +63,14 @@ class Basic(Handler):
                                        global_=global_)
         return self._channel.rpc_request(qos_frame)
 
-    def get(self, queue='', no_ack=False, to_dict=False, auto_decode=True,
-            message_impl=None):
+    def get(
+        self,
+        queue: str = '',
+        no_ack: bool = False,
+        to_dict: bool = False,
+        auto_decode: bool = True,
+        message_impl: type[BaseMessage] | None = None,
+    ) -> Message | BaseMessage | dict[str, Any] | None:
         """Fetch a single message.
 
         :param str queue: Queue name
@@ -97,7 +115,7 @@ class Basic(Handler):
                 return message.to_dict()
             return message
 
-    def recover(self, requeue=False):
+    def recover(self, requeue: bool = False) -> dict[str, Any]:
         """Redeliver unacknowledged messages.
 
         :param bool requeue: Re-queue the messages
@@ -114,8 +132,16 @@ class Basic(Handler):
         recover_frame = commands.Basic.Recover(requeue=requeue)
         return self._channel.rpc_request(recover_frame)
 
-    def consume(self, callback=None, queue='', consumer_tag='',
-                exclusive=False, no_ack=False, no_local=False, arguments=None):
+    def consume(
+        self,
+        callback: Callable[..., Any] | None = None,
+        queue: str = '',
+        consumer_tag: str = '',
+        exclusive: bool = False,
+        no_ack: bool = False,
+        no_local: bool = False,
+        arguments: dict[str, Any] | None = None,
+    ) -> str:
         """Start a queue consumer.
 
         :param typing.Callable callback: Message callback
@@ -154,7 +180,7 @@ class Basic(Handler):
             self._channel._consumer_callbacks[tag] = callback
         return tag
 
-    def cancel(self, consumer_tag=''):
+    def cancel(self, consumer_tag: str = '') -> dict[str, Any]:
         """Cancel a queue consumer.
 
         :param str consumer_tag: Consumer tag
@@ -174,8 +200,15 @@ class Basic(Handler):
             self._channel.remove_consumer_tag(consumer_tag)
         return result
 
-    def publish(self, body, routing_key, exchange='', properties=None,
-                mandatory=False, immediate=False):
+    def publish(
+        self,
+        body: bytes | str,
+        routing_key: str,
+        exchange: str = '',
+        properties: dict[str, Any] | None = None,
+        mandatory: bool = False,
+        immediate: bool = False,
+    ) -> bool | None:
         """Publish a Message.
 
         :param bytes,str,unicode body: Message payload
@@ -195,25 +228,25 @@ class Basic(Handler):
         self._validate_publish_parameters(body, exchange, immediate, mandatory,
                                           properties, routing_key)
         properties = properties or {}
-        body = self._handle_utf8_payload(body, properties)
-        properties = commands.Basic.Properties(**properties)
+        encoded_body = self._handle_utf8_payload(body, properties)
+        properties_frame = commands.Basic.Properties(**properties)
         method_frame = commands.Basic.Publish(exchange=exchange,
                                               routing_key=routing_key,
                                               mandatory=mandatory,
                                               immediate=immediate)
-        header_frame = pamqp_header.ContentHeader(body_size=len(body),
-                                                  properties=properties)
+        header_frame = pamqp_header.ContentHeader(body_size=len(encoded_body),
+                                                  properties=properties_frame)
 
-        frames_out = [method_frame, header_frame]
-        for body_frame in self._create_content_body(body):
-            frames_out.append(body_frame)
+        frames_out: list[Any] = [method_frame, header_frame]
+        frames_out.extend(self._create_content_body(encoded_body))
 
         if self._channel.confirming_deliveries:
             with self._channel.rpc.lock:
                 return self._publish_confirm(frames_out, mandatory)
         self._channel.write_frames(frames_out)
+        return None
 
-    def ack(self, delivery_tag=0, multiple=False):
+    def ack(self, delivery_tag: int = 0, multiple: bool = False) -> None:
         """Acknowledge Message.
 
         :param int/long delivery_tag: Server-assigned delivery tag
@@ -234,7 +267,12 @@ class Basic(Handler):
                                        multiple=multiple)
         self._channel.write_frame(ack_frame)
 
-    def nack(self, delivery_tag=0, multiple=False, requeue=True):
+    def nack(
+        self,
+        delivery_tag: int = 0,
+        multiple: bool = False,
+        requeue: bool = True,
+    ) -> None:
         """Negative Acknowledgement.
 
         :param int/long delivery_tag: Server-assigned delivery tag
@@ -259,7 +297,7 @@ class Basic(Handler):
                                          requeue=requeue)
         self._channel.write_frame(nack_frame)
 
-    def reject(self, delivery_tag=0, requeue=True):
+    def reject(self, delivery_tag: int = 0, requeue: bool = True) -> None:
         """Reject Message.
 
         :param int/long delivery_tag: Server-assigned delivery tag
@@ -280,7 +318,7 @@ class Basic(Handler):
                                              requeue=requeue)
         self._channel.write_frame(reject_frame)
 
-    def _consume_add_and_get_tag(self, consume_rpc_result):
+    def _consume_add_and_get_tag(self, consume_rpc_result: dict[str, Any]) -> str:
         """Add the tag to the channel and return it.
 
         :param dict consume_rpc_result:
@@ -291,8 +329,15 @@ class Basic(Handler):
         self._channel.add_consumer_tag(consumer_tag)
         return consumer_tag
 
-    def _consume_rpc_request(self, arguments, consumer_tag, exclusive, no_ack,
-                             no_local, queue):
+    def _consume_rpc_request(
+        self,
+        arguments: dict[str, Any] | None,
+        consumer_tag: str,
+        exclusive: bool,
+        no_ack: bool,
+        no_local: bool,
+        queue: str,
+    ) -> dict[str, Any]:
         """Create a Consume Frame and execute a RPC request.
 
         :param str queue: Queue name
@@ -313,8 +358,14 @@ class Basic(Handler):
         return self._channel.rpc_request(consume_frame)
 
     @staticmethod
-    def _validate_publish_parameters(body, exchange, immediate, mandatory,
-                                     properties, routing_key):
+    def _validate_publish_parameters(
+        body: Any,
+        exchange: Any,
+        immediate: Any,
+        mandatory: Any,
+        properties: Any,
+        routing_key: Any,
+    ) -> None:
         """Validate Publish Parameters.
 
         :param bytes,str,unicode body: Message payload
@@ -342,7 +393,7 @@ class Basic(Handler):
             raise AMQPInvalidArgument('immediate should be a boolean')
 
     @staticmethod
-    def _handle_utf8_payload(body, properties):
+    def _handle_utf8_payload(body: bytes | str, properties: dict[str, Any]) -> bytes:
         """Update the Body and Properties to the appropriate encoding.
 
         :param bytes,str,unicode body: Message payload
@@ -357,7 +408,12 @@ class Basic(Handler):
             body = bytes(body, encoding=encoding)
         return body
 
-    def _get_message(self, get_frame, auto_decode, message_impl):
+    def _get_message(
+        self,
+        get_frame: Any,
+        auto_decode: bool,
+        message_impl: type[BaseMessage],
+    ) -> BaseMessage | None:
         """Get and return a message using a Basic.Get frame.
 
         :param Basic.Get get_frame:
@@ -372,14 +428,14 @@ class Basic(Handler):
             )
             try:
                 self._channel.write_frame(get_frame)
-                get_ok_frame = self._channel.rpc.get_request(message_uuid,
-                                                             raw=True,
-                                                             multiple=True)
+                get_ok_frame: Any = self._channel.rpc.get_request(
+                    message_uuid, raw=True, multiple=True,
+                )
                 if isinstance(get_ok_frame, commands.Basic.GetEmpty):
                     return None
-                content_header = self._channel.rpc.get_request(message_uuid,
-                                                               raw=True,
-                                                               multiple=True)
+                content_header: Any = self._channel.rpc.get_request(
+                    message_uuid, raw=True, multiple=True,
+                )
                 body = self._get_content_body(message_uuid,
                                               content_header.body_size)
             finally:
@@ -391,7 +447,7 @@ class Basic(Handler):
                             properties=dict(content_header.properties),
                             auto_decode=auto_decode)
 
-    def _publish_confirm(self, frames_out, mandatory):
+    def _publish_confirm(self, frames_out: list[Any], mandatory: bool) -> bool:
         """Confirm that message was published successfully.
 
         :param list frames_out:
@@ -408,7 +464,7 @@ class Basic(Handler):
             return True
         return False
 
-    def _create_content_body(self, body):
+    def _create_content_body(self, body: bytes) -> Iterable[pamqp_body.ContentBody]:
         """Split body based on the maximum frame size.
 
             This function is based on code from Rabbitpy.
@@ -418,16 +474,13 @@ class Basic(Handler):
 
         :rtype: collections.Iterable
         """
-        frames = int(math.ceil(len(body) / float(self._max_frame_size)))
-        for offset in compatibility.RANGE(0, frames):
-            start_frame = self._max_frame_size * offset
-            end_frame = start_frame + self._max_frame_size
-            body_len = len(body)
-            if end_frame > body_len:
-                end_frame = body_len
+        body_len = len(body)
+        max_frame_size = self._max_frame_size
+        for start_frame in range(0, body_len, max_frame_size):
+            end_frame = min(start_frame + max_frame_size, body_len)
             yield pamqp_body.ContentBody(body[start_frame:end_frame])
 
-    def _get_content_body(self, message_uuid, body_size):
+    def _get_content_body(self, message_uuid: str, body_size: int) -> bytes:
         """Get Content Body using RPC requests.
 
         :param str uuid_body: Rpc Identifier.
@@ -435,11 +488,14 @@ class Basic(Handler):
 
         :rtype: str
         """
-        body = bytes()
-        while len(body) < body_size:
-            body_piece = self._channel.rpc.get_request(message_uuid, raw=True,
-                                                       multiple=True)
+        body_parts: list[bytes] = []
+        body_len = 0
+        while body_len < body_size:
+            body_piece: Any = self._channel.rpc.get_request(
+                message_uuid, raw=True, multiple=True,
+            )
             if not body_piece.value:
                 break
-            body += body_piece.value
-        return body
+            body_parts.append(body_piece.value)
+            body_len += len(body_piece.value)
+        return b''.join(body_parts)

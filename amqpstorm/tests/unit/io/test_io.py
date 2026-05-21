@@ -106,7 +106,7 @@ class IOTests(TestFramework):
         io = IO(connection.parameters, exceptions=connection.exceptions)
         io.socket = mock.Mock(name='socket', spec=socket.socket)
         io.socket.send.return_value = 0
-        io.write_to_socket(self.message)
+        io.write_to_socket(self.message.encode('utf-8'))
 
         self.assertRaisesRegex(
             AMQPConnectionError,

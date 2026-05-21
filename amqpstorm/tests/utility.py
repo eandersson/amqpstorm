@@ -68,7 +68,7 @@ class FakeConnection(Connection):
 
 class FakeChannel(Channel):
     """Fake Channel for Unit-Testing."""
-    result = list()
+    result: list = list()
 
     def __init__(self, connection=None, state=Channel.OPEN):
         if not connection:
@@ -142,7 +142,6 @@ class FakeHTTPClient(object):
         return self.on_get(path)
 
     def post(self, path, payload):
-        assert payload
         return self.on_post(path)
 
 

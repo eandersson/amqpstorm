@@ -1,7 +1,15 @@
 """AMQPStorm Base."""
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+from typing import Any
+from typing import Iterator
 
 from amqpstorm.compatibility import is_string
 from amqpstorm.exception import AMQPChannelError
+
+if TYPE_CHECKING:
+    from amqpstorm.channel import Channel
 
 AUTH_MECHANISM = 'PLAIN'
 IDLE_WAIT = 0.01
@@ -9,18 +17,18 @@ MAX_FRAME_SIZE = 131072
 MAX_CHANNELS = 65535
 
 
-class Stateful(object):
+class Stateful:
     """Stateful implementation."""
     CLOSED = 0
     CLOSING = 1
     OPENING = 2
     OPEN = 3
 
-    def __init__(self):
-        self._state = self.CLOSED
-        self._exceptions = []
+    def __init__(self) -> None:
+        self._state: int = self.CLOSED
+        self._exceptions: list[Exception] = []
 
-    def set_state(self, state):
+    def set_state(self, state: int) -> None:
         """Set State.
 
         :param int state:
@@ -29,7 +37,7 @@ class Stateful(object):
         self._state = state
 
     @property
-    def current_state(self):
+    def current_state(self) -> int:
         """Get the State.
 
         :rtype: int
@@ -37,7 +45,7 @@ class Stateful(object):
         return self._state
 
     @property
-    def is_closed(self):
+    def is_closed(self) -> bool:
         """Is Closed?
 
         :rtype: bool
@@ -45,7 +53,7 @@ class Stateful(object):
         return self._state == self.CLOSED
 
     @property
-    def is_closing(self):
+    def is_closing(self) -> bool:
         """Is Closing?
 
         :rtype: bool
@@ -53,7 +61,7 @@ class Stateful(object):
         return self._state == self.CLOSING
 
     @property
-    def is_opening(self):
+    def is_opening(self) -> bool:
         """Is Opening?
 
         :rtype: bool
@@ -61,7 +69,7 @@ class Stateful(object):
         return self._state == self.OPENING
 
     @property
-    def is_open(self):
+    def is_open(self) -> bool:
         """Is Open?
 
         :rtype: bool
@@ -69,7 +77,7 @@ class Stateful(object):
         return self._state == self.OPEN
 
     @property
-    def exceptions(self):
+    def exceptions(self) -> list[Exception]:
         """Stores all exceptions thrown by this instance.
 
             This is useful for troubleshooting, and is used internally
@@ -86,13 +94,13 @@ class BaseChannel(Stateful):
         '_channel_id', '_consumer_tags'
     ]
 
-    def __init__(self, channel_id):
-        super(BaseChannel, self).__init__()
-        self._consumer_tags = []
-        self._channel_id = channel_id
+    def __init__(self, channel_id: int) -> None:
+        super().__init__()
+        self._consumer_tags: list[str] = []
+        self._channel_id: int = channel_id
 
     @property
-    def channel_id(self):
+    def channel_id(self) -> int:
         """Get Channel id.
 
         :rtype: int
@@ -100,14 +108,14 @@ class BaseChannel(Stateful):
         return self._channel_id
 
     @property
-    def consumer_tags(self):
+    def consumer_tags(self) -> list[str]:
         """Get a list of consumer tags.
 
         :rtype: list
         """
         return self._consumer_tags
 
-    def add_consumer_tag(self, tag):
+    def add_consumer_tag(self, tag: str) -> None:
         """Add a Consumer tag.
 
         :param str tag: Consumer tag.
@@ -118,10 +126,10 @@ class BaseChannel(Stateful):
         if tag not in self._consumer_tags:
             self._consumer_tags.append(tag)
 
-    def remove_consumer_tag(self, tag=None):
+    def remove_consumer_tag(self, tag: str | None = None) -> None:
         """Remove a Consumer tag.
 
-            If no tag is specified, all all tags will be removed.
+            If no tag is specified, all tags will be removed.
 
         :param str,None tag: Consumer tag.
         :return:
@@ -133,7 +141,7 @@ class BaseChannel(Stateful):
             self._consumer_tags = []
 
 
-class BaseMessage(object):
+class BaseMessage:
     """Message base class.
 
     :param Channel channel: AMQPStorm Channel
@@ -146,19 +154,25 @@ class BaseMessage(object):
         '_auto_decode', '_body', '_channel', '_method', '_properties'
     ]
 
-    def __init__(self, channel, body=None, method=None, properties=None,
-                 auto_decode=None):
+    def __init__(
+        self,
+        channel: Channel | None,
+        body: bytes | str | None = None,
+        method: dict[str, Any] | None = None,
+        properties: dict[str, Any] | None = None,
+        auto_decode: bool | None = None,
+    ) -> None:
         self._auto_decode = auto_decode
         self._channel = channel
         self._body = body
         self._method = method
-        self._properties = properties or {}
+        self._properties: dict[str, Any] = properties or {}
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[tuple[str, Any]]:
         for attribute in ['_body', '_channel', '_method', '_properties']:
             yield attribute[1::], getattr(self, attribute)
 
-    def to_dict(self):
+    def to_dict(self) -> dict[str, Any]:
         """Message to Dictionary.
 
         :rtype: dict
@@ -170,7 +184,9 @@ class BaseMessage(object):
             'channel': self._channel
         }
 
-    def to_tuple(self):
+    def to_tuple(
+        self,
+    ) -> tuple[bytes | str | None, Channel | None, dict[str, Any] | None, dict[str, Any]]:
         """Message to Tuple.
 
         :rtype: tuple
@@ -178,11 +194,11 @@ class BaseMessage(object):
         return self._body, self._channel, self._method, self._properties
 
 
-class Handler(object):
+class Handler:
     """Operations Handler (e.g. Queue, Exchange)"""
     __slots__ = [
         '_channel'
     ]
 
-    def __init__(self, channel):
+    def __init__(self, channel: Channel) -> None:
         self._channel = channel

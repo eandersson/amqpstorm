@@ -1,3 +1,4 @@
+import collections
 import threading
 import time
 
@@ -20,7 +21,7 @@ class RpcTests(TestFramework):
 
     def test_rpc_get_response_frame(self):
         rpc = Rpc(FakeConnection())
-        rpc._response['travis-ci'] = ['travis-ci']
+        rpc._response['travis-ci'] = collections.deque(['travis-ci'])
         self.assertEqual(rpc._get_response_frame('travis-ci'), 'travis-ci')
 
     def test_rpc_get_response_frame_empty(self):
@@ -142,14 +143,14 @@ class RpcTests(TestFramework):
     def test_rpc_on_frame(self):
         rpc = Rpc(FakeConnection())
         uuid = rpc.register_request(['travis-ci'])
-        self.assertEqual(rpc._response[uuid], [])
+        self.assertFalse(rpc._response[uuid])
         rpc.on_frame(FakePayload(name='travis-ci'))
         self.assertIsInstance(rpc._response[uuid][0], FakePayload)
 
     def test_rpc_on_multiple_frames(self):
         rpc = Rpc(FakeConnection())
         uuid = rpc.register_request(['travis-ci'])
-        self.assertEqual(rpc._response[uuid], [])
+        self.assertFalse(rpc._response[uuid])
         rpc.on_frame(FakePayload(name='travis-ci'))
         rpc.on_frame(FakePayload(name='travis-ci'))
         rpc.on_frame(FakePayload(name='travis-ci'))
@@ -162,7 +163,7 @@ class RpcTests(TestFramework):
         rpc.register_request(['travis-ci-1'])
         uuid = rpc.register_request(['travis-ci-2'])
         rpc.register_request(['travis-ci-3'])
-        self.assertEqual(rpc._response[uuid], [])
+        self.assertFalse(rpc._response[uuid])
         time.sleep(0.1)
         self.assertRaisesRegex(
             AMQPChannelError,

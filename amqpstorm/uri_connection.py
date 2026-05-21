@@ -1,6 +1,9 @@
 """AMQPStorm Uri wrapper for Connection."""
+from __future__ import annotations
 
 import logging
+from typing import Any
+from urllib.parse import ParseResult
 
 from amqpstorm import compatibility
 from amqpstorm.compatibility import ssl
@@ -52,8 +55,13 @@ class UriConnection(Connection):
     """
     __slots__ = []
 
-    def __init__(self, uri, ssl_options=None, client_properties=None,
-                 lazy=False):
+    def __init__(
+        self,
+        uri: str,
+        ssl_options: dict[str, Any] | None = None,
+        client_properties: dict[str, Any] | None = None,
+        lazy: bool = False,
+    ) -> None:
         uri = compatibility.patch_uri(uri)
         parsed_uri = urlparse.urlparse(uri)
         use_ssl = parsed_uri.scheme == 'amqps' or parsed_uri.scheme == 'https'
@@ -62,14 +70,19 @@ class UriConnection(Connection):
         username = urlparse.unquote(parsed_uri.username or 'guest')
         password = urlparse.unquote(parsed_uri.password or 'guest')
         kwargs = self._parse_uri_options(parsed_uri, use_ssl, ssl_options)
-        super(UriConnection, self).__init__(
+        super().__init__(
             hostname, username, password, port,
             client_properties=client_properties,
             lazy=lazy,
             **kwargs
         )
 
-    def _parse_uri_options(self, parsed_uri, use_ssl=False, ssl_options=None):
+    def _parse_uri_options(
+        self,
+        parsed_uri: ParseResult,
+        use_ssl: bool = False,
+        ssl_options: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Parse the uri options.
 
         :param parsed_uri:
@@ -101,7 +114,7 @@ class UriConnection(Connection):
             options['ssl_options'] = ssl_options
         return options
 
-    def _parse_ssl_options(self, ssl_kwargs):
+    def _parse_ssl_options(self, ssl_kwargs: dict[str, Any]) -> dict[str, Any]:
         """Parse TLS Options.
 
         :param ssl_kwargs:
@@ -119,7 +132,7 @@ class UriConnection(Connection):
             ssl_options[key] = value
         return ssl_options
 
-    def _get_ssl_validation(self, value):
+    def _get_ssl_validation(self, value: str) -> Any:
         """Get the TLS Validation option.
 
         :param str value:
@@ -131,7 +144,12 @@ class UriConnection(Connection):
                                        'found falling back to CERT_NONE.')
 
     @staticmethod
-    def _get_ssl_attribute(value, mapping, default_value, warning_message):
+    def _get_ssl_attribute(
+        value: str,
+        mapping: dict[str, Any],
+        default_value: Any,
+        warning_message: str,
+    ) -> Any:
         """Get the TLS attribute based on the compatibility mapping.
 
             If no valid attribute can be found, fall-back on default and

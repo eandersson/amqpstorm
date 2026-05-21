@@ -1,3 +1,8 @@
+from __future__ import annotations
+
+from typing import Any
+from typing import List
+
 from amqpstorm.compatibility import json
 from amqpstorm.compatibility import quote
 from amqpstorm.management.base import ManagementHandler
@@ -11,7 +16,7 @@ API_EXCHANGES_VIRTUAL_HOST = 'exchanges/%s'
 
 
 class Exchange(ManagementHandler):
-    def get(self, exchange, virtual_host='/'):
+    def get(self, exchange: str, virtual_host: str = '/') -> dict[str, Any]:
         """Get Exchange details.
 
         :param str exchange: Exchange name
@@ -30,8 +35,14 @@ class Exchange(ManagementHandler):
                 exchange)
         )
 
-    def list(self, virtual_host='/', show_all=False,
-             name=None, page_size=100, use_regex=False):
+    def list(
+        self,
+        virtual_host: str = '/',
+        show_all: bool = False,
+        name: str | None = None,
+        page_size: int = 100,
+        use_regex: bool = False,
+    ) -> List[dict[str, Any]]:
         """List Exchanges.
 
         :param str virtual_host: Virtual host name
@@ -58,9 +69,17 @@ class Exchange(ManagementHandler):
             name=name, use_regex=use_regex, page_size=page_size,
         )
 
-    def declare(self, exchange='', exchange_type='direct', virtual_host='/',
-                passive=False, durable=False, auto_delete=False,
-                internal=False, arguments=None):
+    def declare(
+        self,
+        exchange: str = '',
+        exchange_type: str = 'direct',
+        virtual_host: str = '/',
+        passive: bool = False,
+        durable: bool = False,
+        auto_delete: bool = False,
+        internal: bool = False,
+        arguments: dict[str, Any] | None = None,
+    ) -> dict[str, Any] | None:
         """Declare an Exchange.
 
         :param str exchange: Exchange name
@@ -96,7 +115,7 @@ class Exchange(ManagementHandler):
                                     ),
                                     payload=exchange_payload)
 
-    def delete(self, exchange, virtual_host='/'):
+    def delete(self, exchange: str, virtual_host: str = '/') -> dict[str, Any]:
         """Delete an Exchange.
 
         :param str exchange: Exchange name
@@ -114,7 +133,9 @@ class Exchange(ManagementHandler):
                                            exchange
                                        ))
 
-    def bindings(self, exchange, virtual_host='/'):
+    def bindings(
+        self, exchange: str, virtual_host: str = '/',
+    ) -> List[dict[str, Any]]:
         """Get Exchange bindings.
 
         :param str exchange: Exchange name
@@ -132,8 +153,14 @@ class Exchange(ManagementHandler):
                                         exchange
                                     ))
 
-    def bind(self, destination='', source='', routing_key='', virtual_host='/',
-             arguments=None):
+    def bind(
+        self,
+        destination: str = '',
+        source: str = '',
+        routing_key: str = '',
+        virtual_host: str = '/',
+        arguments: dict[str, Any] | None = None,
+    ) -> None:
         """Bind an Exchange.
 
         :param str source: Source Exchange name
@@ -164,8 +191,14 @@ class Exchange(ManagementHandler):
                                      ),
                                      payload=bind_payload)
 
-    def unbind(self, destination='', source='', routing_key='',
-               virtual_host='/', properties_key=None):
+    def unbind(
+        self,
+        destination: str = '',
+        source: str = '',
+        routing_key: str = '',
+        virtual_host: str = '/',
+        properties_key: str | None = None,
+    ) -> None:
         """Unbind an Exchange.
 
         :param str source: Source Exchange name

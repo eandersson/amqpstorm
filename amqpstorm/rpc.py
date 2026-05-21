@@ -1,32 +1,39 @@
 """AMQPStorm Rpc."""
+from __future__ import annotations
 
+import collections
 import threading
 import time
+from typing import TYPE_CHECKING
+from typing import Any
 from uuid import uuid4
 
 from amqpstorm.base import IDLE_WAIT
 from amqpstorm.exception import AMQPChannelError
 
+if TYPE_CHECKING:
+    from pamqp.base import Frame
 
-class Rpc(object):
+
+class Rpc:
     """Internal RPC handler.
 
     :param object default_adapter: Connection or Channel.
     :param int,float timeout: Rpc timeout.
     """
 
-    def __init__(self, default_adapter, timeout=360):
+    def __init__(self, default_adapter: Any, timeout: float = 360) -> None:
         self._lock = threading.Lock()
         self._default_connection_adapter = default_adapter
         self._timeout = timeout
-        self._response = {}
-        self._request = {}
+        self._response: dict[str, collections.deque[Frame]] = {}
+        self._request: dict[str, str] = {}
 
     @property
-    def lock(self):
+    def lock(self) -> threading.Lock:
         return self._lock
 
-    def on_frame(self, frame_in):
+    def on_frame(self, frame_in: Frame) -> bool:
         """On RPC Frame.
 
         :param specification.Frame frame_in: Amqp frame.
@@ -36,13 +43,10 @@ class Rpc(object):
             return False
 
         uuid = self._request[frame_in.name]
-        if self._response[uuid]:
-            self._response[uuid].append(frame_in)
-        else:
-            self._response[uuid] = [frame_in]
+        self._response[uuid].append(frame_in)
         return True
 
-    def register_request(self, valid_responses):
+    def register_request(self, valid_responses: list[str]) -> str:
         """Register a RPC request.
 
         :param list valid_responses: List of possible Responses that
@@ -50,12 +54,12 @@ class Rpc(object):
         :return:
         """
         uuid = str(uuid4())
-        self._response[uuid] = []
+        self._response[uuid] = collections.deque()
         for action in valid_responses:
             self._request[action] = uuid
         return uuid
 
-    def remove(self, uuid):
+    def remove(self, uuid: str) -> None:
         """Remove any data related to a specific RPC request.
 
         :param str uuid: Rpc Identifier.
@@ -64,7 +68,7 @@ class Rpc(object):
         self.remove_request(uuid)
         self.remove_response(uuid)
 
-    def remove_request(self, uuid):
+    def remove_request(self, uuid: str | None) -> None:
         """Remove any RPC request(s) using this uuid.
 
         :param str uuid: Rpc Identifier.
@@ -74,7 +78,7 @@ class Rpc(object):
             if self._request[key] == uuid:
                 del self._request[key]
 
-    def remove_response(self, uuid):
+    def remove_response(self, uuid: str | None) -> None:
         """Remove a RPC Response using this uuid.
 
         :param str uuid: Rpc Identifier.
@@ -83,8 +87,13 @@ class Rpc(object):
         if uuid in self._response:
             del self._response[uuid]
 
-    def get_request(self, uuid, raw=False, multiple=False,
-                    connection_adapter=None):
+    def get_request(
+        self,
+        uuid: str | None,
+        raw: bool = False,
+        multiple: bool = False,
+        connection_adapter: Any = None,
+    ) -> Frame | dict[str, Any] | None:
         """Get a RPC request.
 
         :param str uuid: Rpc Identifier
@@ -95,33 +104,35 @@ class Rpc(object):
         :return:
         """
         if uuid not in self._response:
-            return
+            return None
         self._wait_for_request(
             uuid, connection_adapter or self._default_connection_adapter
         )
         frame = self._get_response_frame(uuid)
         if not multiple:
             self.remove(uuid)
-        result = None
+        result: Frame | dict[str, Any] | None = None
         if raw:
             result = frame
         elif frame is not None:
             result = dict(frame)
         return result
 
-    def _get_response_frame(self, uuid):
+    def _get_response_frame(self, uuid: str) -> Frame | None:
         """Get a response frame.
 
         :param str uuid: Rpc Identifier
         :return:
         """
-        frame = None
+        frame: Frame | None = None
         frames = self._response.get(uuid, None)
         if frames:
-            frame = frames.pop(0)
+            frame = frames.popleft()
         return frame
 
-    def _wait_for_request(self, uuid, connection_adapter=None):
+    def _wait_for_request(
+        self, uuid: str, connection_adapter: Any = None,
+    ) -> None:
         """Wait for RPC request to arrive.
 
         :param str uuid: Rpc Identifier.
@@ -135,7 +146,7 @@ class Rpc(object):
                 self._raise_rpc_timeout_error(uuid)
             time.sleep(IDLE_WAIT)
 
-    def _raise_rpc_timeout_error(self, uuid):
+    def _raise_rpc_timeout_error(self, uuid: str) -> None:
         """Gather information and raise an Rpc exception.
 
         :param str uuid: Rpc Identifier.
@@ -147,10 +158,6 @@ class Rpc(object):
                 requests.append(key)
         self.remove(uuid)
         message = (
-            'rpc requests %s (%s) took too long' %
-            (
-                uuid,
-                ', '.join(requests)
-            )
+            f"rpc requests {uuid} ({', '.join(requests)}) took too long"
         )
         raise AMQPChannelError(message)

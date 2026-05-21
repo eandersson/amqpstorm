@@ -1,3 +1,8 @@
+from __future__ import annotations
+
+from typing import Any
+from typing import List
+
 from amqpstorm.management.base import ManagementHandler
 
 API_CHANNEL = 'channels/%s'
@@ -5,8 +10,8 @@ API_CHANNELS = 'channels'
 
 
 class Channel(ManagementHandler):
-    def get(self, channel):
-        """Get Connection details.
+    def get(self, channel: str) -> dict[str, Any]:
+        """Get Channel details.
 
         :param channel: Channel name
 
@@ -19,7 +24,12 @@ class Channel(ManagementHandler):
         """
         return self.http_client.get(API_CHANNEL % channel)
 
-    def list(self, name=None, page_size=None, use_regex=False):
+    def list(
+        self,
+        name: str | None = None,
+        page_size: int | None = None,
+        use_regex: bool = False,
+    ) -> List[dict[str, Any]]:
         """List all Channels.
 
         :param name: Filter by name

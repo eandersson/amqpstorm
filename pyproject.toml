@@ -1,0 +1,58 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "AMQPStorm"
+description = "Thread-safe Python3 RabbitMQ Client & Management library."
+readme = "README.rst"
+license = {text = "MIT License"}
+authors = [
+    {name = "Erik Olof Gunnar Andersson", email = "amqpstorm@eandersson.net"},
+]
+requires-python = ">=3.11"
+dependencies = ["pamqp>=4.0.0,<5.0"]
+dynamic = ["version"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Topic :: Communications",
+    "Topic :: Internet",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Networking",
+]
+
+[project.optional-dependencies]
+management = ["requests>2"]
+docs = ["sphinx", "sphinx_rtd_theme"]
+typing = ["mypy"]
+
+[project.urls]
+Homepage = "https://amqpstorm.readthedocs.io/"
+Documentation = "https://amqpstorm.readthedocs.io/"
+Repository = "https://github.com/eandersson/amqpstorm"
+Changelog = "https://github.com/eandersson/amqpstorm/blob/main/CHANGELOG.rst"
+
+[tool.setuptools.dynamic]
+version = {attr = "amqpstorm.__version__"}
+
+[tool.setuptools.packages.find]
+include = ["amqpstorm*"]
+
+[tool.setuptools.package-data]
+amqpstorm = ["py.typed"]
+
+[tool.mypy]
+ignore_missing_imports = true
+files = ["amqpstorm"]
