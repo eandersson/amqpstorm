@@ -1,6 +1,8 @@
 """AMQPStorm Channel.Exchange."""
+from __future__ import annotations
 
 import logging
+from typing import Any
 
 from pamqp.commands import Exchange as pamqp_exchange
 
@@ -15,8 +17,15 @@ class Exchange(Handler):
     """RabbitMQ Exchange Operations."""
     __slots__ = []
 
-    def declare(self, exchange='', exchange_type='direct', passive=False,
-                durable=False, auto_delete=False, arguments=None):
+    def declare(
+        self,
+        exchange: str = '',
+        exchange_type: str = 'direct',
+        passive: bool = False,
+        durable: bool = False,
+        auto_delete: bool = False,
+        arguments: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Declare an Exchange.
 
         :param str exchange: Exchange name
@@ -54,7 +63,7 @@ class Exchange(Handler):
                                                arguments=arguments)
         return self._channel.rpc_request(declare_frame)
 
-    def delete(self, exchange='', if_unused=False):
+    def delete(self, exchange: str = '', if_unused: bool = False) -> dict[str, Any]:
         """Delete an Exchange.
 
         :param str exchange: Exchange name
@@ -74,8 +83,13 @@ class Exchange(Handler):
                                              if_unused=if_unused)
         return self._channel.rpc_request(delete_frame)
 
-    def bind(self, destination='', source='', routing_key='',
-             arguments=None):
+    def bind(
+        self,
+        destination: str = '',
+        source: str = '',
+        routing_key: str = '',
+        arguments: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Bind an Exchange.
 
         :param str destination: Exchange name
@@ -105,8 +119,13 @@ class Exchange(Handler):
                                          arguments=arguments)
         return self._channel.rpc_request(bind_frame)
 
-    def unbind(self, destination='', source='', routing_key='',
-               arguments=None):
+    def unbind(
+        self,
+        destination: str = '',
+        source: str = '',
+        routing_key: str = '',
+        arguments: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Unbind an Exchange.
 
         :param str destination: Exchange name

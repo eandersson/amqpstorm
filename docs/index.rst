@@ -9,13 +9,13 @@ Thread-safe Python3 RabbitMQ Client & Management library.
 
 Installation
 ------------
-The latest version can be installed using `pip <https://pip.pypa.io/en/stable/quickstart/>`_ and is available at pypi `here <https://pypi.org/project/AMQPStorm/>`_
+The latest version can be installed using `pip <https://pip.pypa.io/en/stable/quickstart/>`_ and is available on `PyPI <https://pypi.org/project/AMQPStorm/>`_.
 ::
 
     pip install amqpstorm
 
 
-You can also install AMQPStorm with the management dependencies using.
+You can also install AMQPStorm with the management dependencies:
 ::
 
     pip install amqpstorm[management]
@@ -37,7 +37,7 @@ Basic Example
 Additional Examples
 -------------------
 
-A wide verity of examples are available on Github at `here <https://github.com/eandersson/amqpstorm/tree/master/examples>`_
+A wide variety of examples are available `on GitHub <https://github.com/eandersson/amqpstorm/tree/master/examples>`_.
 
 .. toctree::
    :caption: Usage
@@ -71,11 +71,11 @@ A wide verity of examples are available on Github at `here <https://github.com/e
 
 Issues
 ------
-Please report any issues on Github `here <https://github.com/eandersson/amqpstorm/issues>`_
+Please report any issues on `GitHub <https://github.com/eandersson/amqpstorm/issues>`_.
 
 Source
 ------
-AMQPStorm source code is available on Github `here <https://github.com/eandersson/amqpstorm>`_
+AMQPStorm source code is available on `GitHub <https://github.com/eandersson/amqpstorm>`_.
 
 Indices and tables
 ==================

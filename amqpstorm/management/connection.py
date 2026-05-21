@@ -1,3 +1,8 @@
+from __future__ import annotations
+
+from typing import Any
+from typing import List
+
 from amqpstorm.compatibility import json
 from amqpstorm.compatibility import quote
 from amqpstorm.management.base import ManagementHandler
@@ -7,7 +12,7 @@ API_CONNECTIONS = 'connections'
 
 
 class Connection(ManagementHandler):
-    def get(self, connection):
+    def get(self, connection: str) -> dict[str, Any]:
         """Get Connection details.
 
         :param str connection: Connection name
@@ -21,7 +26,12 @@ class Connection(ManagementHandler):
         """
         return self.http_client.get(API_CONNECTION % connection)
 
-    def list(self, name=None, page_size=100, use_regex=False):
+    def list(
+        self,
+        name: str | None = None,
+        page_size: int = 100,
+        use_regex: bool = False,
+    ) -> List[dict[str, Any]]:
         """Get Connections.
 
         :param name: Filter by name
@@ -38,7 +48,11 @@ class Connection(ManagementHandler):
             name=name, use_regex=use_regex, page_size=page_size,
         )
 
-    def close(self, connection, reason='Closed via management api'):
+    def close(
+        self,
+        connection: str,
+        reason: str = 'Closed via management api',
+    ) -> None:
         """Close Connection.
 
         :param str connection: Connection name

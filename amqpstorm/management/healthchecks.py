@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Any
+
 from amqpstorm.management.base import ManagementHandler
 
 HEALTHCHECKS = 'healthchecks/node/'
@@ -5,7 +9,7 @@ HEALTHCHECKS_NODE = 'healthchecks/node/%s'
 
 
 class HealthChecks(ManagementHandler):
-    def get(self, node=None):
+    def get(self, node: str | None = None) -> dict[str, Any]:
         """Run basic healthchecks against the current node, or against a given
         node.
 

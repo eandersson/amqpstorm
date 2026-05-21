@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Any
+
 from amqpstorm.compatibility import quote
 from amqpstorm.management.basic import Basic
 from amqpstorm.management.channel import Channel
@@ -18,7 +22,7 @@ API_TOP = 'top/%s'
 API_WHOAMI = 'whoami'
 
 
-class ManagementApi(object):
+class ManagementApi:
     """RabbitMQ Management Api
 
     e.g.
@@ -43,8 +47,15 @@ class ManagementApi(object):
     :param None,str,tuple cert: Requests session cert
     """
 
-    def __init__(self, api_url, username, password, timeout=10,
-                 verify=None, cert=None):
+    def __init__(
+        self,
+        api_url: str,
+        username: str,
+        password: str,
+        timeout: float = 10,
+        verify: bool | str | None = None,
+        cert: str | tuple[str, str] | None = None,
+    ) -> None:
         self.http_client = HTTPClient(
             api_url, username, password,
             timeout=timeout, verify=verify, cert=cert
@@ -58,17 +69,17 @@ class ManagementApi(object):
         self._user = User(self.http_client)
         self._virtual_host = VirtualHost(self.http_client)
 
-    def __enter__(self):
+    def __enter__(self) -> ManagementApi:
         return self
 
-    def __exit__(self, *_):
+    def __exit__(self, *_: Any) -> None:
         pass
 
-    def __del__(self):
+    def __del__(self) -> None:
         self.http_client.session.close()
 
     @property
-    def basic(self):
+    def basic(self) -> Basic:
         """RabbitMQ Basic Operations.
 
             e.g.
@@ -81,7 +92,7 @@ class ManagementApi(object):
         return self._basic
 
     @property
-    def channel(self):
+    def channel(self) -> Channel:
         """RabbitMQ Channel Operations.
 
             e.g.
@@ -94,7 +105,7 @@ class ManagementApi(object):
         return self._channel
 
     @property
-    def connection(self):
+    def connection(self) -> Connection:
         """RabbitMQ Connection Operations.
 
             e.g.
@@ -107,7 +118,7 @@ class ManagementApi(object):
         return self._connection
 
     @property
-    def exchange(self):
+    def exchange(self) -> Exchange:
         """RabbitMQ Exchange Operations.
 
             e.g.
@@ -120,7 +131,7 @@ class ManagementApi(object):
         return self._exchange
 
     @property
-    def healthchecks(self):
+    def healthchecks(self) -> HealthChecks:
         """RabbitMQ Healthchecks.
 
             e.g.
@@ -128,12 +139,12 @@ class ManagementApi(object):
 
                 client.healthchecks.get()
 
-        :rtype: amqpstorm.management.healthchecks.Healthchecks
+        :rtype: amqpstorm.management.healthchecks.HealthChecks
         """
         return self._healthchecks
 
     @property
-    def queue(self):
+    def queue(self) -> Queue:
         """RabbitMQ Queue Operations.
 
             e.g.
@@ -146,7 +157,7 @@ class ManagementApi(object):
         return self._queue
 
     @property
-    def user(self):
+    def user(self) -> User:
         """RabbitMQ User Operations.
 
             e.g.
@@ -159,14 +170,14 @@ class ManagementApi(object):
         return self._user
 
     @property
-    def virtual_host(self):
+    def virtual_host(self) -> VirtualHost:
         """RabbitMQ VirtualHost Operations.
 
         :rtype: amqpstorm.management.virtual_host.VirtualHost
         """
         return self._virtual_host
 
-    def aliveness_test(self, virtual_host='/'):
+    def aliveness_test(self, virtual_host: str = '/') -> dict[str, Any]:
         """Aliveness Test.
 
         e.g.
@@ -191,7 +202,7 @@ class ManagementApi(object):
         return self.http_client.get(API_ALIVENESS_TEST %
                                     virtual_host)
 
-    def cluster_name(self):
+    def cluster_name(self) -> dict[str, Any]:
         """Get Cluster Name.
 
         :raises ApiError: Raises if the remote server encountered an error.
@@ -201,7 +212,7 @@ class ManagementApi(object):
         """
         return self.http_client.get(API_CLUSTER_NAME)
 
-    def node(self, name):
+    def node(self, name: str) -> dict[str, Any]:
         """Get Nodes.
 
         :raises ApiError: Raises if the remote server encountered an error.
@@ -211,7 +222,7 @@ class ManagementApi(object):
         """
         return self.http_client.get(API_NODE % name)
 
-    def nodes(self):
+    def nodes(self) -> list[dict[str, Any]]:
         """Get Nodes.
 
         :raises ApiError: Raises if the remote server encountered an error.
@@ -221,7 +232,7 @@ class ManagementApi(object):
         """
         return self.http_client.get(API_NODES)
 
-    def overview(self):
+    def overview(self) -> dict[str, Any]:
         """Get Overview.
 
         :raises ApiError: Raises if the remote server encountered an error.
@@ -231,7 +242,7 @@ class ManagementApi(object):
         """
         return self.http_client.get(API_OVERVIEW)
 
-    def top(self):
+    def top(self) -> list[dict[str, Any]]:
         """Top Processes.
 
         :raises ApiError: Raises if the remote server encountered an error.
@@ -244,7 +255,7 @@ class ManagementApi(object):
             nodes.append(self.http_client.get(API_TOP % node['name']))
         return nodes
 
-    def whoami(self):
+    def whoami(self) -> dict[str, Any]:
         """Who am I?
 
         :raises ApiError: Raises if the remote server encountered an error.

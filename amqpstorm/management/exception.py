@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Any
+
 from amqpstorm.exception import AMQPError
 from amqpstorm.exception import AMQP_ERROR_MAPPING
 
@@ -5,7 +9,12 @@ from amqpstorm.exception import AMQP_ERROR_MAPPING
 class ApiError(AMQPError):
     """Management Api Error"""
 
-    def __init__(self, message=None, *args, **kwargs):
+    def __init__(
+        self,
+        message: str | None = None,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
         self._message = message
         self._error_code = kwargs.pop('reply_code', None)
         super(AMQPError, self).__init__(*args, **kwargs)
@@ -14,10 +23,13 @@ class ApiError(AMQPError):
         self._error_type = AMQP_ERROR_MAPPING[self._error_code][0]
         self._documentation = AMQP_ERROR_MAPPING[self._error_code][1]
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self._error_code in AMQP_ERROR_MAPPING:
-            return '%s - %s' % (self.error_type, self.documentation)
-        return self._message
+            documentation = self.documentation
+            if isinstance(documentation, bytes):
+                documentation = documentation.decode('utf-8', errors='replace')
+            return f'{self.error_type} - {documentation}'
+        return self._message or ''
 
 
 class ApiConnectionError(AMQPError):

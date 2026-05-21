@@ -1,3 +1,8 @@
+from __future__ import annotations
+
+from typing import Any
+from typing import List
+
 from amqpstorm.compatibility import json
 from amqpstorm.compatibility import quote
 from amqpstorm.management.base import ManagementHandler
@@ -12,7 +17,7 @@ API_QUEUES_VIRTUAL_HOST = 'queues/%s'
 
 
 class Queue(ManagementHandler):
-    def get(self, queue, virtual_host='/'):
+    def get(self, queue: str, virtual_host: str = '/') -> dict[str, Any]:
         """Get Queue details.
 
         :param queue: Queue name
@@ -33,8 +38,14 @@ class Queue(ManagementHandler):
             )
         )
 
-    def list(self, virtual_host='/', show_all=False,
-             name=None, page_size=100, use_regex=False):
+    def list(
+        self,
+        virtual_host: str = '/',
+        show_all: bool = False,
+        name: str | None = None,
+        page_size: int = 100,
+        use_regex: bool = False,
+    ) -> List[dict[str, Any]]:
         """List Queues.
 
         :param str virtual_host: Virtual host name
@@ -59,8 +70,15 @@ class Queue(ManagementHandler):
             name=name, use_regex=use_regex, page_size=page_size,
         )
 
-    def declare(self, queue='', virtual_host='/', passive=False, durable=False,
-                auto_delete=False, arguments=None):
+    def declare(
+        self,
+        queue: str = '',
+        virtual_host: str = '/',
+        passive: bool = False,
+        durable: bool = False,
+        auto_delete: bool = False,
+        arguments: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Declare a Queue.
 
         :param str queue: Queue name
@@ -93,7 +111,7 @@ class Queue(ManagementHandler):
             ),
             payload=queue_payload)
 
-    def delete(self, queue, virtual_host='/'):
+    def delete(self, queue: str, virtual_host: str = '/') -> dict[str, Any]:
         """Delete a Queue.
 
         :param str queue: Queue name
@@ -111,7 +129,7 @@ class Queue(ManagementHandler):
                                            queue
                                        ))
 
-    def purge(self, queue, virtual_host='/'):
+    def purge(self, queue: str, virtual_host: str = '/') -> None:
         """Purge a Queue.
 
         :param str queue: Queue name
@@ -129,7 +147,9 @@ class Queue(ManagementHandler):
                                            queue
                                        ))
 
-    def bindings(self, queue, virtual_host='/'):
+    def bindings(
+        self, queue: str, virtual_host: str = '/',
+    ) -> List[dict[str, Any]]:
         """Get Queue bindings.
 
         :param str queue: Queue name
@@ -147,8 +167,14 @@ class Queue(ManagementHandler):
                                         queue
                                     ))
 
-    def bind(self, queue='', exchange='', routing_key='', virtual_host='/',
-             arguments=None):
+    def bind(
+        self,
+        queue: str = '',
+        exchange: str = '',
+        routing_key: str = '',
+        virtual_host: str = '/',
+        arguments: dict[str, Any] | None = None,
+    ) -> None:
         """Bind a Queue.
 
         :param str queue: Queue name
@@ -179,8 +205,14 @@ class Queue(ManagementHandler):
                                      ),
                                      payload=bind_payload)
 
-    def unbind(self, queue='', exchange='', routing_key='', virtual_host='/',
-               properties_key=None):
+    def unbind(
+        self,
+        queue: str = '',
+        exchange: str = '',
+        routing_key: str = '',
+        virtual_host: str = '/',
+        properties_key: str | None = None,
+    ) -> None:
         """Unbind a Queue.
 
         :param str queue: Queue name

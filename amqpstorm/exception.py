@@ -1,10 +1,14 @@
 """AMQPStorm Exception."""
+from __future__ import annotations
 
-AMQP_ERROR_MAPPING = {
+from typing import Any
+
+
+AMQP_ERROR_MAPPING: dict[int, tuple[str, str]] = {
     311: ('CONTENT-TOO-LARGE',
           'The client attempted to transfer content larger than the '
           'server could accept at the present time. The client may '
-          'retry  at a later time.'),
+          'retry at a later time.'),
     312: ('NO-ROUTE', 'Undocumented AMQP Soft Error'),
     313: ('NO-CONSUMERS',
           'When the exchange cannot deliver to a consumer when the '
@@ -57,7 +61,7 @@ AMQP_ERROR_MAPPING = {
           'settings or by some other criteria.'),
     540: ('NOT-IMPLEMENTED',
           'The client tried to use functionality that is '
-          'notimplemented in the server.'),
+          'not implemented in the server.'),
     541: ('INTERNAL-ERROR',
           'The server could not complete the method because of an '
           'internal error. The server may require intervention by '
@@ -78,28 +82,28 @@ class AMQPError(IOError):
             if why.error_code == 312:
                 self.channel.queue.declare(queue_name)
     """
-    _documentation = None
-    _error_code = None
-    _error_type = None
+    _documentation: str | None = None
+    _error_code: int | None = None
+    _error_type: str | None = None
 
     @property
-    def documentation(self):
+    def documentation(self) -> str | bytes:
         """AMQP Documentation string."""
-        return self._documentation or bytes()
+        return self._documentation or b''
 
     @property
-    def error_code(self):
+    def error_code(self) -> int | None:
         """AMQP Error Code - A 3-digit reply code."""
         return self._error_code
 
     @property
-    def error_type(self):
+    def error_type(self) -> str | None:
         """AMQP Error Type e.g. NOT-FOUND."""
         return self._error_type
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         self._error_code = kwargs.pop('reply_code', None)
-        super(AMQPError, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         if self._error_code not in AMQP_ERROR_MAPPING:
             return
         self._error_type = AMQP_ERROR_MAPPING[self._error_code][0]

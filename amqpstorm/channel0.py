@@ -1,7 +1,10 @@
 """AMQPStorm Connection.Channel0."""
+from __future__ import annotations
 
 import logging
 import platform
+from typing import TYPE_CHECKING
+from typing import Any
 
 from pamqp import commands
 from pamqp.heartbeat import Heartbeat
@@ -13,24 +16,31 @@ from amqpstorm.base import Stateful
 from amqpstorm.compatibility import try_utf8_decode
 from amqpstorm.exception import AMQPConnectionError
 
+if TYPE_CHECKING:
+    from amqpstorm.connection import Connection
+
 LOGGER = logging.getLogger(__name__)
 
 
-class Channel0(object):
+class Channel0:
     """Internal Channel0 handler."""
 
-    def __init__(self, connection, client_properties=None):
-        super(Channel0, self).__init__()
-        self.is_blocked = False
-        self.max_allowed_channels = MAX_CHANNELS
-        self.max_frame_size = MAX_FRAME_SIZE
-        self.server_properties = {}
+    def __init__(
+        self,
+        connection: Connection,
+        client_properties: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__()
+        self.is_blocked: bool = False
+        self.max_allowed_channels: int = MAX_CHANNELS
+        self.max_frame_size: int = MAX_FRAME_SIZE
+        self.server_properties: dict[str, Any] = {}
         self._connection = connection
         self._heartbeat = connection.parameters['heartbeat']
         self._parameters = connection.parameters
         self._override_client_properties = client_properties
 
-    def on_frame(self, frame_in):
+    def on_frame(self, frame_in: Any) -> None:
         """Handle frames sent to Channel0.
 
         :param frame_in: Amqp frame.
@@ -58,7 +68,7 @@ class Channel0(object):
         else:
             LOGGER.error('[Channel0] Unhandled Frame: %s', frame_in.name)
 
-    def send_close_connection(self):
+    def send_close_connection(self) -> None:
         """Send Connection Close frame.
 
         :return:
@@ -67,7 +77,7 @@ class Channel0(object):
             class_id=0, method_id=0, reply_code=0
         ))
 
-    def send_heartbeat(self):
+    def send_heartbeat(self) -> None:
         """Send Heartbeat frame.
 
         :return:
@@ -76,7 +86,7 @@ class Channel0(object):
             return
         self._write_frame(Heartbeat())
 
-    def _close_connection(self, frame_in):
+    def _close_connection(self, frame_in: Any) -> None:
         """Connection Close.
 
         :param specification.Connection.Close frame_in: Amqp frame.
@@ -86,20 +96,20 @@ class Channel0(object):
         if frame_in.reply_code != 200:
             reply_text = try_utf8_decode(frame_in.reply_text)
             message = (
-                'Connection was closed by remote server: %s' % reply_text
+                f'Connection was closed by remote server: {reply_text}'
             )
             exception = AMQPConnectionError(message,
                                             reply_code=frame_in.reply_code)
             self._connection.exceptions.append(exception)
 
-    def _close_connection_ok(self):
+    def _close_connection_ok(self) -> None:
         """Connection CloseOk frame received.
 
         :return:
         """
         self._set_connection_state(Stateful.CLOSED)
 
-    def _blocked_connection(self, frame_in):
+    def _blocked_connection(self, frame_in: Any) -> None:
         """Connection is Blocked.
 
         :param frame_in:
@@ -111,7 +121,7 @@ class Channel0(object):
             try_utf8_decode(frame_in.reason)
         )
 
-    def _negotiate(self, server_value, client_value):
+    def _negotiate(self, server_value: int, client_value: int) -> int:
         """Negotiate the highest supported value. Fall back on the
         client side value if zero.
 
@@ -123,7 +133,7 @@ class Channel0(object):
         """
         return min(server_value, client_value) or client_value
 
-    def _unblocked_connection(self):
+    def _unblocked_connection(self) -> None:
         """Connection is Unblocked.
 
         :return:
@@ -131,15 +141,14 @@ class Channel0(object):
         self.is_blocked = False
         LOGGER.info('Connection is no longer blocked by remote server')
 
-    def _plain_credentials(self):
+    def _plain_credentials(self) -> str:
         """AMQP Plain Credentials.
 
         :rtype: str
         """
-        return '\0%s\0%s' % (self._parameters['username'],
-                             self._parameters['password'])
+        return f"\0{self._parameters['username']}\0{self._parameters['password']}"
 
-    def _send_start_ok(self, frame_in):
+    def _send_start_ok(self, frame_in: Any) -> None:
         """Send Start OK frame.
 
         :param specification.Connection.Start frame_in: Amqp frame.
@@ -154,8 +163,7 @@ class Channel0(object):
             credentials = self._plain_credentials()
         else:
             exception = AMQPConnectionError(
-                'Unsupported Security Mechanism(s): %s' %
-                frame_in.mechanisms
+                f'Unsupported Security Mechanism(s): {frame_in.mechanisms}'
             )
             self._connection.exceptions.append(exception)
             return
@@ -167,7 +175,7 @@ class Channel0(object):
         )
         self._write_frame(start_ok_frame)
 
-    def _send_tune_ok(self, frame_in):
+    def _send_tune_ok(self, frame_in: Any) -> None:
         """Send Tune OK frame.
 
         :param specification.Connection.Tune frame_in: Tune frame.
@@ -189,7 +197,7 @@ class Channel0(object):
             heartbeat=self._heartbeat)
         self._write_frame(tune_ok_frame)
 
-    def _send_open_connection(self):
+    def _send_open_connection(self) -> None:
         """Send Open Connection frame.
 
         :return:
@@ -199,7 +207,7 @@ class Channel0(object):
         )
         self._write_frame(open_frame)
 
-    def _set_connection_state(self, state):
+    def _set_connection_state(self, state: int) -> None:
         """Set Connection state.
 
         :param state:
@@ -207,7 +215,7 @@ class Channel0(object):
         """
         self._connection.set_state(state)
 
-    def _write_frame(self, frame_out):
+    def _write_frame(self, frame_out: Any) -> None:
         """Write a pamqp frame from Channel0.
 
         :param frame_out: Amqp frame.
@@ -216,15 +224,17 @@ class Channel0(object):
         self._connection.write_frame(0, frame_out)
         LOGGER.debug('Frame Sent: %s', frame_out.name)
 
-    def _client_properties(self):
+    def _client_properties(self) -> dict[str, Any]:
         """AMQPStorm Client Properties.
 
         :rtype: dict
         """
         client_properties = {
             'product': 'AMQPStorm',
-            'platform': 'Python %s (%s)' % (platform.python_version(),
-                                            platform.python_implementation()),
+            'platform': (
+                f'Python {platform.python_version()} '
+                f'({platform.python_implementation()})'
+            ),
             'capabilities': {
                 'basic.nack': True,
                 'connection.blocked': True,

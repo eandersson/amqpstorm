@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # amqpstorm documentation build configuration file, created by
 # sphinx-quickstart on Sun Apr 10 16:25:24 2016.
 #
@@ -36,8 +34,27 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx.ext.extlinks',
     'sphinx.ext.viewcode',
-    'sphinx.ext.inheritance_diagram'
+    'sphinx.ext.inheritance_diagram',
+    'sphinx.ext.intersphinx',
 ]
+
+# Cross-link types referenced in annotations to upstream docs.
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3/', None),
+    'requests': ('https://requests.readthedocs.io/en/latest/', None),
+}
+
+# Render type annotations as short names (e.g. `dict[str, Any]` instead of
+# `typing.Dict[builtins.str, typing.Any]`).
+autodoc_typehints_format = 'short'
+
+# Strip the leading module path on a type when an intersphinx target exists,
+# so `socket.socket` is rendered as `socket` and links to the stdlib docs.
+python_use_unqualified_type_names = True
+
+# Render the class signature and the __init__ signature on separate lines so
+# class pages stay readable when constructors have many typed parameters.
+autodoc_class_signature = 'separated'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -54,9 +71,9 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'amqpstorm'
-copyright = u'2020, Erik Olof Gunnar Andersson'
-author = u'Erik Olof Gunnar Andersson'
+project = 'amqpstorm'
+copyright = '2016-2026, Erik Olof Gunnar Andersson'
+author = 'Erik Olof Gunnar Andersson'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -239,8 +256,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    ('index', 'amqpstorm.tex', u'amqpstorm Documentation',
-     u'Erik Olof Gunnar Andersson', 'manual'),
+    ('index', 'amqpstorm.tex', 'amqpstorm Documentation',
+     'Erik Olof Gunnar Andersson', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -269,8 +286,8 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'amqpstorm', u'amqpstorm Documentation',
-     [u'Erik Olof Gunnar Andersson'], 1)
+    ('index', 'amqpstorm', 'amqpstorm Documentation',
+     ['Erik Olof Gunnar Andersson'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -283,9 +300,9 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    ('index', 'amqpstorm', u'amqpstorm Documentation',
-     u'Erik Olof Gunnar Andersson', 'amqpstorm',
-     'One line description of project.',
+    ('index', 'amqpstorm', 'amqpstorm Documentation',
+     'Erik Olof Gunnar Andersson', 'amqpstorm',
+     'Thread-safe Python 3 RabbitMQ Client & Management library.',
      'Miscellaneous'),
 ]
 

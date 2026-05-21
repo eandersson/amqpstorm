@@ -1,14 +1,17 @@
 """Python 2/3 Compatibility layer."""
+from __future__ import annotations
+
+from typing import Any
 
 try:
     import ssl
 except ImportError:
-    ssl = None
+    ssl = None  # type: ignore[assignment]
 
 try:
     import simplejson as json  # noqa
 except ImportError:
-    import json  # noqa
+    import json  # type: ignore[no-redef]  # noqa
 
 
 import urllib.parse as urlparse  # noqa
@@ -27,9 +30,9 @@ class DummyException(Exception):
     """
 
 
-SSL_CERT_MAP = {}
-SSL_VERSIONS = {}
-SSL_OPTIONS = [
+SSL_CERT_MAP: dict[str, int] = {}
+SSL_VERSIONS: dict[str, int] = {}
+SSL_OPTIONS: list[str] = [
     'keyfile',
     'certfile',
     'cert_reqs',
@@ -39,10 +42,10 @@ SSL_OPTIONS = [
 ]
 
 
-def get_default_ssl_version():
-    """Get the highest support TLS version, if none is available, return None.
+def get_default_ssl_version() -> int | None:
+    """Get the highest supported TLS version, if none is available, return None.
 
-    :rtype: bool,None
+    :rtype: int,None
     """
     if hasattr(ssl, 'PROTOCOL_TLSv1_2'):
         return ssl.PROTOCOL_TLSv1_2
@@ -61,12 +64,12 @@ if SSL_SUPPORTED:
         'cert_optional': ssl.CERT_OPTIONAL,
         'cert_required': ssl.CERT_REQUIRED
     }
-    SSLWantReadError = ssl.SSLWantReadError
+    SSLWantReadError: type[BaseException] = ssl.SSLWantReadError
 else:
     SSLWantReadError = DummyException
 
 
-def is_string(obj):
+def is_string(obj: Any) -> bool:
     """Is this a string.
 
     :param object obj:
@@ -75,7 +78,7 @@ def is_string(obj):
     return isinstance(obj, (bytes, str))
 
 
-def is_integer(obj):
+def is_integer(obj: Any) -> bool:
     """Is this an integer.
 
     :param object obj:
@@ -84,26 +87,24 @@ def is_integer(obj):
     return isinstance(obj, int)
 
 
-def try_utf8_decode(value):
-    """Try to decode an object.
+def try_utf8_decode(value: Any) -> Any:
+    """Try to decode a bytes value to UTF-8.
+
+        Returns the value unchanged if it is not bytes, is empty, or
+        cannot be decoded as UTF-8.
 
     :param value:
     :return:
     """
-    if not value or not is_string(value):
+    if not isinstance(value, bytes) or not value:
         return value
-    elif not isinstance(value, bytes):
-        return value
-
     try:
         return value.decode('utf-8')
     except UnicodeDecodeError:
-        pass
-
-    return value
+        return value
 
 
-def patch_uri(uri):
+def patch_uri(uri: str) -> str:
     """If a custom uri schema is used with python 2.6 (e.g. amqps),
     it will ignore some of the parsing logic.
 
@@ -113,9 +114,8 @@ def patch_uri(uri):
     :param str uri: AMQP Connection string
     :rtype: str
     """
-    index = uri.find(':')
-    if uri[:index] == 'amqps':
-        uri = uri.replace('amqps', 'https', 1)
-    elif uri[:index] == 'amqp':
-        uri = uri.replace('amqp', 'http', 1)
+    if uri.startswith('amqps:'):
+        return 'https:' + uri.removeprefix('amqps:')
+    if uri.startswith('amqp:'):
+        return 'http:' + uri.removeprefix('amqp:')
     return uri

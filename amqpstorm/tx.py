@@ -1,10 +1,17 @@
 """AMQPStorm Channel.Tx."""
+from __future__ import annotations
 
 import logging
+from types import TracebackType
+from typing import TYPE_CHECKING
+from typing import Any
 
 from pamqp import commands
 
 from amqpstorm.base import Handler
+
+if TYPE_CHECKING:
+    from amqpstorm.channel import Channel
 
 LOGGER = logging.getLogger(__name__)
 
@@ -18,15 +25,20 @@ class Tx(Handler):
     """
     __slots__ = ['_tx_active']
 
-    def __init__(self, channel):
+    def __init__(self, channel: Channel) -> None:
         self._tx_active = True
-        super(Tx, self).__init__(channel)
+        super().__init__(channel)
 
-    def __enter__(self):
+    def __enter__(self) -> Tx:
         self.select()
         return self
 
-    def __exit__(self, exception_type, exception_value, _):
+    def __exit__(
+        self,
+        exception_type: type[BaseException] | None,
+        exception_value: BaseException | None,
+        _: TracebackType | None,
+    ) -> None:
         if exception_type:
             LOGGER.warning(
                 'Leaving Transaction on exception: %s',
@@ -38,7 +50,7 @@ class Tx(Handler):
         if self._tx_active:
             self.commit()
 
-    def select(self):
+    def select(self) -> dict[str, Any] | None:
         """Enable standard transaction mode.
 
             This will enable transaction mode on the channel. Meaning that
@@ -50,7 +62,7 @@ class Tx(Handler):
         self._tx_active = True
         return self._channel.rpc_request(commands.Tx.Select())
 
-    def commit(self):
+    def commit(self) -> dict[str, Any] | None:
         """Commit the current transaction.
 
             Commit all messages published during the current transaction
@@ -64,7 +76,7 @@ class Tx(Handler):
         self._tx_active = False
         return self._channel.rpc_request(commands.Tx.Commit())
 
-    def rollback(self):
+    def rollback(self) -> dict[str, Any] | None:
         """Abandon the current transaction.
 
             Rollback all messages published during the current transaction

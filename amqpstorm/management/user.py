@@ -1,3 +1,8 @@
+from __future__ import annotations
+
+from typing import Any
+from typing import List
+
 from amqpstorm.compatibility import json
 from amqpstorm.compatibility import quote
 from amqpstorm.management.base import ManagementHandler
@@ -10,7 +15,7 @@ API_USERS_BULK_DELETE = 'users/bulk-delete'
 
 
 class User(ManagementHandler):
-    def get(self, username):
+    def get(self, username: str) -> dict[str, Any]:
         """Get User details.
 
         :param str username: Username
@@ -24,14 +29,19 @@ class User(ManagementHandler):
         """
         return self.http_client.get(API_USER % username)
 
-    def list(self):
+    def list(self) -> List[dict[str, Any]]:
         """List all Users.
 
         :rtype: list
         """
         return self.http_client.get(API_USERS)
 
-    def create(self, username, password, tags=''):
+    def create(
+        self,
+        username: str,
+        password: str,
+        tags: str | List[str] = '',
+    ) -> None:
         """Create User.
 
         :param str username: Username
@@ -50,7 +60,7 @@ class User(ManagementHandler):
         return self.http_client.put(API_USER % username,
                                     payload=user_payload)
 
-    def delete(self, username):
+    def delete(self, username: str | List[str]) -> dict[str, Any]:
         """Delete User or a list of Users.
 
         :param str,list username: Username or a list of Usernames
@@ -67,7 +77,7 @@ class User(ManagementHandler):
             )
         return self.http_client.delete(API_USER % username)
 
-    def get_permission(self, username, virtual_host):
+    def get_permission(self, username: str, virtual_host: str) -> dict[str, Any]:
         """Get User permissions for the configured virtual host.
 
         :param str username: Username
@@ -85,7 +95,7 @@ class User(ManagementHandler):
                                         username
                                     ))
 
-    def get_permissions(self, username):
+    def get_permissions(self, username: str) -> dict[str, Any]:
         """Get all Users permissions.
 
         :param str username: Username
@@ -100,8 +110,14 @@ class User(ManagementHandler):
                                         username
                                     ))
 
-    def set_permission(self, username, virtual_host, configure_regex='.*',
-                       write_regex='.*', read_regex='.*'):
+    def set_permission(
+        self,
+        username: str,
+        virtual_host: str,
+        configure_regex: str = '.*',
+        write_regex: str = '.*',
+        read_regex: str = '.*',
+    ) -> dict[str, Any]:
         """Set User permissions for the configured virtual host.
 
         :param str username: Username
@@ -131,7 +147,7 @@ class User(ManagementHandler):
                                     ),
                                     payload=permission_payload)
 
-    def delete_permission(self, username, virtual_host):
+    def delete_permission(self, username: str, virtual_host: str) -> dict[str, Any]:
         """Delete User permissions for the configured virtual host.
 
         :param str username: Username

@@ -1,3 +1,8 @@
+from __future__ import annotations
+
+from typing import Any
+
+import requests
 import requests.api
 from requests.auth import HTTPBasicAuth
 
@@ -6,8 +11,16 @@ from amqpstorm.management.exception import ApiConnectionError
 from amqpstorm.management.exception import ApiError
 
 
-class HTTPClient(object):
-    def __init__(self, api_url, username, password, verify, cert, timeout):
+class HTTPClient:
+    def __init__(
+        self,
+        api_url: str,
+        username: str,
+        password: str,
+        verify: bool | str | None,
+        cert: str | tuple[str, str] | None,
+        timeout: float,
+    ) -> None:
         self.session = requests.Session()
         self.session.verify = verify
         self.session.cert = cert
@@ -15,7 +28,12 @@ class HTTPClient(object):
         self._base_url = api_url
         self._timeout = timeout
 
-    def get(self, path, payload=None, headers=None):
+    def get(
+        self,
+        path: str,
+        payload: str | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> Any:
         """HTTP GET operation.
 
         :param path: URI Path
@@ -29,7 +47,13 @@ class HTTPClient(object):
         """
         return self._request('get', path, payload, headers)
 
-    def list(self, path, name=None, page_size=None, use_regex=False):
+    def list(
+        self,
+        path: str,
+        name: str | None = None,
+        page_size: int | None = None,
+        use_regex: bool | str = False,
+    ) -> Any:
         """List operation (e.g. queue list).
 
         :param path: URI Path
@@ -42,7 +66,7 @@ class HTTPClient(object):
 
         :return: Response
         """
-        params = dict()
+        params: dict[str, Any] = {}
         if name is not None:
             params['name'] = name
         if use_regex:
@@ -53,7 +77,7 @@ class HTTPClient(object):
         if page_size is None:
             return self._request('get', path, params=params)
 
-        results = list()
+        results: list[Any] = []
         params['page'] = 1
         params['page_size'] = page_size
         params['pagination'] = True
@@ -71,7 +95,12 @@ class HTTPClient(object):
 
         return results
 
-    def post(self, path, payload=None, headers=None):
+    def post(
+        self,
+        path: str,
+        payload: str | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> Any:
         """HTTP POST operation.
 
         :param path: URI Path
@@ -85,7 +114,12 @@ class HTTPClient(object):
         """
         return self._request('post', path, payload, headers)
 
-    def delete(self, path, payload=None, headers=None):
+    def delete(
+        self,
+        path: str,
+        payload: str | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> Any:
         """HTTP DELETE operation.
 
         :param path: URI Path
@@ -99,7 +133,12 @@ class HTTPClient(object):
         """
         return self._request('delete', path, payload, headers)
 
-    def put(self, path, payload=None, headers=None):
+    def put(
+        self,
+        path: str,
+        payload: str | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> Any:
         """HTTP PUT operation.
 
         :param path: URI Path
@@ -113,7 +152,14 @@ class HTTPClient(object):
         """
         return self._request('put', path, payload, headers)
 
-    def _request(self, method, path, payload=None, headers=None, params=None):
+    def _request(
+        self,
+        method: str,
+        path: str,
+        payload: str | None = None,
+        headers: dict[str, str] | None = None,
+        params: dict[str, Any] | None = None,
+    ) -> Any:
         """HTTP operation.
 
         :param method: Operation type (e.g. post)
@@ -127,7 +173,7 @@ class HTTPClient(object):
 
         :return: Response
         """
-        url = urlparse.urljoin(self._base_url, 'api/%s' % path)
+        url = urlparse.urljoin(self._base_url, f'api/{path}')
         headers = headers or {}
         headers['content-type'] = 'application/json'
         try:
@@ -147,7 +193,7 @@ class HTTPClient(object):
         return json_response
 
     @staticmethod
-    def _get_json_output(response):
+    def _get_json_output(response: requests.Response) -> Any:
         """Get JSON output from the HTTP response.
 
         :param requests.Response response:
@@ -161,7 +207,7 @@ class HTTPClient(object):
         return content
 
     @staticmethod
-    def _check_for_errors(response, json_response):
+    def _check_for_errors(response: requests.Response, json_response: Any) -> None:
         """Check payload for errors.
 
         :param response: HTTP response

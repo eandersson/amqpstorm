@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Any
+
 from amqpstorm.compatibility import json
 from amqpstorm.compatibility import quote
 from amqpstorm.management.base import ManagementHandler
@@ -8,8 +12,15 @@ API_BASIC_PUBLISH = 'exchanges/%s/%s/publish'
 
 
 class Basic(ManagementHandler):
-    def publish(self, body, routing_key, exchange='amq.default',
-                virtual_host='/', properties=None, payload_encoding='string'):
+    def publish(
+        self,
+        body: str,
+        routing_key: str,
+        exchange: str = 'amq.default',
+        virtual_host: str = '/',
+        properties: dict[str, Any] | None = None,
+        payload_encoding: str = 'string',
+    ) -> dict[str, Any]:
         """Publish a Message.
 
         :param bytes,str,unicode body: Message payload
@@ -42,8 +53,16 @@ class Basic(ManagementHandler):
                                          exchange),
                                      payload=body)
 
-    def get(self, queue, virtual_host='/', requeue=False, to_dict=False,
-            count=1, truncate=50000, encoding='auto'):
+    def get(
+        self,
+        queue: str,
+        virtual_host: str = '/',
+        requeue: bool = False,
+        to_dict: bool = False,
+        count: int = 1,
+        truncate: int = 50000,
+        encoding: str = 'auto',
+    ) -> list[Message] | list[dict[str, Any]]:
         """Get Messages.
 
         :param str queue: Queue name

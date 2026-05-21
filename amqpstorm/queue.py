@@ -1,6 +1,8 @@
 """AMQPStorm Channel.Queue."""
+from __future__ import annotations
 
 import logging
+from typing import Any
 
 from pamqp.commands import Queue as pamqp_queue
 
@@ -15,8 +17,15 @@ class Queue(Handler):
     """RabbitMQ Queue Operations."""
     __slots__ = []
 
-    def declare(self, queue='', passive=False, durable=False,
-                exclusive=False, auto_delete=False, arguments=None):
+    def declare(
+        self,
+        queue: str = '',
+        passive: bool = False,
+        durable: bool = False,
+        exclusive: bool = False,
+        auto_delete: bool = False,
+        arguments: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Declare a Queue.
 
         :param str queue: Queue name
@@ -54,7 +63,9 @@ class Queue(Handler):
                                             arguments=arguments)
         return self._channel.rpc_request(declare_frame)
 
-    def delete(self, queue='', if_unused=False, if_empty=False):
+    def delete(
+        self, queue: str = '', if_unused: bool = False, if_empty: bool = False,
+    ) -> dict[str, Any]:
         """Delete a Queue.
 
         :param str queue: Queue name
@@ -79,7 +90,7 @@ class Queue(Handler):
                                           if_empty=if_empty)
         return self._channel.rpc_request(delete_frame)
 
-    def purge(self, queue):
+    def purge(self, queue: str) -> dict[str, Any]:
         """Purge a Queue.
 
         :param str queue: Queue name
@@ -98,7 +109,13 @@ class Queue(Handler):
 
         return self._channel.rpc_request(purge_frame)
 
-    def bind(self, queue='', exchange='', routing_key='', arguments=None):
+    def bind(
+        self,
+        queue: str = '',
+        exchange: str = '',
+        routing_key: str = '',
+        arguments: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Bind a Queue.
 
         :param str queue: Queue name
@@ -128,7 +145,13 @@ class Queue(Handler):
                                       arguments=arguments)
         return self._channel.rpc_request(bind_frame)
 
-    def unbind(self, queue='', exchange='', routing_key='', arguments=None):
+    def unbind(
+        self,
+        queue: str = '',
+        exchange: str = '',
+        routing_key: str = '',
+        arguments: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Unbind a Queue.
 
         :param str queue: Queue name
