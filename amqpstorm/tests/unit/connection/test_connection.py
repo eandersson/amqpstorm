@@ -1,3 +1,4 @@
+import collections
 import socket
 import threading
 
@@ -11,6 +12,7 @@ from amqpstorm import Channel
 from amqpstorm import Connection
 from amqpstorm import compatibility
 from amqpstorm.base import MAX_CHANNELS
+from amqpstorm.connection import INBOUND_BACKPRESSURE_THRESHOLD
 from amqpstorm.exception import AMQPConnectionError
 from amqpstorm.io import IO
 from amqpstorm.tests.utility import TestFramework
@@ -100,6 +102,81 @@ class ConnectionTests(TestFramework):
         connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
 
         self.assertRaises(AMQPConnectionError, connection.channel)
+
+    def test_connection_inbound_backpressure_threshold_default(self):
+        connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
+        self.assertEqual(
+            connection._inbound_backpressure_threshold,
+            INBOUND_BACKPRESSURE_THRESHOLD,
+        )
+
+    def test_connection_inbound_backpressure_threshold_custom(self):
+        connection = Connection(
+            '127.0.0.1', 'guest', 'guest', lazy=True,
+            inbound_backpressure_threshold=500,
+        )
+        self.assertEqual(connection._inbound_backpressure_threshold, 500)
+
+    def test_connection_inbound_overloaded_no_channels(self):
+        connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
+        self.assertFalse(connection._is_inbound_overloaded())
+
+    def test_connection_inbound_overloaded_below_threshold(self):
+        connection = Connection(
+            '127.0.0.1', 'guest', 'guest', lazy=True,
+            inbound_backpressure_threshold=100,
+        )
+        channel = Channel(1, connection, 360)
+        channel._inbound = collections.deque(range(50))
+        connection._channels[1] = channel
+
+        self.assertFalse(connection._is_inbound_overloaded())
+
+    def test_connection_inbound_overloaded_at_threshold(self):
+        connection = Connection(
+            '127.0.0.1', 'guest', 'guest', lazy=True,
+            inbound_backpressure_threshold=100,
+        )
+        channel = Channel(1, connection, 360)
+        channel._inbound = collections.deque(range(100))
+        connection._channels[1] = channel
+
+        self.assertTrue(connection._is_inbound_overloaded())
+
+    def test_connection_inbound_overloaded_one_busy_channel_trips(self):
+        connection = Connection(
+            '127.0.0.1', 'guest', 'guest', lazy=True,
+            inbound_backpressure_threshold=100,
+        )
+        quiet = Channel(1, connection, 360)
+        quiet._inbound = collections.deque(range(5))
+        busy = Channel(2, connection, 360)
+        busy._inbound = collections.deque(range(200))
+        connection._channels[1] = quiet
+        connection._channels[2] = busy
+
+        self.assertTrue(connection._is_inbound_overloaded())
+
+    def test_connection_inbound_overloaded_threshold_zero_disables(self):
+        connection = Connection(
+            '127.0.0.1', 'guest', 'guest', lazy=True,
+            inbound_backpressure_threshold=0,
+        )
+        channel = Channel(1, connection, 360)
+        channel._inbound = collections.deque(range(1_000_000))
+        connection._channels[1] = channel
+
+        self.assertFalse(connection._is_inbound_overloaded())
+
+    def test_connection_io_receives_backpressure_callback(self):
+        connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
+        callback = connection._io._check_backpressure
+        self.assertIsNotNone(callback)
+        self.assertIs(callback.__self__, connection)
+        self.assertIs(
+            callback.__func__,
+            Connection._is_inbound_overloaded,
+        )
 
     def test_connection_basic_read_buffer(self):
         connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)

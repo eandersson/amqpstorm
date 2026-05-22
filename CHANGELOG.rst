@@ -1,6 +1,18 @@
 Changelog
 =========
 
+Version 3.2a1
+-----------
+- Self-regulating inbound back-pressure: when any channel buffers
+  more than ``inbound_backpressure_threshold`` frames (default
+  10,000), the IO loop pauses socket reads for ~10ms per iteration so
+  the kernel TCP receive buffer can fill and TCP window scaling tells
+  the broker to slow down. No exceptions are raised, no messages are
+  dropped, and the hot path is unchanged below the threshold. Pass
+  ``inbound_backpressure_threshold=0`` to ``Connection`` to disable.
+  This is particularly helpful for ``no_ack=True`` consumers, where
+  ``basic.qos`` does not throttle delivery (see issue #34).
+
 Version 3.1
 -----------
 - Added inline type hints across the public API and shipped ``py.typed``

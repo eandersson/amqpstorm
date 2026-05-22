@@ -106,6 +106,32 @@ class ChannelTests(TestFramework):
         self.assertFalse(channel._user_closed)
         self.assertEqual(channel._state, channel.OPEN)
 
+    def test_channel_is_inbound_overloaded_default_deque_check(self):
+        connection = FakeConnection()
+        connection._inbound_backpressure_threshold = 100
+        channel = Channel(0, connection, 360)
+
+        channel._inbound = collections.deque(range(50))
+        self.assertFalse(channel._is_inbound_overloaded())
+
+        channel._inbound = collections.deque(range(100))
+        self.assertTrue(channel._is_inbound_overloaded())
+
+    def test_channel_is_inbound_overloaded_threshold_zero_disables(self):
+        connection = FakeConnection()
+        connection._inbound_backpressure_threshold = 0
+        channel = Channel(0, connection, 360)
+        channel._inbound = collections.deque(range(1_000_000))
+
+        self.assertFalse(channel._is_inbound_overloaded())
+
+    def test_channel_is_inbound_overloaded_after_close_returns_false(self):
+        connection = FakeConnection()
+        channel = Channel(0, connection, 360)
+        channel._inbound = None  # type: ignore[assignment]
+
+        self.assertFalse(channel._is_inbound_overloaded())
+
     def test_channel_close_gracefully_with_queued_error(self):
         def on_close_ok(_, frame_out):
             if isinstance(frame_out, commands.Basic.Cancel):

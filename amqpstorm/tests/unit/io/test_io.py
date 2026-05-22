@@ -1,3 +1,4 @@
+import select
 import socket
 import ssl
 
@@ -246,3 +247,95 @@ class IOTests(TestFramework):
         finally:
             amqpstorm.io.socket.getaddrinfo = restore_func
             amqpstorm.io.socket.has_ipv6 = restore_has_ipv6
+
+    def test_io_backpressure_callback_defaults_to_none(self):
+        connection = FakeConnection()
+        io = IO(connection.parameters)
+        self.assertIsNone(io._check_backpressure)
+
+    def test_io_backpressure_sleep_constant_is_short(self):
+        self.assertLess(amqpstorm.io.INBOUND_BACKPRESSURE_SLEEP, 0.1)
+        self.assertGreater(amqpstorm.io.INBOUND_BACKPRESSURE_SLEEP, 0)
+
+    def test_io_backpressure_callback_handed_to_select_poller(self):
+        from amqpstorm.io import SelectPoller
+
+        connection = FakeConnection()
+        check = lambda: False  # noqa: E731
+        io = IO(connection.parameters,
+                on_read_impl=lambda data: data,
+                check_backpressure=check)
+        connection.parameters['poller'] = 'select'
+        io.poller_type = 'select'
+
+        with mock.patch.object(io, '_get_socket_addresses',
+                               return_value=[]), \
+                mock.patch.object(io, '_find_address_and_connect',
+                                  return_value=mock.Mock(spec=socket.socket)), \
+                mock.patch.object(io, '_create_inbound_thread'):
+            io.open()
+
+        self.assertIsInstance(io.poller, SelectPoller)
+        self.assertIs(io.poller._check_backpressure, check)
+        io._running.clear()
+
+
+class PollerBackpressureTests(TestFramework):
+    """Cover the back-pressure path on both poller implementations."""
+
+    def _make_select_poller(self, check):
+        from amqpstorm.io import SelectPoller
+        return SelectPoller(fileno=0, exceptions=[], check_backpressure=check)
+
+    def test_select_poller_no_callback_polls_normally(self):
+        poller = self._make_select_poller(None)
+        with mock.patch('amqpstorm.io.select.select',
+                        return_value=([0], [], [])) as mock_select, \
+                mock.patch('amqpstorm.io.time.sleep') as mock_sleep:
+            self.assertTrue(poller.is_ready)
+        mock_select.assert_called_once()
+        mock_sleep.assert_not_called()
+
+    def test_select_poller_callback_false_polls_normally(self):
+        poller = self._make_select_poller(lambda: False)
+        with mock.patch('amqpstorm.io.select.select',
+                        return_value=([0], [], [])) as mock_select, \
+                mock.patch('amqpstorm.io.time.sleep') as mock_sleep:
+            self.assertTrue(poller.is_ready)
+        mock_select.assert_called_once()
+        mock_sleep.assert_not_called()
+
+    def test_select_poller_callback_true_pauses_and_skips(self):
+        poller = self._make_select_poller(lambda: True)
+        with mock.patch('amqpstorm.io.select.select') as mock_select, \
+                mock.patch('amqpstorm.io.time.sleep') as mock_sleep:
+            self.assertFalse(poller.is_ready)
+        mock_select.assert_not_called()
+        mock_sleep.assert_called_once_with(
+            amqpstorm.io.INBOUND_BACKPRESSURE_SLEEP,
+        )
+
+    def _make_poll_poller(self, check):
+        from amqpstorm.io import Poller
+        if not hasattr(select, 'poll'):
+            self.skipTest('select.poll not available')
+        with mock.patch('amqpstorm.io.select.poll') as mock_poll:
+            mock_poll.return_value = mock.Mock()
+            return Poller(fileno=0, exceptions=[], check_backpressure=check)
+
+    def test_poll_poller_no_callback_polls_normally(self):
+        poller = self._make_poll_poller(None)
+        poller.poller.poll.return_value = [(0, 1)]
+        with mock.patch('amqpstorm.io.time.sleep') as mock_sleep:
+            self.assertTrue(poller.is_ready)
+        poller.poller.poll.assert_called_once()
+        mock_sleep.assert_not_called()
+
+    def test_poll_poller_callback_true_pauses_and_skips(self):
+        poller = self._make_poll_poller(lambda: True)
+        with mock.patch('amqpstorm.io.time.sleep') as mock_sleep:
+            self.assertFalse(poller.is_ready)
+        poller.poller.poll.assert_not_called()
+        mock_sleep.assert_called_once_with(
+            amqpstorm.io.INBOUND_BACKPRESSURE_SLEEP,
+        )

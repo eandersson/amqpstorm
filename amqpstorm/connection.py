@@ -32,6 +32,7 @@ LOGGER = logging.getLogger(__name__)
 DEFAULT_HEARTBEAT_TIMEOUT = 60
 DEFAULT_SOCKET_TIMEOUT = 10
 DEFAULT_VIRTUAL_HOST = '/'
+INBOUND_BACKPRESSURE_THRESHOLD = 10000
 
 
 class Connection(Stateful):
@@ -105,8 +106,16 @@ class Connection(Stateful):
             'locale': kwargs.get('locale', 'en_US'),
         }
         self._validate_parameters()
-        self._io = IO(self.parameters, exceptions=self._exceptions,
-                      on_read_impl=self._read_buffer)
+        self._inbound_backpressure_threshold = kwargs.get(
+            'inbound_backpressure_threshold',
+            INBOUND_BACKPRESSURE_THRESHOLD,
+        )
+        self._io = IO(
+            self.parameters,
+            exceptions=self._exceptions,
+            on_read_impl=self._read_buffer,
+            check_backpressure=self._is_inbound_overloaded,
+        )
         self._channel0 = Channel0(self, self.parameters['client_properties'])
         self._channels: dict[int, Channel] = {}
         self._last_channel_id: int | None = None
@@ -390,6 +399,16 @@ class Connection(Stateful):
             if channel_id not in self._channels:
                 return
             del self._channels[channel_id]
+
+    def _is_inbound_overloaded(self) -> bool:
+        """Back-pressure trigger for the IO inbound loop.
+
+        :rtype: bool
+        """
+        for channel in self._channels.values():
+            if channel._is_inbound_overloaded():
+                return True
+        return False
 
     def _send_handshake(self) -> None:
         """Send a RabbitMQ Handshake.

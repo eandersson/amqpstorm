@@ -219,6 +219,19 @@ class Channel(BaseChannel):
     def _user_initiated_close(self) -> bool:
         return self._user_closed or self._connection._user_closed
 
+    def _is_inbound_overloaded(self) -> bool:
+        """Per-channel back-pressure trigger.
+
+        :rtype: bool
+        """
+        inbound = self._inbound
+        if inbound is None:
+            return False
+        threshold = self._connection._inbound_backpressure_threshold
+        if threshold <= 0:
+            return False
+        return len(inbound) >= threshold
+
     def close(self, reply_code: int = 200, reply_text: str = '') -> None:
         """Close Channel.
 

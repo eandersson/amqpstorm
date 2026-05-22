@@ -5,6 +5,7 @@ import logging
 import select
 import socket
 import threading
+import time
 from errno import EAGAIN
 from errno import EINTR
 from errno import EWOULDBLOCK
@@ -20,12 +21,19 @@ EMPTY_BUFFER = b''
 LOGGER = logging.getLogger(__name__)
 POLL_TIMEOUT = 1.0
 POLL_TIMEOUT_MS = int(POLL_TIMEOUT * 1000)
+INBOUND_BACKPRESSURE_SLEEP = 0.001
 
 
 class BasePoller:
-    def __init__(self, fileno: int, exceptions: list[Exception]) -> None:
+    def __init__(
+        self,
+        fileno: int,
+        exceptions: list[Exception],
+        check_backpressure: Callable[[], bool] | None = None,
+    ) -> None:
         self._fileno = fileno
         self._exceptions = exceptions
+        self._check_backpressure = check_backpressure
 
     @property
     def fileno(self) -> int:
@@ -42,6 +50,16 @@ class BasePoller:
     def close(self) -> None:
         pass
 
+    def _should_pause(self) -> bool:
+        """Back-pressure gate run before each poll.
+
+        :rtype: bool
+        """
+        if self._check_backpressure and self._check_backpressure():
+            time.sleep(INBOUND_BACKPRESSURE_SLEEP)
+            return True
+        return False
+
 
 class SelectPoller(BasePoller):
     """Socket Read Poller using select.select."""
@@ -52,6 +70,8 @@ class SelectPoller(BasePoller):
 
         :rtype: bool
         """
+        if self._should_pause():
+            return False
         try:
             ready, _, _ = select.select([self.fileno], [], [], POLL_TIMEOUT)
             return bool(ready)
@@ -64,8 +84,13 @@ class SelectPoller(BasePoller):
 class Poller(BasePoller):
     """Socket Read Poller using select.poll."""
 
-    def __init__(self, fileno: int, exceptions: list[Exception]) -> None:
-        super().__init__(fileno, exceptions)
+    def __init__(
+        self,
+        fileno: int,
+        exceptions: list[Exception],
+        check_backpressure: Callable[[], bool] | None = None,
+    ) -> None:
+        super().__init__(fileno, exceptions, check_backpressure)
         self.poller = select.poll()  # type: ignore[attr-defined]
         self.poller.register(
             self._fileno,
@@ -78,6 +103,8 @@ class Poller(BasePoller):
 
         :rtype: bool
         """
+        if self._should_pause():
+            return False
         try:
             events = self.poller.poll(POLL_TIMEOUT_MS)
             for fd, event in events:
@@ -104,6 +131,7 @@ class IO:
         parameters: dict[str, Any],
         exceptions: list[Exception] | None = None,
         on_read_impl: Callable[[bytes], bytes] | None = None,
+        check_backpressure: Callable[[], bool] | None = None,
     ) -> None:
         self._exceptions: list[Exception] = (
             exceptions if exceptions is not None else []
@@ -112,6 +140,7 @@ class IO:
         self._rd_lock = threading.Lock()
         self._inbound_thread: threading.Thread | None = None
         self._on_read_impl = on_read_impl
+        self._check_backpressure = check_backpressure
         self._running = threading.Event()
         self._parameters = parameters
         self.data_in: bytes = EMPTY_BUFFER
@@ -149,9 +178,12 @@ class IO:
             sock_addresses = self._get_socket_addresses()
             self.socket = self._find_address_and_connect(sock_addresses)
             if self.poller_type == 'poll':
-                self.poller = Poller(self.socket.fileno(), self._exceptions)
+                self.poller = Poller(self.socket.fileno(), self._exceptions,
+                                     self._check_backpressure)
             else:
-                self.poller = SelectPoller(self.socket.fileno(), self._exceptions)
+                self.poller = SelectPoller(self.socket.fileno(),
+                                           self._exceptions,
+                                           self._check_backpressure)
             self._inbound_thread = self._create_inbound_thread()
 
     def write_to_socket(self, frame_data: bytes) -> None:

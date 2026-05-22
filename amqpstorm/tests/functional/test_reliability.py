@@ -334,3 +334,75 @@ if hasattr(select, 'poll'):
     class Consume1kUntilEmptyPoll(Consume1kUntilEmpty):
         """Drain-the-queue test run against the ``select.poll`` poller."""
         poller = 'poll'
+
+
+class BackpressureLoadAndConsume(TestFunctionalFramework):
+    messages_to_send = 20_000
+    backpressure_threshold = 500
+    consumer_delay = 0.0001  # 100us per message keeps consumer < broker
+
+    def configure(self):
+        self.disable_logging_validation()
+
+    def publish_load(self, channel):
+        for _ in range(self.messages_to_send):
+            channel.basic.publish(body=self.message,
+                                  routing_key=self.queue_name)
+
+    @setup(new_connection=False, queue=True)
+    def test_functional_backpressure_with_no_ack_consumer(self):
+        publisher = self._make_connection()
+        try:
+            channel = publisher.channel()
+            channel.queue.declare(self.queue_name, durable=True)
+            self.publish_load(channel)
+            channel.close()
+        finally:
+            publisher.close()
+
+        consumer = self._make_connection(
+            inbound_backpressure_threshold=self.backpressure_threshold,
+        )
+        max_observed = 0
+        consumed = 0
+        try:
+            channel = consumer.channel()
+            channel.basic.consume(queue=self.queue_name, no_ack=True)
+
+            deadline = time.monotonic() + 120
+            for _ in channel.build_inbound_messages(break_on_empty=False):
+                depth = len(channel._inbound)
+                if depth > max_observed:
+                    max_observed = depth
+                consumed += 1
+                if consumed >= self.messages_to_send:
+                    break
+                if time.monotonic() > deadline:
+                    break
+                if self.consumer_delay:
+                    time.sleep(self.consumer_delay)
+        finally:
+            consumer.close()
+
+        self.assertEqual(
+            consumed, self.messages_to_send,
+            f'received {consumed} of {self.messages_to_send} messages'
+        )
+        # ~3 frames per message * 20k = ~60k. If the deque ever got
+        # close to that, back-pressure was not engaging.
+        self.assertLess(
+            max_observed, 10_000,
+            f'inbound queue peaked at {max_observed} frames; '
+            'back-pressure may not have engaged'
+        )
+
+
+class BackpressureLoadAndConsumeSelect(BackpressureLoadAndConsume):
+    """Back-pressure load test against the ``select.select`` poller."""
+    poller = 'select'
+
+
+if hasattr(select, 'poll'):
+    class BackpressureLoadAndConsumePoll(BackpressureLoadAndConsume):
+        """Back-pressure load test against the ``select.poll`` poller."""
+        poller = 'poll'
