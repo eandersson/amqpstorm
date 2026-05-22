@@ -93,6 +93,19 @@ class ChannelTests(TestFramework):
         channel.close()
         self.assertTrue(channel._user_closed)
 
+    def test_channel_open_clears_user_closed_flag(self):
+        def on_open_ok(_, frame_out):
+            if isinstance(frame_out, commands.Channel.Open):
+                channel.rpc.on_frame(commands.Channel.OpenOk())
+
+        channel = Channel(0, FakeConnection(on_write=on_open_ok), 360)
+        channel._user_closed = True
+
+        channel.open()
+
+        self.assertFalse(channel._user_closed)
+        self.assertEqual(channel._state, channel.OPEN)
+
     def test_channel_close_gracefully_with_queued_error(self):
         def on_close_ok(_, frame_out):
             if isinstance(frame_out, commands.Basic.Cancel):

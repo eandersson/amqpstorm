@@ -347,6 +347,7 @@ class Channel(BaseChannel):
         self._inbound = collections.deque()
         self._exceptions: list[Exception] = []
         self._confirming_deliveries = False
+        self._user_closed = False
         self.set_state(self.OPENING)
         self.rpc_request(commands.Channel.Open())
         self.set_state(self.OPEN)

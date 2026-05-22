@@ -268,6 +268,7 @@ class Connection(Stateful):
         self._exceptions = []
         self._channels = {}
         self._last_channel_id = None
+        self._user_closed = False
         self._io.open()
         self._send_handshake()
         self._wait_for_connection_state(state=Stateful.OPEN)
