@@ -138,10 +138,12 @@ class UriConnection(Connection):
         :param str value:
         :return: TLS Certificate Options
         """
-        return self._get_ssl_attribute(value, compatibility.SSL_CERT_MAP,
-                                       ssl.CERT_NONE,
-                                       'ssl_options: cert_reqs \'%s\' not '
-                                       'found falling back to CERT_NONE.')
+        return self._get_ssl_attribute(
+            value, compatibility.SSL_CERT_MAP,
+            ssl.CERT_REQUIRED,
+            "ssl_options: cert_reqs %r not recognised; falling back to "
+            'CERT_REQUIRED.',
+        )
 
     @staticmethod
     def _get_ssl_attribute(
@@ -152,8 +154,11 @@ class UriConnection(Connection):
     ) -> Any:
         """Get the TLS attribute based on the compatibility mapping.
 
-            If no valid attribute can be found, fall-back on default and
-            display a warning.
+            Looks up ``'cert_<value>'`` (case-insensitive) in the
+            mapping.
+
+            If no valid attribute can be found, fall back on the default
+            and emit a warning.
 
         :param str value:
         :param dict mapping: Dictionary based mapping
@@ -161,9 +166,9 @@ class UriConnection(Connection):
         :param str warning_message: Warning message
         :return:
         """
-        for key in mapping:
-            if not key.endswith(value.lower()):
-                continue
-            return mapping[key]
+        needle = value.strip().lower()
+        for candidate in (needle, 'cert_' + needle):
+            if candidate in mapping:
+                return mapping[candidate]
         LOGGER.warning(warning_message, value)
         return default_value

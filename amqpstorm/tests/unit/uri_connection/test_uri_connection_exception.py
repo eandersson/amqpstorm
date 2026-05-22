@@ -36,10 +36,10 @@ class UriConnectionExceptionTests(TestFramework):
             'amqps://guest:guest@localhost:5672/%2F', lazy=True
         )
 
-        self.assertEqual(ssl.CERT_NONE,
+        self.assertEqual(ssl.CERT_REQUIRED,
                          connection._get_ssl_validation('cert_test'))
-        self.assertIn("ssl_options: cert_reqs 'cert_test' not found "
-                      "falling back to CERT_NONE.",
+        self.assertIn("ssl_options: cert_reqs 'cert_test' not recognised; "
+                      "falling back to CERT_REQUIRED.",
                       self.get_last_log())
 
     def test_uri_ssl_not_supported(self):

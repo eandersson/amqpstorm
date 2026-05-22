@@ -164,6 +164,35 @@ class UriConnectionTests(TestFramework):
         self.assertEqual(ssl.CERT_REQUIRED,
                          connection._get_ssl_validation('cert_required'))
 
+    def test_uri_get_ssl_validation_bare_values(self):
+        # The natural URI form is ``cert_reqs=required`` (no prefix);
+        # both forms should resolve identically.
+        connection = UriConnection(
+            'amqps://guest:guest@localhost:5672/%2F', lazy=True
+        )
+
+        self.assertEqual(
+            ssl.CERT_REQUIRED, connection._get_ssl_validation('required'),
+        )
+        self.assertEqual(
+            ssl.CERT_OPTIONAL, connection._get_ssl_validation('optional'),
+        )
+        self.assertEqual(
+            ssl.CERT_NONE, connection._get_ssl_validation('none'),
+        )
+
+    def test_uri_get_ssl_validation_unknown_falls_back_to_required(self):
+        connection = UriConnection(
+            'amqps://guest:guest@localhost:5672/%2F', lazy=True
+        )
+
+        for bad_value in ('', 'e', 'al', 'onal', 'reqs', 'garbage'):
+            self.assertEqual(
+                ssl.CERT_REQUIRED,
+                connection._get_ssl_validation(bad_value),
+                'cert_reqs=%r should not match any cert_* key' % bad_value,
+            )
+
     def test_uri_get_ssl_options(self):
         connection = UriConnection(
             'amqps://guest:guest@localhost:5671/%2F', lazy=True

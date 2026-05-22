@@ -275,20 +275,31 @@ class IO:
             )
 
         context = ssl.create_default_context()
-        verify_mode = ssl_options.get('verify_mode', ssl_options.get('cert_reqs'))
-        context.check_hostname = str(ssl_options.get(
-            'check_hostname', 'False'
-        )).strip().lower() in ('true', '1', 'yes', 'y', 'on')
 
-        if isinstance(verify_mode, ssl.VerifyMode):
-            context.verify_mode = verify_mode
-        elif verify_mode:
-            if verify_mode.lower() == 'required':
-                context.verify_mode = ssl.CERT_REQUIRED
+        verify_mode = ssl_options.get('verify_mode', ssl_options.get('cert_reqs'))
+        if verify_mode is not None:
+            new_mode = None
+            if isinstance(verify_mode, ssl.VerifyMode):
+                new_mode = verify_mode
+            elif verify_mode.lower() == 'required':
+                new_mode = ssl.CERT_REQUIRED
             elif verify_mode.lower() == 'optional':
-                context.verify_mode = ssl.CERT_OPTIONAL
+                new_mode = ssl.CERT_OPTIONAL
             elif verify_mode.lower() == 'none':
-                context.verify_mode = ssl.CERT_NONE
+                new_mode = ssl.CERT_NONE
+            if new_mode is not None:
+                if new_mode == ssl.CERT_NONE:
+                    context.check_hostname = False
+                context.verify_mode = new_mode
+
+        check_hostname = ssl_options.get('check_hostname')
+        if check_hostname is not None:
+            if isinstance(check_hostname, bool):
+                context.check_hostname = check_hostname
+            else:
+                context.check_hostname = str(check_hostname).strip().lower() in (
+                    'true', '1', 'yes', 'y', 'on'
+                )
 
         context.load_default_certs()
         ca_certs = ssl_options.get('ca_certs', ssl_options.get('cafile'))

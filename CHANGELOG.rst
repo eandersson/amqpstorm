@@ -23,6 +23,8 @@ Version 3.1
 - Documentation: fixed several typos, completed missing ``:members:``
   entries on the management API autodoc, added intersphinx mapping and
   short type-hint rendering in the Sphinx config.
+- SSL: hostname verification now on by default; unknown ``cert_reqs``
+  URI values fall back to ``CERT_REQUIRED`` instead of ``CERT_NONE``.
 
 Version 3.0
 -----------
