@@ -318,10 +318,19 @@ class IO:
 
         :return:
         """
-        while self._running.is_set():
-            if self.poller.is_ready:
-                self.data_in += self._receive()
-                self.data_in = self._on_read_impl(self.data_in)
+        try:
+            while self._running.is_set():
+                if self.poller.is_ready:
+                    self.data_in += self._receive()
+                    self.data_in = self._on_read_impl(self.data_in)
+        except Exception as why:
+            self._exceptions.append(AMQPConnectionError(why))
+            if self._running.is_set():
+                LOGGER.warning(
+                    'Stopping inbound thread due to %s', why,
+                    exc_info=True,
+                )
+            self._running.clear()
 
     def _receive(self) -> bytes:
         """Receive any incoming socket data.

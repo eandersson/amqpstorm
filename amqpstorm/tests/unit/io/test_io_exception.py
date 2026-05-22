@@ -229,6 +229,34 @@ class IOExceptionTests(TestFramework):
             self.get_last_log()
         )
 
+    def test_io_inbound_thread_records_unexpected_exception(self):
+        connection = FakeConnection()
+
+        def crashing_read_impl(_):
+            raise RuntimeError('boom')
+
+        io = IO(
+            connection.parameters,
+            exceptions=connection.exceptions,
+            on_read_impl=crashing_read_impl,
+        )
+        io._running.set()
+        io.poller = mock.Mock()
+        io.poller.is_ready = True
+        io.socket = mock.Mock(name='socket', spec=socket.socket)
+        io.socket.recv.return_value = b'payload'
+
+        io._process_incoming_data()
+
+        self.assertFalse(io._running.is_set())
+        self.assertRaisesRegex(
+            AMQPConnectionError, 'boom', connection.check_for_errors,
+        )
+        self.assertEqual(
+            'Stopping inbound thread due to boom',
+            self.get_last_log(),
+        )
+
     def test_io_socket_read_fails(self):
         connection = FakeConnection()
         parameters = FakeConnection().parameters
