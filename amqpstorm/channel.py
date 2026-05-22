@@ -156,11 +156,11 @@ class Channel(BaseChannel):
         :param bool break_on_empty: Should we break the loop when there are
                                     no more messages in our inbound queue.
 
-                                    This does not guarantee that the queue
-                                    is emptied before the loop is broken, as
-                                    messages may be consumed faster than
-                                    they are being delivered by RabbitMQ,
-                                    causing the loop to be broken prematurely.
+                                    To avoid breaking out while messages are
+                                    still in flight from RabbitMQ, the loop
+                                    only exits after the inbound queue has
+                                    been continuously empty for at least one
+                                    second.
         :param bool to_tuple: Should incoming messages be converted to a
                               tuple before delivery.
         :param bool auto_decode: Auto-decode strings when possible.
@@ -187,6 +187,7 @@ class Channel(BaseChannel):
                 )
         else:
             message_impl = Message
+        empty_since = None
         while not self.is_closed:
             try:
                 message = self._build_message(auto_decode=auto_decode,
@@ -204,8 +205,12 @@ class Channel(BaseChannel):
                     raise
                 time.sleep(IDLE_WAIT)
                 if break_on_empty and not self._inbound:
-                    break
+                    if empty_since is None:
+                        empty_since = time.monotonic()
+                    elif time.monotonic() - empty_since >= 1.0:
+                        break
                 continue
+            empty_since = None
             if to_tuple:
                 yield message.to_tuple()
                 continue

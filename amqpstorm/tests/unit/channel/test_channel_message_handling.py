@@ -201,6 +201,56 @@ class ChannelBuildMessageTests(TestFramework):
         else:
             self.assertRaises(StopIteration, generator.__next__)
 
+    def test_channel_build_inbound_messages_break_on_empty_waits_for_timer(
+        self,
+    ):
+        channel = Channel(0, FakeConnection(), 360)
+        channel.set_state(Channel.OPEN)
+        channel._inbound = collections.deque()
+
+        monotonic = mock.Mock(side_effect=[0.0, 1.5])
+
+        with mock.patch('amqpstorm.channel.time.monotonic', monotonic), \
+                mock.patch('amqpstorm.channel.time.sleep'):
+            messages = list(
+                channel.build_inbound_messages(break_on_empty=True)
+            )
+
+        self.assertEqual(messages, [])
+        # Two observations are required: one to start the timer,
+        # one to confirm the threshold has passed.
+        self.assertEqual(monotonic.call_count, 2)
+
+    def test_channel_build_inbound_messages_break_on_empty_timer_resets(self):
+        channel = Channel(0, FakeConnection(), 360)
+        channel.set_state(Channel.OPEN)
+        channel._inbound = collections.deque()
+
+        message = self.message.encode('utf-8')
+        message_len = len(message)
+        deliver = commands.Basic.Deliver()
+        header = ContentHeader(body_size=message_len)
+        body = ContentBody(value=message)
+
+        state = {'sleeps': 0}
+
+        def fake_sleep(_):
+            state['sleeps'] += 1
+            if state['sleeps'] == 1:
+                channel._inbound.extend([deliver, header, body])
+
+        monotonic = mock.Mock(side_effect=[0.0, 0.5, 1.5])
+
+        with mock.patch('amqpstorm.channel.time.monotonic', monotonic), \
+                mock.patch('amqpstorm.channel.time.sleep', fake_sleep):
+            messages = list(
+                channel.build_inbound_messages(break_on_empty=True)
+            )
+
+        self.assertEqual(len(messages), 1)
+        self.assertIsInstance(messages[0], Message)
+        self.assertEqual(monotonic.call_count, 3)
+
     def test_channel_build_no_message_but_inbound_not_empty(self):
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(Channel.OPEN)
