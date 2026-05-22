@@ -35,7 +35,6 @@ jobs:
       run: >-
         python -m
         build
-        --sdist
         --outdir dist/
         .
     - name: Publish package
