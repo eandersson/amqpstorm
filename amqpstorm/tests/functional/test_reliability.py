@@ -136,9 +136,9 @@ class ReliabilityFunctionalTests(TestFunctionalFramework):
         """
         for _ in range(10):
             self.connection = self._make_connection()
-            start_time = time.time()
+            start_time = time.monotonic()
             self.connection.close()
-            self.assertLess(time.time() - start_time, 3)
+            self.assertLess(time.monotonic() - start_time, 3)
 
     @setup(new_connection=False)
     def test_functional_close_after_channel_close_forced_by_server(self):
@@ -159,13 +159,13 @@ class ReliabilityFunctionalTests(TestFunctionalFramework):
                 )
             except (AMQPConnectionError, AMQPChannelError):
                 pass
-            start_time = time.time()
+            start_time = time.monotonic()
             channel.close()
-            self.assertLess(time.time() - start_time, 3)
+            self.assertLess(time.monotonic() - start_time, 3)
 
-            start_time = time.time()
+            start_time = time.monotonic()
             connection.close()
-            self.assertLess(time.time() - start_time, 3)
+            self.assertLess(time.monotonic() - start_time, 3)
 
     @setup(new_connection=False)
     def test_functional_uri_connection(self):
@@ -267,9 +267,9 @@ class PublishAndConsume1kTest(TestFunctionalFramework):
             consumer_thread.daemon = True
             consumer_thread.start()
 
-        start_time = time.time()
+        start_time = time.monotonic()
         while self.messages_consumed != self.messages_to_send:
-            if time.time() - start_time >= 60:
+            if time.monotonic() - start_time >= 60:
                 break
             time.sleep(0.1)
 

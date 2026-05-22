@@ -139,10 +139,10 @@ class Rpc:
         :param obj connection_adapter: Provide custom connection adapter.
         :return:
         """
-        start_time = time.time()
+        start_time = time.monotonic()
         while not self._response[uuid]:
             connection_adapter.check_for_errors()
-            if time.time() - start_time > self._timeout:
+            if time.monotonic() - start_time > self._timeout:
                 self._raise_rpc_timeout_error(uuid)
             time.sleep(IDLE_WAIT)
 

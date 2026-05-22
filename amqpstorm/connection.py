@@ -430,9 +430,9 @@ class Connection(Stateful):
 
         :return:
         """
-        start_time = time.time()
+        start_time = time.monotonic()
         while self.current_state != state:
             self.check_for_errors()
-            if time.time() - start_time > rpc_timeout:
+            if time.monotonic() - start_time > rpc_timeout:
                 raise AMQPConnectionError('connection timed out')
             time.sleep(IDLE_WAIT)

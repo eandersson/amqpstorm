@@ -194,9 +194,9 @@ class SSLReliabilityFunctionalTests(TestFunctionalFramework):
                 SSL_HOST, USERNAME, PASSWORD, timeout=60, port=5671, ssl=True,
                 ssl_options=ssl_options)
 
-            start_time = time.time()
+            start_time = time.monotonic()
             self.connection.close()
-            self.assertLess(time.time() - start_time, 3)
+            self.assertLess(time.monotonic() - start_time, 3)
 
     @setup(new_connection=False)
     def test_functional_ssl_uri_connection(self):
@@ -287,9 +287,9 @@ class PublishAndConsume1kWithSSLTest(TestFunctionalFramework):
             consumer_thread.daemon = True
             consumer_thread.start()
 
-        start_time = time.time()
+        start_time = time.monotonic()
         while self.messages_consumed != self.messages_to_send:
-            if time.time() - start_time >= 60:
+            if time.monotonic() - start_time >= 60:
                 break
             time.sleep(0.1)
 

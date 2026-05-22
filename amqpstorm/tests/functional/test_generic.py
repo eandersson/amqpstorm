@@ -339,9 +339,9 @@ class GenericTest(TestFunctionalFramework):
         # Sleep for 0.1s to make sure RabbitMQ has time to catch up.
         time.sleep(0.1)
 
-        start_time = time.time()
+        start_time = time.monotonic()
         while len(inbound_messages) != 1:
-            if time.time() - start_time >= 30:
+            if time.monotonic() - start_time >= 30:
                 break
             time.sleep(0.1)
 
@@ -373,10 +373,10 @@ class GenericTest(TestFunctionalFramework):
                                    queue=self.queue_name,
                                    no_ack=True)
 
-        start_time = time.time()
+        start_time = time.monotonic()
         while len(inbound_messages) == 0:
             self.channel.process_data_events()
-            if time.time() - start_time >= 30:
+            if time.monotonic() - start_time >= 30:
                 break
             time.sleep(0.1)
 

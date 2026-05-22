@@ -25,6 +25,9 @@ Version 3.1
   short type-hint rendering in the Sphinx config.
 - SSL: hostname verification now on by default; unknown ``cert_reqs``
   URI values fall back to ``CERT_REQUIRED`` instead of ``CERT_NONE``.
+- Switched all elapsed-duration checks (RPC and connection-state
+  timeouts) from ``time.time()`` to ``time.monotonic()`` so system
+  clock changes can no longer cause spurious timeouts or hangs.
 
 Version 3.0
 -----------
