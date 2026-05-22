@@ -8,12 +8,6 @@ try:
 except ImportError:
     ssl = None  # type: ignore[assignment]
 
-try:
-    import simplejson as json  # noqa
-except ImportError:
-    import json  # type: ignore[no-redef]  # noqa
-
-
 import urllib.parse as urlparse  # noqa
 from urllib.parse import quote  # noqa
 

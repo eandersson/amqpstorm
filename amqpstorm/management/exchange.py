@@ -1,9 +1,9 @@
 from __future__ import annotations
 
+import json
 from typing import Any
 from typing import List
 
-from amqpstorm.compatibility import json
 from amqpstorm.compatibility import quote
 from amqpstorm.management.base import ManagementHandler
 
