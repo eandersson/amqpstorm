@@ -187,18 +187,19 @@ class IO:
 
         :return:
         """
-        if not self.socket:
+        sock = self.socket
+        if sock is None:
             return
         try:
             if self.poller:
                 self.poller.close()
             if self.use_ssl:
-                self.socket.unwrap()  # type: ignore[attr-defined]
-            self.socket.shutdown(socket.SHUT_RDWR)
+                sock.unwrap()  # type: ignore[attr-defined]
+            sock.shutdown(socket.SHUT_RDWR)
         except (OSError, ValueError):
             pass
 
-        self.socket.close()
+        sock.close()
 
     def _get_socket_addresses(self) -> list[Any]:
         """Get Socket address information.
