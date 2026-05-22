@@ -52,7 +52,7 @@ class IOExceptionTests(TestFramework):
 
         io = IO(connection.parameters, exceptions=connection.exceptions)
         io.socket = mock.Mock(name='socket', spec=socket.socket)
-        io.socket.recv.side_effect = socket.error(EWOULDBLOCK)
+        io.socket.recv.side_effect = OSError(EWOULDBLOCK, 'would block')
         io._receive()
         self.assertIsNone(connection.check_for_errors())
 
@@ -83,7 +83,7 @@ class IOExceptionTests(TestFramework):
             if self.raised:
                 return 1
             self.raised = True
-            raise socket.error(EWOULDBLOCK)
+            raise OSError(EWOULDBLOCK, 'would block')
 
         io = IO(connection.parameters)
         io._exceptions = []
@@ -175,7 +175,7 @@ class IOExceptionTests(TestFramework):
 
     @mock.patch('select.select')
     def test_io_select_poller_eintr(self, mock_select):
-        mock_select.side_effect = select.error(EINTR)
+        mock_select.side_effect = OSError(EINTR, 'eintr')
         exceptions = []
         poller = SelectPoller(0, exceptions)
         self.assertFalse(poller.is_ready)
@@ -184,7 +184,7 @@ class IOExceptionTests(TestFramework):
     @unittest.skipIf(not hasattr(select, 'poll'), 'poll not available')
     @mock.patch('select.poll')
     def test_io_poll_poller_eintr(self, mock_poll):
-        mock_poll().poll.side_effect = select.error(EINTR)
+        mock_poll().poll.side_effect = OSError(EINTR, 'eintr')
         exceptions = []
         poller = Poller(0, exceptions)
         self.assertFalse(poller.is_ready)

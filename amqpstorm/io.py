@@ -49,13 +49,13 @@ class SelectPoller(BasePoller):
     def is_ready(self) -> bool:
         """Is Socket Ready.
 
-        :rtype: tuple
+        :rtype: bool
         """
         try:
             ready, _, _ = select.select([self.fileno], [], [], POLL_TIMEOUT)
             return bool(ready)
-        except select.error as why:
-            if why.args[0] != EINTR:
+        except OSError as why:
+            if why.errno != EINTR:
                 self._exceptions.append(AMQPConnectionError(why))
         return False
 
@@ -82,8 +82,8 @@ class Poller(BasePoller):
             for fd, event in events:
                 if fd == self.fileno:
                     return True
-        except select.error as why:
-            if why.args[0] != EINTR:
+        except OSError as why:
+            if why.errno != EINTR:
                 self._exceptions.append(AMQPConnectionError(why))
         return False
 
@@ -166,17 +166,17 @@ class IO:
             while total_bytes_written < bytes_to_send:
                 try:
                     if not self.socket:
-                        raise socket.error('connection/socket error')
+                        raise OSError('connection/socket error')
                     bytes_written = (
                         self.socket.send(frame_data_view[total_bytes_written:])
                     )
                     if bytes_written == 0:
-                        raise socket.error('connection/socket error')
+                        raise OSError('connection/socket error')
                     total_bytes_written += bytes_written
-                except socket.timeout:
+                except TimeoutError:
                     pass
-                except socket.error as why:
-                    if why.args[0] in (EWOULDBLOCK, EAGAIN):
+                except OSError as why:
+                    if why.errno in (EWOULDBLOCK, EAGAIN):
                         continue
                     self._exceptions.append(AMQPConnectionError(why))
                     return
@@ -194,7 +194,7 @@ class IO:
             if self.use_ssl:
                 self.socket.unwrap()  # type: ignore[attr-defined]
             self.socket.shutdown(socket.SHUT_RDWR)
-        except (OSError, socket.error, ValueError):
+        except (OSError, ValueError):
             pass
 
         self.socket.close()
@@ -230,7 +230,7 @@ class IO:
             sock = self._create_socket(socket_family=address[0])
             try:
                 sock.connect(address[4])
-            except (IOError, OSError) as why:
+            except OSError as why:
                 error_message = why.strerror
                 continue
             return sock
@@ -354,21 +354,21 @@ class IO:
         data_in = EMPTY_BUFFER
         try:
             data_in = self._read_from_socket()
-            if len(data_in) == 0:
-                raise socket.error("connection closed by server")
-        except socket.timeout:
+            if not data_in:
+                raise OSError('connection closed by server')
+        except TimeoutError:
             pass
         except compatibility.SSLWantReadError:
             # NOTE(visobet): Retry if the non-blocking socket does not
             # have any meaningful data ready.
             pass
-        except (IOError, OSError, ValueError) as why:
-            if why.args[0] not in (EWOULDBLOCK, EAGAIN):
+        except OSError as why:
+            if why.errno not in (EWOULDBLOCK, EAGAIN):
                 self._exceptions.append(AMQPConnectionError(why))
                 if self._running.is_set():
                     LOGGER.warning(
-                        "Stopping inbound thread due to %s", why,
-                        exc_info=True
+                        'Stopping inbound thread due to %s', why,
+                        exc_info=True,
                     )
                 self._running.clear()
         return data_in
@@ -380,10 +380,10 @@ class IO:
         """
         if not self.use_ssl:
             if not self.socket:
-                raise socket.error('connection/socket error')
+                raise OSError('connection/socket error')
             return self.socket.recv(MAX_FRAME_SIZE)
 
         with self._rd_lock:
             if not self.socket:
-                raise socket.error('connection/socket error')
+                raise OSError('connection/socket error')
             return self.socket.read(MAX_FRAME_SIZE)  # type: ignore[attr-defined]
