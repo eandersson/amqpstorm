@@ -19,6 +19,7 @@ from amqpstorm.exception import AMQPConnectionError
 EMPTY_BUFFER = b''
 LOGGER = logging.getLogger(__name__)
 POLL_TIMEOUT = 1.0
+POLL_TIMEOUT_MS = int(POLL_TIMEOUT * 1000)
 
 
 class BasePoller:
@@ -78,7 +79,7 @@ class Poller(BasePoller):
         :rtype: bool
         """
         try:
-            events = self.poller.poll(POLL_TIMEOUT)
+            events = self.poller.poll(POLL_TIMEOUT_MS)
             for fd, event in events:
                 if fd == self.fileno:
                     return True
