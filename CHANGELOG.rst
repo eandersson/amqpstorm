@@ -1,6 +1,12 @@
 Changelog
 =========
 
+Version 3.1.1
+-------------
+- Connection close is now resilient to ``IO.socket`` being cleared
+  partway through ``_close_socket``; the socket reference is captured
+  once and reused for the shutdown/close calls.
+
 Version 3.1
 -----------
 - Added inline type hints across the public API and shipped ``py.typed``

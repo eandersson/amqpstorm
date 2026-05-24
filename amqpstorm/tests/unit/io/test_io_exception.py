@@ -25,6 +25,23 @@ class IOExceptionTests(TestFramework):
         io.socket.shutdown.side_effect = OSError()
         io._close_socket()
 
+    def test_io_close_socket_nullified_mid_call(self):
+        connection = FakeConnection()
+
+        io = IO(connection.parameters)
+        io._exceptions = []
+        sock = mock.Mock(name='socket', spec=socket.socket)
+
+        def clear_socket(*_):
+            io.socket = None
+
+        sock.shutdown.side_effect = clear_socket
+        io.socket = sock
+
+        io._close_socket()
+
+        sock.close.assert_called_once()
+
     def test_io_receive_raises_socket_error(self):
         connection = FakeConnection()
 
