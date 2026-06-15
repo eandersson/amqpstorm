@@ -207,6 +207,8 @@ class ChannelBuildMessageTests(TestFramework):
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(Channel.OPEN)
         channel._inbound = collections.deque()
+        # An active consumer keeps the empty-timer in effect.
+        channel.add_consumer_tag('travis-ci')
 
         monotonic = mock.Mock(side_effect=[0.0, 1.5])
 
@@ -225,6 +227,8 @@ class ChannelBuildMessageTests(TestFramework):
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(Channel.OPEN)
         channel._inbound = collections.deque()
+        # An active consumer keeps the empty-timer in effect.
+        channel.add_consumer_tag('travis-ci')
 
         message = self.message.encode('utf-8')
         message_len = len(message)
