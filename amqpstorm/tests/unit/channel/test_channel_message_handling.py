@@ -255,6 +255,30 @@ class ChannelBuildMessageTests(TestFramework):
         self.assertIsInstance(messages[0], Message)
         self.assertEqual(monotonic.call_count, 3)
 
+    def test_channel_build_inbound_messages_break_on_empty_no_consumer_breaks(
+        self,
+    ):
+        channel = Channel(0, FakeConnection(), 360)
+        channel.set_state(Channel.OPEN)
+        channel._inbound = collections.deque()
+
+        # With no active consumer there is nothing in flight from RabbitMQ,
+        # so break_on_empty must break immediately instead of waiting on the
+        # empty-timer.
+        self.assertEqual(channel.consumer_tags, [])
+
+        monotonic = mock.Mock(side_effect=[0.0, 1.5])
+
+        with mock.patch('amqpstorm.channel.time.monotonic', monotonic), \
+                mock.patch('amqpstorm.channel.time.sleep'):
+            messages = list(
+                channel.build_inbound_messages(break_on_empty=True)
+            )
+
+        self.assertEqual(messages, [])
+        # The empty-timer must not be consulted when there is no consumer.
+        monotonic.assert_not_called()
+
     def test_channel_build_no_message_but_inbound_not_empty(self):
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(Channel.OPEN)
