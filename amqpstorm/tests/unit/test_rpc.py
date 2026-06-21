@@ -147,6 +147,18 @@ class RpcTests(TestFramework):
         rpc.on_frame(FakePayload(name='travis-ci'))
         self.assertIsInstance(rpc._response[uuid][0], FakePayload)
 
+    def test_rpc_on_frame_request_removed(self):
+        rpc = Rpc(FakeConnection())
+        uuid = rpc.register_request(['travis-ci'])
+        rpc.remove(uuid)
+        self.assertFalse(rpc.on_frame(FakePayload(name='travis-ci')))
+
+    def test_rpc_on_frame_response_removed_mid_delivery(self):
+        rpc = Rpc(FakeConnection())
+        uuid = rpc.register_request(['travis-ci'])
+        del rpc._response[uuid]
+        self.assertFalse(rpc.on_frame(FakePayload(name='travis-ci')))
+
     def test_rpc_on_multiple_frames(self):
         rpc = Rpc(FakeConnection())
         uuid = rpc.register_request(['travis-ci'])

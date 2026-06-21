@@ -37,13 +37,15 @@ class Rpc:
         """On RPC Frame.
 
         :param specification.Frame frame_in: Amqp frame.
-        :return:
+        :return: True if the frame was delivered to a waiting request.
         """
-        if frame_in.name not in self._request:
+        uuid = self._request.get(frame_in.name)
+        if uuid is None:
             return False
-
-        uuid = self._request[frame_in.name]
-        self._response[uuid].append(frame_in)
+        response = self._response.get(uuid)
+        if response is None:
+            return False
+        response.append(frame_in)
         return True
 
     def register_request(self, valid_responses: list[str]) -> str:
