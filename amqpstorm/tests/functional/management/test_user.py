@@ -43,7 +43,7 @@ class ApiUserFunctionalTests(TestFunctionalFramework):
 
         try:
             self.assertIsNone(
-                api.user.create(username, password, tags='monitor'))
+                api.user.create(username, password, tags='monitoring'))
             user = api.user.get(username)
             self.assertEqual(user['name'], username)
 
@@ -52,7 +52,7 @@ class ApiUserFunctionalTests(TestFunctionalFramework):
                 tag = user['tags'][0]
             else:
                 tag = user['tags']
-            self.assertEqual('monitor', tag)
+            self.assertEqual('monitoring', tag)
         finally:
             api.user.delete(username)
             self.assertRaises(ApiError, api.user.get, username)

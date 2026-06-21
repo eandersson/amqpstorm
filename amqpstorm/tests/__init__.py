@@ -2,6 +2,8 @@ import os
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 
+BROKER = os.environ.get('AMQP_BROKER', 'rabbitmq')
+
 HOST = os.environ.get(
     'AMQP_HOST',
     'rmq.eandersson.net'

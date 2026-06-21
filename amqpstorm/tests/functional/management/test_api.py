@@ -1,6 +1,9 @@
+import unittest
+
 from amqpstorm.management import ManagementApi
 from amqpstorm.management.exception import ApiConnectionError
 from amqpstorm.management.exception import ApiError
+from amqpstorm.tests import BROKER
 from amqpstorm.tests import CAFILE
 from amqpstorm.tests import HTTP_URL
 from amqpstorm.tests import HTTPS_URL
@@ -40,6 +43,8 @@ class ApiFunctionalTests(TestFunctionalFramework):
             api.aliveness_test
         )
 
+    @unittest.skipIf(BROKER == 'lavinmq',
+                     'LavinMQ does not expose an HTTPS management listener')
     def test_api_ssl_test(self):
         api = ManagementApi(HTTPS_URL, USERNAME, PASSWORD,
                             verify=CAFILE)
@@ -59,8 +64,12 @@ class ApiFunctionalTests(TestFunctionalFramework):
 
         self.assertIsInstance(result, dict)
         self.assertIn('node', result)
-        self.assertIn('management_version', result)
+        self.assertTrue(
+            'management_version' in result or 'lavinmq_version' in result
+        )
 
+    @unittest.skipIf(BROKER == 'lavinmq',
+                     'LavinMQ does not implement the cluster-name endpoint')
     def test_api_cluster_name(self):
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
         result = api.cluster_name()
@@ -75,15 +84,17 @@ class ApiFunctionalTests(TestFunctionalFramework):
 
         self.assertIsInstance(result, list)
         self.assertTrue(result)
-        self.assertEqual('rabbit@rmq.eandersson.net', result[0]['name'])
+        self.assertIn('name', result[0])
+        self.assertTrue(result[0]['name'])
 
     def test_api_node(self):
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)
-        result = api.node('rabbit@rmq.eandersson.net')
+        node_name = api.nodes()[0]['name']
+        result = api.node(node_name)
 
         self.assertIsInstance(result, dict)
         self.assertTrue(result)
-        self.assertEqual('rabbit@rmq.eandersson.net', result['name'])
+        self.assertEqual(node_name, result['name'])
 
     def test_api_whoami(self):
         api = ManagementApi(HTTP_URL, USERNAME, PASSWORD)

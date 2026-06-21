@@ -271,6 +271,7 @@ class Connection(Stateful):
         self._user_closed = False
         self._io.open()
         self._send_handshake()
+        self._io.start_inbound()
         self._wait_for_connection_state(state=Stateful.OPEN)
         self.heartbeat.start(self._exceptions)
         LOGGER.debug('Connection Opened')

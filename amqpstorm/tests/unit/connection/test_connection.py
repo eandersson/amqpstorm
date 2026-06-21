@@ -303,6 +303,7 @@ class ConnectionTests(TestFramework):
             connection.set_state(connection.OPEN)
 
         connection._io.open = open
+        connection._io.start_inbound = lambda: None
         connection._io.write_to_socket = on_write_to_socket
 
         self.assertTrue(connection.is_closed)

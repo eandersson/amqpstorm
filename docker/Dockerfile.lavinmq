@@ -1,0 +1,14 @@
+# Adds the test TLS certs and config to the stock LavinMQ image for the
+# end-to-end job.
+FROM cloudamqp/lavinmq:latest
+
+RUN mkdir -p /etc/rabbitmq/ssl /etc/lavinmq
+COPY files/generate-certs /etc/rabbitmq/ssl/generate-certs
+COPY files/openssl.cnf /etc/rabbitmq/ssl/openssl.cnf
+COPY files/lavinmq.ini /etc/lavinmq/lavinmq.ini
+RUN /etc/rabbitmq/ssl/generate-certs \
+ && cat /etc/rabbitmq/ssl/server/server_certificate.pem /etc/rabbitmq/ssl/ca_certificate.pem \
+      > /etc/rabbitmq/ssl/server/server_fullchain.pem \
+ && chmod -R a+r /etc/rabbitmq/ssl
+
+CMD ["-c", "/etc/lavinmq/lavinmq.ini", "--amqps-port=5671", "--cert=/etc/rabbitmq/ssl/server/server_fullchain.pem", "--key=/etc/rabbitmq/ssl/server/private_key.pem"]

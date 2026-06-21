@@ -152,7 +152,13 @@ class IO:
                 self.poller = Poller(self.socket.fileno(), self._exceptions)
             else:
                 self.poller = SelectPoller(self.socket.fileno(), self._exceptions)
-            self._inbound_thread = self._create_inbound_thread()
+
+    def start_inbound(self) -> None:
+        """Start the inbound thread that reads incoming socket data.
+
+        :return:
+        """
+        self._inbound_thread = self._create_inbound_thread()
 
     def write_to_socket(self, frame_data: bytes) -> None:
         """Write data to the socket.

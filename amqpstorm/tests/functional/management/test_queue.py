@@ -1,5 +1,6 @@
 from amqpstorm.management import ApiError
 from amqpstorm.management import ManagementApi
+from amqpstorm.tests import BROKER
 from amqpstorm.tests import HTTP_URL
 from amqpstorm.tests import PASSWORD
 from amqpstorm.tests import USERNAME
@@ -34,7 +35,8 @@ class ApiQueueFunctionalTests(TestFunctionalFramework):
             self.assertIsInstance(queue, dict)
             self.assertIn('name', queue)
             self.assertIn('vhost', queue)
-            self.assertIn('node', queue)
+            if BROKER != 'lavinmq':
+                self.assertIn('node', queue)
             self.assertIn('durable', queue)
             self.assertIn('arguments', queue)
             self.assertIn('auto_delete', queue)
@@ -159,7 +161,8 @@ class ApiQueueFunctionalTests(TestFunctionalFramework):
             self.assertIsInstance(queue, dict)
             self.assertIn('name', queue)
             self.assertIn('vhost', queue)
-            self.assertIn('node', queue)
+            if BROKER != 'lavinmq':
+                self.assertIn('node', queue)
             self.assertIn('durable', queue)
             self.assertIn('arguments', queue)
             self.assertIn('auto_delete', queue)

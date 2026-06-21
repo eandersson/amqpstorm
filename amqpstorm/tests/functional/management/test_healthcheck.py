@@ -1,4 +1,7 @@
+import unittest
+
 from amqpstorm.management import ManagementApi
+from amqpstorm.tests import BROKER
 from amqpstorm.tests import HTTP_URL
 from amqpstorm.tests import PASSWORD
 from amqpstorm.tests import USERNAME
@@ -6,6 +9,8 @@ from amqpstorm.tests.functional.utility import TestFunctionalFramework
 from amqpstorm.tests.functional.utility import setup
 
 
+@unittest.skipIf(BROKER == 'lavinmq',
+                 'LavinMQ does not implement the healthchecks endpoint')
 class ApiHealthchecksFunctionalTests(TestFunctionalFramework):
     @setup()
     def test_healthtests_get(self):
