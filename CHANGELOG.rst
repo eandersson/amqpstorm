@@ -1,6 +1,27 @@
 Changelog
 =========
 
+Version 3.1.2
+-------------
+- The AMQP protocol header is now sent before the inbound reader
+  thread is started, so the initial socket write no longer races the
+  reader on the same TLS socket. This fixes intermittent
+  ``connection closed by server`` errors during the handshake against
+  brokers that send data immediately after the TLS handshake (for
+  example TLS 1.3 session tickets). ``IO.open`` now only connects and
+  prepares the poller; the reader is started separately via the new
+  ``IO.start_inbound``.
+- ``Rpc.on_frame`` no longer tears down the connection when the
+  matching request or response has already been removed (for example
+  when an RPC call times out); the stray frame is ignored instead.
+- Fixed a large-message consume throughput regression in
+  ``Channel.build_inbound_messages`` (#154).
+- Added LavinMQ compatibility for the management API client; the
+  functional and management test suites now run against LavinMQ.
+- Testing: added an end-to-end LavinMQ CI job and modernized the test
+  certificate generation to ECDSA P-384 with standards-compliant
+  end-entity certificates.
+
 Version 3.1.1
 -------------
 - Connection close is now resilient to ``IO.socket`` being cleared
