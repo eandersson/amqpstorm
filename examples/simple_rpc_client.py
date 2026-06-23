@@ -6,7 +6,7 @@ import amqpstorm
 from amqpstorm import Message
 
 
-class FibonacciRpcClient(object):
+class FibonacciRpcClient:
     def __init__(self, host, username, password):
         """
         :param host: RabbitMQ Server e.g. localhost

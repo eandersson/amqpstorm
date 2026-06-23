@@ -1,5 +1,5 @@
 """
-A Scalable and threaded Consumer that will automatically re-connect on failure.
+A Scalable and threaded RPC Server that will automatically re-connect on failure.
 """
 import logging
 import threading
@@ -22,7 +22,7 @@ def fib(number):
         return fib(number - 1) + fib(number - 2)
 
 
-class ScalableRpcServer(object):
+class ScalableRpcServer:
     def __init__(self, hostname='localhost',
                  username='guest', password='guest',
                  rpc_queue='rpc_queue',
@@ -157,7 +157,7 @@ class ScalableRpcServer(object):
         thread.start()
 
 
-class Consumer(object):
+class Consumer:
     def __init__(self, rpc_queue):
         self.rpc_queue = rpc_queue
         self.channel = None

@@ -10,8 +10,8 @@ logging.basicConfig(level=logging.INFO)
 
 with Connection('localhost', 'guest', 'guest') as connection:
     with connection.channel() as channel:
-        # Declare the Queue, 'simple_queue'.
-        channel.queue.declare('simple_queue')
+        # Declare the Queue, 'example_queue'.
+        channel.queue.declare('example_queue')
 
         # Message Properties.
         properties = {
@@ -22,5 +22,5 @@ with Connection('localhost', 'guest', 'guest') as connection:
         # Create the message.
         message = Message.create(channel, 'Hello World!', properties)
 
-        # Publish the message to a queue called, 'simple_queue'.
-        message.publish('simple_queue')
+        # Publish the message to a queue called, 'example_queue'.
+        message.publish('example_queue')

@@ -1,5 +1,5 @@
 """
-Example of connecting to RabbitMQ using a SSL Certificate.
+Example of connecting to RabbitMQ using an SSL certificate.
 """
 import logging
 import ssl
@@ -40,8 +40,8 @@ SSL_OPTIONS = {
 with Connection('rmq.eandersson.net', 'guest', 'guest', port=5671,
                 ssl=True, ssl_options=SSL_OPTIONS) as connection:
     with connection.channel() as channel:
-        # Declare the Queue, 'simple_queue'.
-        channel.queue.declare('simple_queue')
+        # Declare the Queue, 'example_queue'.
+        channel.queue.declare('example_queue')
 
         # Set QoS to 100.
         # This will limit the consumer to only prefetch a 100 messages.
@@ -50,9 +50,9 @@ with Connection('rmq.eandersson.net', 'guest', 'guest', port=5671,
         # consumer from keeping all of the messages in a queue to itself.
         channel.basic.qos(100)
 
-        # Start consuming the queue 'simple_queue' using the callback
-        # 'on_message' and last require the message to be acknowledged.
-        channel.basic.consume(on_message, 'simple_queue', no_ack=False)
+        # Start consuming the queue 'example_queue' using the callback
+        # 'on_message' and require the message to be acknowledged.
+        channel.basic.consume(on_message, 'example_queue', no_ack=False)
 
         try:
             # Start consuming messages.

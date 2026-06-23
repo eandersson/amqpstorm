@@ -9,7 +9,7 @@ def consume_until_queue_is_empty():
     with Connection('localhost', 'guest', 'guest') as connection:
         with connection.channel() as channel:
             while True:
-                message = channel.basic.get('simple_queue')
+                message = channel.basic.get('example_queue')
                 if not message:
                     print('Queue is empty')
                     break

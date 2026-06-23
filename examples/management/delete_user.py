@@ -11,4 +11,4 @@ if __name__ == '__main__':
     except management.ApiConnectionError as why:
         print('Connection Error: %s' % why)
     except management.ApiError as why:
-        print('Failed to create user: %s' % why)
+        print('Failed to delete user: %s' % why)

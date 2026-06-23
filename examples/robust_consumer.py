@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger()
 
 
-class Consumer(object):
+class Consumer:
     def __init__(self, max_retries=None):
         self.max_retries = max_retries
         self.connection = None
@@ -45,8 +45,8 @@ class Consumer(object):
         while True:
             try:
                 channel = self.connection.channel()
-                channel.queue.declare('simple_queue')
-                channel.basic.consume(self, 'simple_queue', no_ack=False)
+                channel.queue.declare('example_queue')
+                channel.basic.consume(self, 'example_queue', no_ack=False)
                 channel.start_consuming()
                 if not channel.consumer_tags:
                     channel.close()

@@ -12,10 +12,10 @@ logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger()
 
 
-class ScalableConsumer(object):
+class ScalableConsumer:
     def __init__(self, hostname='localhost',
                  username='guest', password='guest',
-                 queue='simple_queue',
+                 queue='example_queue',
                  number_of_consumers=1, max_retries=None):
         self.hostname = hostname
         self.username = username
@@ -150,7 +150,7 @@ class ScalableConsumer(object):
         thread.start()
 
 
-class Consumer(object):
+class Consumer:
     def __init__(self, queue):
         self.queue = queue
         self.channel = None

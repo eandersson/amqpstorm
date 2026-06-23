@@ -11,8 +11,8 @@ from flask import Flask
 APP = Flask(__name__)
 
 
-class RpcClient(object):
-    """Asynchronous Rpc client."""
+class RpcClient:
+    """Asynchronous RPC client."""
 
     def __init__(self, host, username, password, rpc_queue):
         self.queue = {}
@@ -38,11 +38,11 @@ class RpcClient(object):
         self._create_process_thread()
 
     def _create_process_thread(self):
-        """Create a thread responsible for consuming messages in response
+        """Create a thread responsible for consuming messages in response to
         RPC requests.
         """
         thread = threading.Thread(target=self._process_data_events)
-        thread.setDaemon(True)
+        thread.daemon = True
         thread.start()
 
     def _process_data_events(self):
@@ -50,7 +50,7 @@ class RpcClient(object):
         self.channel.start_consuming()
 
     def _on_response(self, message):
-        """On Response store the message with the correlation id in a local
+        """On response, store the message with the correlation id in a local
         dictionary.
         """
         self.queue[message.correlation_id] = message.body
@@ -73,9 +73,9 @@ class RpcClient(object):
 
 @APP.route('/rpc_call/<payload>')
 def rpc_call(payload):
-    """Simple Flask implementation for making asynchronous Rpc calls. """
+    """Simple Flask implementation for making asynchronous RPC calls."""
 
-    # Send the request and store the requests Unique ID.
+    # Send the request and store the request's Unique ID.
     corr_id = RPC_CLIENT.send_request(payload)
 
     # Wait until we have received a response.

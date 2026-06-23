@@ -19,6 +19,6 @@ if __name__ == '__main__':
                                 configure_regex='.*',
                                 write_regex='.*',
                                 read_regex='.*')
-        print('Permission updated created...')
+        print('Permission updated...')
     except management.ApiError as why:
         print('Failed to update permissions: %s' % why)
