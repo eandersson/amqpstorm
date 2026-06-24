@@ -150,6 +150,7 @@ class Channel(BaseChannel):
         to_tuple: bool = False,
         auto_decode: bool = True,
         message_impl: type[BaseMessage] | None = None,
+        empty_timeout: float | None = 1.0,
     ) -> Iterator[Any]:
         """Build messages in the inbound queue.
 
@@ -158,10 +159,10 @@ class Channel(BaseChannel):
 
                                     While a consumer is active, to avoid
                                     breaking out while messages are still in
-                                    flight from RabbitMQ, the loop only exits
-                                    after the inbound queue has been
-                                    continuously empty for at least one
-                                    second. With no active consumer there is
+                                    flight from RabbitMQ, the loop waits for
+                                    the inbound queue to stay continuously
+                                    empty for ``empty_timeout`` seconds before
+                                    exiting. With no active consumer there is
                                     nothing in flight, so the loop breaks as
                                     soon as the queue is empty.
         :param bool to_tuple: Should incoming messages be converted to a
@@ -170,6 +171,11 @@ class Channel(BaseChannel):
         :param class message_impl: Optional message class to use, derived from
                                    BaseMessage, for created messages. Defaults
                                    to Message.
+        :param float,None empty_timeout: How long, in seconds, the inbound
+                                    queue must stay continuously empty before
+                                    ``break_on_empty`` exits the loop while a
+                                    consumer is active. A None value exits as
+                                    soon as the queue is empty, without waiting.
         :raises AMQPInvalidArgument: Invalid Parameters
         :raises AMQPChannelError: Raises if the channel encountered an error.
         :raises AMQPConnectionError: Raises if the connection
@@ -199,6 +205,7 @@ class Channel(BaseChannel):
                 if self._user_initiated_close():
                     return
                 raise
+
             if not message:
                 try:
                     self.check_for_errors()
@@ -206,13 +213,16 @@ class Channel(BaseChannel):
                     if self._user_initiated_close():
                         return
                     raise
+                if not self.consumer_tags:
+                    break
                 time.sleep(IDLE_WAIT)
                 if break_on_empty and not self._inbound:
-                    if not self.consumer_tags:
-                        break
-                    if empty_since is None:
-                        empty_since = time.monotonic()
-                    elif time.monotonic() - empty_since >= 1.0:
+                    if empty_timeout:
+                        if empty_since is None:
+                            empty_since = time.monotonic()
+                        elif time.monotonic() - empty_since >= empty_timeout:
+                            break
+                    else:
                         break
                 continue
             empty_since = None
@@ -380,7 +390,8 @@ class Channel(BaseChannel):
         if not self._consumer_callbacks:
             raise AMQPChannelError('no consumer callback defined')
         for message in self.build_inbound_messages(break_on_empty=True,
-                                                   auto_decode=auto_decode):
+                                                   auto_decode=auto_decode,
+                                                   empty_timeout=None):
             consumer_tag = message._method.get('consumer_tag')
             if to_tuple:
                 # noinspection PyCallingNonCallable

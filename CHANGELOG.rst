@@ -1,6 +1,20 @@
 Changelog
 =========
 
+Version 3.1.3
+-------------
+- ``Channel.build_inbound_messages`` gained an ``empty_timeout``
+  parameter that controls how long the ``break_on_empty`` loop waits
+  for the inbound queue to stay continuously empty before exiting
+  while a consumer is active (default ``1.0`` seconds, matching the
+  previous behaviour). A falsy value (``None`` or ``0``) exits as soon
+  as the queue is empty.
+- ``Channel.process_data_events`` and ``Channel.start_consuming`` now
+  return as soon as the inbound queue is drained instead of waiting
+  out the ``break_on_empty`` grace period, restoring the consume
+  responsiveness from 3.0.x that the 3.1.0 grace period had slowed
+  (follow-up to #154).
+
 Version 3.1.2
 -------------
 - The AMQP protocol header is now sent before the inbound reader

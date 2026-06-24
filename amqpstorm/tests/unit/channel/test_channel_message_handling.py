@@ -282,6 +282,7 @@ class ChannelBuildMessageTests(TestFramework):
     def test_channel_build_no_message_but_inbound_not_empty(self):
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(Channel.OPEN)
+        channel.add_consumer_tag('dev')
 
         message = self.message.encode('utf-8')
         message_len = len(message)
@@ -305,6 +306,7 @@ class ChannelBuildMessageTests(TestFramework):
     def test_channel_build_inbound_messages(self):
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(Channel.OPEN)
+        channel.add_consumer_tag('dev')
 
         message = self.message.encode('utf-8')
         message_len = len(message)
@@ -325,6 +327,7 @@ class ChannelBuildMessageTests(TestFramework):
     def test_channel_build_multiple_inbound_messages(self):
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(Channel.OPEN)
+        channel.add_consumer_tag('dev')
 
         message = self.message.encode('utf-8')
         message_len = len(message)
@@ -350,6 +353,7 @@ class ChannelBuildMessageTests(TestFramework):
     def test_channel_build_large_number_inbound_messages(self):
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(Channel.OPEN)
+        channel.add_consumer_tag('dev')
 
         message = self.message.encode('utf-8')
         message_len = len(message)
@@ -373,6 +377,7 @@ class ChannelBuildMessageTests(TestFramework):
     def test_channel_build_inbound_messages_without_break_on_empty(self):
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(channel.OPEN)
+        channel.add_consumer_tag('dev')
 
         message = self.message.encode('utf-8')
         message_len = len(message)
@@ -398,6 +403,7 @@ class ChannelBuildMessageTests(TestFramework):
     def test_channel_build_inbound_messages_as_tuple(self):
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(channel.OPEN)
+        channel.add_consumer_tag('dev')
 
         message = self.message.encode('utf-8')
         message_len = len(message)
@@ -420,6 +426,7 @@ class ChannelBuildMessageTests(TestFramework):
     def test_channel_build_inbound_messages_returns_on_user_close(self):
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(channel.OPEN)
+        channel.add_consumer_tag('dev')
 
         message = self.message.encode('utf-8')
         deliver = commands.Basic.Deliver()
@@ -439,6 +446,7 @@ class ChannelBuildMessageTests(TestFramework):
         connection = FakeConnection()
         channel = Channel(0, connection, 360)
         channel.set_state(channel.OPEN)
+        channel.add_consumer_tag('dev')
 
         message = self.message.encode('utf-8')
         deliver = commands.Basic.Deliver()
@@ -456,6 +464,7 @@ class ChannelBuildMessageTests(TestFramework):
     def test_channel_build_inbound_messages_raises_on_server_close(self):
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(channel.OPEN)
+        channel.add_consumer_tag('dev')
 
         message = self.message.encode('utf-8')
         deliver = commands.Basic.Deliver()
@@ -523,6 +532,7 @@ class ChannelProcessDataEventTests(TestFramework):
 
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(channel.OPEN)
+        channel.add_consumer_tag('dev')
 
         message = self.message.encode('utf-8')
         message_len = len(message)
@@ -548,6 +558,7 @@ class ChannelProcessDataEventTests(TestFramework):
 
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(channel.OPEN)
+        channel.add_consumer_tag('dev')
 
         message = self.message.encode('utf-8')
         message_len = len(message)

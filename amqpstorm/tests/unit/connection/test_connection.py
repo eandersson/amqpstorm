@@ -85,6 +85,8 @@ class ConnectionTests(TestFramework):
 
     def test_connection_open_clears_user_closed_flag(self):
         connection = Connection('127.0.0.1', 'guest', 'guest', lazy=True)
+        connection._io = mock.Mock()
+        connection._wait_for_connection_state = mock.Mock()
         connection.set_state(Connection.OPEN)
         connection.close()
         self.assertTrue(connection._user_closed)
@@ -94,6 +96,7 @@ class ConnectionTests(TestFramework):
             connection.open()
         except Exception:
             pass
+
         self.assertFalse(connection._user_closed)
 
     def test_connection_open_channel_on_closed_connection(self):
