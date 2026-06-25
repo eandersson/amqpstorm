@@ -432,15 +432,11 @@ class Channel(BaseChannel):
 
         :return:
         """
-        while not self.is_closed:
+        while not self.is_closed and self.consumer_tags:
             self.process_data_events(
                 to_tuple=to_tuple,
                 auto_decode=auto_decode
             )
-            if self.consumer_tags:
-                time.sleep(IDLE_WAIT)
-                continue
-            break
 
     def stop_consuming(self) -> None:
         """Stop consuming messages.
