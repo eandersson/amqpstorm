@@ -36,7 +36,7 @@ if TYPE_CHECKING:
     from amqpstorm.connection import Connection
 
 LOGGER = logging.getLogger(__name__)
-CONTENT_FRAME = ['Basic.Deliver', 'ContentHeader', 'ContentBody']
+CONTENT_FRAME = frozenset(('Basic.Deliver', 'ContentHeader', 'ContentBody'))
 
 
 class Channel(BaseChannel):
