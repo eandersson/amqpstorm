@@ -213,10 +213,10 @@ class Channel(BaseChannel):
                     if self._user_initiated_close():
                         return
                     raise
-                if not self.consumer_tags:
-                    break
                 time.sleep(IDLE_WAIT)
                 if break_on_empty and not self._inbound:
+                    if not self.consumer_tags:
+                        break
                     if empty_timeout:
                         if empty_since is None:
                             empty_since = time.monotonic()
@@ -432,6 +432,8 @@ class Channel(BaseChannel):
 
         :return:
         """
+        if not self._consumer_callbacks:
+            raise AMQPChannelError('no consumer callback defined')
         while not self.is_closed and self.consumer_tags:
             self.process_data_events(
                 to_tuple=to_tuple,
