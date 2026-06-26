@@ -169,6 +169,7 @@ class ChannelExceptionTests(TestFramework):
     def test_channel_build_inbound_raises_in_loop(self):
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(Channel.OPEN)
+        channel.add_consumer_tag('dev')
         self.first = True
 
         def raise_after_one(**_):

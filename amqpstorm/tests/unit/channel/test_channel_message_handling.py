@@ -282,6 +282,7 @@ class ChannelBuildMessageTests(TestFramework):
     def test_channel_build_no_message_but_inbound_not_empty(self):
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(Channel.OPEN)
+        channel.add_consumer_tag('dev')
 
         message = self.message.encode('utf-8')
         message_len = len(message)
@@ -302,9 +303,44 @@ class ChannelBuildMessageTests(TestFramework):
 
         self.assertFalse(channel._inbound)
 
+    def test_channel_build_inbound_messages_keeps_in_flight_on_cancel(self):
+        channel = Channel(0, FakeConnection(), 360)
+        channel.set_state(Channel.OPEN)
+        channel.add_consumer_tag('ctag')
+
+        message = self.message.encode('utf-8')
+        deliver = commands.Basic.Deliver()
+        header = ContentHeader(body_size=len(message))
+        body = ContentBody(value=message)
+        channel._inbound = collections.deque([deliver])
+
+        state = {'sleeps': 0}
+
+        def fake_sleep(_):
+            state['sleeps'] += 1
+            if state['sleeps'] == 1:
+                channel.remove_consumer_tag()
+            elif state['sleeps'] == 2:
+                channel._inbound.append(header)
+                channel._inbound.append(body)
+            elif state['sleeps'] >= 3:
+                channel.set_state(Channel.CLOSED)
+
+        with mock.patch('amqpstorm.channel.time.sleep', fake_sleep):
+            messages = list(
+                channel.build_inbound_messages(break_on_empty=True)
+            )
+
+        self.assertEqual(
+            len(messages), 1,
+            'in-flight message dropped when the consumer was cancelled'
+        )
+        self.assertEqual(messages[0].body, self.message)
+
     def test_channel_build_inbound_messages(self):
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(Channel.OPEN)
+        channel.add_consumer_tag('dev')
 
         message = self.message.encode('utf-8')
         message_len = len(message)
@@ -325,6 +361,7 @@ class ChannelBuildMessageTests(TestFramework):
     def test_channel_build_multiple_inbound_messages(self):
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(Channel.OPEN)
+        channel.add_consumer_tag('dev')
 
         message = self.message.encode('utf-8')
         message_len = len(message)
@@ -350,6 +387,7 @@ class ChannelBuildMessageTests(TestFramework):
     def test_channel_build_large_number_inbound_messages(self):
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(Channel.OPEN)
+        channel.add_consumer_tag('dev')
 
         message = self.message.encode('utf-8')
         message_len = len(message)
@@ -373,6 +411,7 @@ class ChannelBuildMessageTests(TestFramework):
     def test_channel_build_inbound_messages_without_break_on_empty(self):
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(channel.OPEN)
+        channel.add_consumer_tag('dev')
 
         message = self.message.encode('utf-8')
         message_len = len(message)
@@ -398,6 +437,7 @@ class ChannelBuildMessageTests(TestFramework):
     def test_channel_build_inbound_messages_as_tuple(self):
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(channel.OPEN)
+        channel.add_consumer_tag('dev')
 
         message = self.message.encode('utf-8')
         message_len = len(message)
@@ -420,6 +460,7 @@ class ChannelBuildMessageTests(TestFramework):
     def test_channel_build_inbound_messages_returns_on_user_close(self):
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(channel.OPEN)
+        channel.add_consumer_tag('dev')
 
         message = self.message.encode('utf-8')
         deliver = commands.Basic.Deliver()
@@ -439,6 +480,7 @@ class ChannelBuildMessageTests(TestFramework):
         connection = FakeConnection()
         channel = Channel(0, connection, 360)
         channel.set_state(channel.OPEN)
+        channel.add_consumer_tag('dev')
 
         message = self.message.encode('utf-8')
         deliver = commands.Basic.Deliver()
@@ -456,6 +498,7 @@ class ChannelBuildMessageTests(TestFramework):
     def test_channel_build_inbound_messages_raises_on_server_close(self):
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(channel.OPEN)
+        channel.add_consumer_tag('dev')
 
         message = self.message.encode('utf-8')
         deliver = commands.Basic.Deliver()
@@ -523,6 +566,7 @@ class ChannelProcessDataEventTests(TestFramework):
 
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(channel.OPEN)
+        channel.add_consumer_tag('dev')
 
         message = self.message.encode('utf-8')
         message_len = len(message)
@@ -548,6 +592,7 @@ class ChannelProcessDataEventTests(TestFramework):
 
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(channel.OPEN)
+        channel.add_consumer_tag('dev')
 
         message = self.message.encode('utf-8')
         message_len = len(message)
@@ -639,9 +684,11 @@ class ChannelStartConsumingTests(TestFramework):
         channel = Channel(0, FakeConnection(), 360)
         channel.set_state(channel.OPEN)
 
-        channel._consumer_callbacks = ['fake']
-
-        self.assertIsNone(channel.start_consuming())
+        self.assertRaisesRegex(
+            AMQPChannelError,
+            'no consumer callback defined',
+            channel.start_consuming
+        )
 
     def test_channel_start_consuming_multiple_callbacks(self):
         channel = Channel(0, FakeConnection(), 360)
