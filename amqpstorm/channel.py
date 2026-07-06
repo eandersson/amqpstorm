@@ -171,11 +171,12 @@ class Channel(BaseChannel):
         :param class message_impl: Optional message class to use, derived from
                                    BaseMessage, for created messages. Defaults
                                    to Message.
-        :param float,None empty_timeout: How long, in seconds, the inbound
+        :param int,float,None empty_timeout: How long, in seconds, the inbound
                                     queue must stay continuously empty before
                                     ``break_on_empty`` exits the loop while a
-                                    consumer is active. A None value exits as
-                                    soon as the queue is empty, without waiting.
+                                    consumer is active. A falsy value (``None``
+                                    or ``0``) exits as soon as the queue is
+                                    empty, without waiting.
         :raises AMQPInvalidArgument: Invalid Parameters
         :raises AMQPChannelError: Raises if the channel encountered an error.
         :raises AMQPConnectionError: Raises if the connection
@@ -196,6 +197,15 @@ class Channel(BaseChannel):
                 )
         else:
             message_impl = Message
+        if empty_timeout is not None:
+            # Reject bool (an int subclass) and NaN (which fails ``>= 0``).
+            is_bool = isinstance(empty_timeout, bool)
+            is_number = isinstance(empty_timeout, (int, float))
+            valid = not is_bool and is_number and empty_timeout >= 0
+            if not valid:
+                raise AMQPInvalidArgument(
+                    'empty_timeout must be None or a non-negative number'
+                )
         empty_since = None
         while not self.is_closed:
             try:

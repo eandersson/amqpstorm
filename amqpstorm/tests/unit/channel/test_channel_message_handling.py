@@ -10,6 +10,7 @@ from pamqp.body import ContentBody
 from amqpstorm import AMQPChannelError
 from amqpstorm import AMQPConnectionError
 from amqpstorm import Channel
+from amqpstorm import AMQPInvalidArgument
 from amqpstorm import Message
 from amqpstorm.tests.utility import FakeConnection
 from amqpstorm.tests.utility import TestFramework
@@ -336,6 +337,55 @@ class ChannelBuildMessageTests(TestFramework):
             'in-flight message dropped when the consumer was cancelled'
         )
         self.assertEqual(messages[0].body, self.message)
+
+    def test_channel_build_inbound_messages_empty_timeout_falsy_breaks(self):
+        # A falsy empty_timeout (None or 0) exits as soon as the queue is
+        # empty; the timer is never consulted, even with an active consumer.
+        for empty_timeout in (None, 0):
+            channel = Channel(0, FakeConnection(), 360)
+            channel.set_state(Channel.OPEN)
+            channel._inbound = collections.deque()
+            channel.add_consumer_tag('travis-ci')
+
+            monotonic = mock.Mock(side_effect=[0.0, 1.5])
+
+            with mock.patch('amqpstorm.channel.time.monotonic', monotonic), \
+                    mock.patch('amqpstorm.channel.time.sleep'):
+                messages = list(
+                    channel.build_inbound_messages(break_on_empty=True,
+                                                   empty_timeout=empty_timeout)
+                )
+
+            self.assertEqual(messages, [])
+            monotonic.assert_not_called()
+
+    def test_channel_build_inbound_messages_empty_timeout_custom_value(self):
+        channel = Channel(0, FakeConnection(), 360)
+        channel.set_state(Channel.OPEN)
+        channel._inbound = collections.deque()
+        channel.add_consumer_tag('travis-ci')
+
+        monotonic = mock.Mock(side_effect=[0.0, 0.6])
+
+        with mock.patch('amqpstorm.channel.time.monotonic', monotonic), \
+                mock.patch('amqpstorm.channel.time.sleep'):
+            messages = list(
+                channel.build_inbound_messages(break_on_empty=True,
+                                               empty_timeout=0.5)
+            )
+
+        self.assertEqual(messages, [])
+        # Two observations: start the timer, then confirm the threshold passed.
+        self.assertEqual(monotonic.call_count, 2)
+
+    def test_channel_build_inbound_messages_invalid_empty_timeout(self):
+        channel = Channel(0, FakeConnection(), 360)
+        channel.set_state(Channel.OPEN)
+
+        # non-numeric, negative, bool (int subclass), and NaN are all invalid.
+        for bad in ('soon', -1, True, float('nan')):
+            with self.assertRaises(AMQPInvalidArgument):
+                list(channel.build_inbound_messages(empty_timeout=bad))
 
     def test_channel_build_inbound_messages(self):
         channel = Channel(0, FakeConnection(), 360)
