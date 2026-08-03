@@ -216,6 +216,25 @@ class IOExceptionTests(TestFramework):
         self.assertFalse(poller.is_ready)
         self.assertTrue(exceptions)
 
+    @unittest.skipIf(not hasattr(select, 'poll'), 'poll not available')
+    @mock.patch('select.poll')
+    def test_io_poll_poller_close_when_already_unregistered(self, mock_poll):
+        mock_poll().unregister.side_effect = KeyError(11)
+        poller = Poller(11, [])
+
+        poller.close()
+
+    def test_io_process_incoming_data_when_poller_nullified(self):
+        connection = FakeConnection()
+
+        io = IO(connection.parameters, exceptions=connection.exceptions)
+        io._running.set()
+        io.poller = None
+
+        io._process_incoming_data()
+
+        self.assertFalse(connection.exceptions)
+
     def test_io_simple_receive_when_socket_not_set(self):
         connection = FakeConnection()
         io = IO(connection.parameters, exceptions=connection.exceptions)

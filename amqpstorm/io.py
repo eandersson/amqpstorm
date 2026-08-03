@@ -92,7 +92,7 @@ class Poller(BasePoller):
         """Unregister the file descriptor."""
         try:
             self.poller.unregister(self.fileno)
-        except OSError:
+        except (KeyError, OSError):
             pass
 
 
@@ -194,11 +194,12 @@ class IO:
         :return:
         """
         sock = self.socket
+        poller = self.poller
         if sock is None:
             return
         try:
-            if self.poller:
-                self.poller.close()
+            if poller:
+                poller.close()
             if self.use_ssl:
                 sock.unwrap()  # type: ignore[attr-defined]
             sock.shutdown(socket.SHUT_RDWR)
@@ -339,6 +340,8 @@ class IO:
         """
         try:
             while self._running.is_set():
+                if self.poller is None:
+                    break
                 if self.poller.is_ready:
                     self.data_in += self._receive()
                     self.data_in = self._on_read_impl(self.data_in)
