@@ -1,6 +1,18 @@
 Changelog
 =========
 
+Version 3.1.4
+-------------
+- ``Channel.build_inbound_messages`` now raises ``AMQPInvalidArgument``
+  when ``empty_timeout`` is neither ``None`` nor a non-negative number
+  (follow-up to #155).
+- Fixed a ``KeyError`` escaping ``Connection.close`` with the ``poll``
+  poller; ``select.poll`` raises ``KeyError``, not ``OSError``, when the
+  file descriptor is already unregistered.
+- ``IO`` now captures the poller reference once during teardown, so a
+  concurrent ``close`` can no longer raise ``AttributeError`` or record
+  a spurious ``AMQPConnectionError``.
+
 Version 3.1.3
 -------------
 - ``Channel.build_inbound_messages`` gained an ``empty_timeout``
