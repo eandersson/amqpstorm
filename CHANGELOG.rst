@@ -1,6 +1,13 @@
 Changelog
 =========
 
+Version 3.1.5
+-------------
+- ``pamqp`` 5 and 6 are now supported (``pamqp>=4.0.0,<7.0``).
+- Testing: added Python 3.15 and 3.15t to the CI matrix, refreshed the
+  CI actions, and dropped a ``user.list`` assertion that newer RabbitMQ
+  no longer satisfies (``password_hash`` is no longer returned).
+
 Version 3.1.4
 -------------
 - ``Channel.build_inbound_messages`` now raises ``AMQPInvalidArgument``
