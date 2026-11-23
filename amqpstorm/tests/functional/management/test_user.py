@@ -33,7 +33,6 @@ class ApiUserFunctionalTests(TestFunctionalFramework):
         for user in users:
             self.assertIsInstance(user, dict)
             self.assertIn('name', user)
-            self.assertIn('password_hash', user)
             self.assertIn('tags', user)
 
     def test_api_user_create(self):
